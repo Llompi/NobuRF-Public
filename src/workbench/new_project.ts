@@ -118,7 +118,8 @@ function patchProject(spec: NewProjectSpec, board: { w: number; l: number }): Pr
     throw new Error(`A 50 Ω feed on ${spec.thicknessMm} mm ${spec.substrate} is ${feedW.toFixed(2)} mm wide, more than half ` +
       `the ${patchW.toFixed(1)} mm patch. Use a thinner substrate${boardLimited ? ' or a wider board' : ''}.`);
   }
-  design.project.variables.feed_w.max = 'patch_w / 2';
+  // The design agent starts the feed at most a third of the patch wide; the plain patch takes the full 50 Ω width.
+  design.project.variables.feed_w = { ...design.project.variables.feed_w, value: mm(feedW), max: 'patch_w / 2' };
   const entry = libraryMaterial(spec.substrate);
   if (entry) design.project.materials[spec.substrate] = projectMaterial(entry);
   // The plain patch: the design agent's optional inset, slot, stub and chamfer shapes removed.
