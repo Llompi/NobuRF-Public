@@ -60,40 +60,42 @@ fn update(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups
 }
 
 // energy: the listed edges' stored energy minus what energy.wgsl already
-// counted for them (DispersionState.energyCorrection), summed by one
-// workgroup into total[0]. Energy weights per medium (1 + 2 * MAX_POLES
-// floats): inf, then the p^2 and (p - p_prev)^2 weights per pole. Factors per
-// edge (energyFactors in dispersion.ts): the volume it stands for and the eps
-// the plain sum used; volume 0 for an edge that counts in neither.
+// counted for them (DispersionState.energyCorrection), as partial sums of 256
+// edges per workgroup, which the host adds to energy.wgsl's (fdtd3d.ts).
+// Energy weights per medium (1 + 2 * MAX_POLES floats): inf, then the p^2 and
+// (p - p_prev)^2 weights per pole. Factors per edge (energyFactors in
+// dispersion.ts): the volume it stands for and the eps the plain sum used;
+// volume 0 for an edge that counts in neither.
 @group(0) @binding(8) var<storage, read> energyWeights: array<f32>;
 @group(0) @binding(9) var<storage, read> energyFactors: array<f32>;
-@group(0) @binding(10) var<storage, read_write> total: array<f32>;
+@group(0) @binding(10) var<storage, read_write> partial: array<f32>;
 
 var<workgroup> acc: array<f32, 256>;
 
 @compute @workgroup_size(256)
-fn energy(@builtin(local_invocation_index) t: u32) {
-  var sum = 0.0;
-  let words = 1u + 2u * MAX_POLES;
-  for (var m = t; m < arrayLength(&edgeIndex); m += 256u) {
-    let volume = energyFactors[2u * m];
-    if (volume == 0.0) { continue; }
+fn energy(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(local_invocation_index) t: u32,
+          @builtin(workgroup_id) wg: vec3<u32>, @builtin(num_workgroups) groups: vec3<u32>) {
+  let m = flat_index(gid, groups, 256u);
+  var stored = 0.0;
+  if (m < arrayLength(&edgeIndex) && energyFactors[2u * m] != 0.0) {
     let base = m * (1u + 2u * MAX_POLES);
-    let w = edgeMedium[m] * words;
+    let w = edgeMedium[m] * (1u + 2u * MAX_POLES);
     let f = F[edgeIndex[m]];
-    var stored = (energyWeights[w] - energyFactors[2u * m + 1u]) * f * f;
+    stored = (energyWeights[w] - energyFactors[2u * m + 1u]) * f * f;
     for (var k = 0u; k < MAX_POLES; k++) {
       let p = state[base + 1u + 2u * k];
       let dp = p - state[base + 2u + 2u * k];
       stored += energyWeights[w + 1u + 2u * k] * p * p + energyWeights[w + 2u + 2u * k] * dp * dp;
     }
-    sum += stored * volume;
+    stored *= energyFactors[2u * m];
   }
-  acc[t] = sum;
+  acc[t] = stored;
   workgroupBarrier();
   for (var stride = 128u; stride > 0u; stride >>= 1u) {
     if (t < stride) { acc[t] += acc[t + stride]; }
     workgroupBarrier();
   }
-  if (t == 0u) { total[0] = acc[0]; }
+  // As in energy.wgsl: the 2D dispatch can overshoot by part of a row; those workgroups have no slot.
+  let group = wg.x + wg.y * groups.x;
+  if (t == 0u && group < arrayLength(&partial)) { partial[group] = acc[0]; }
 }

@@ -1,18 +1,21 @@
 import {
-  anchoredResponse, constantResponse, djordjevicSarkarResponse, DS_DEFAULT_F_HIGH_HZ, DS_DEFAULT_F_LOW_HZ, relativeValue, tableResponse, type MediumResponse, type Pole,
+  anchoredResponse, constantResponse, djordjevicSarkarIfBounded, djordjevicSarkarResponse, DS_DEFAULT_F_HIGH_HZ, DS_DEFAULT_F_LOW_HZ, relativeValue, tableResponse, type MediumResponse, type Pole,
 } from '../engine/dispersion';
 import type { DielectricMaterial, PoleDef } from './schema';
 
 /**
  * The solver's view of a dielectric: its permittivity and permeability as
  * responses (dispersion.ts), or null where the material is the plain case the
- * main kernels already handle (constant eps_r with tan_delta; mu_r = 1).
+ * main kernels already handle (constant eps_r, its loss a conductivity exact
+ * at the loss reference; mu_r = 1).
  */
 export interface MaterialResponses {
   permittivity: MediumResponse | null;
   permeability: MediumResponse | null;
   /** What the fit leaves to know about (a measured table fitted loosely, or a band outside it); rasterise shows them per layer. */
   notes?: string[];
+  /** The permittivity is the default for a loss tangent alone (Djordjevic-Sarkar at the loss reference), not a model the file names. */
+  defaultLoss?: true;
 }
 
 /** A table fitted worse than this (relative, in eps' or eps'') gets a note. */
@@ -32,9 +35,22 @@ const toPoles = (defs: PoleDef[]): Pole[] => defs.map((p) => (p.type === 'debye'
 /** Throws an Error with a message for the material's path (resolve.ts adds it). */
 export function materialResponses(m: DielectricMaterial, band: MaterialBand): MaterialResponses {
   let permittivity: MediumResponse | null = null;
+  let defaultLoss = false;
   const notes: string[] = [];
   const d = m.dispersion;
-  if (d?.model === 'djordjevic_sarkar') {
+  if (d === undefined && m.tan_delta > 0) {
+    // A loss tangent alone: Djordjevic-Sarkar, exact at the loss reference, whose loss vanishes at DC.
+    const ds = { epsR: m.eps_r, tanDelta: m.tan_delta, atHz: band.lossReferenceHz, fLowHz: DS_DEFAULT_F_LOW_HZ, fHighHz: DS_DEFAULT_F_HIGH_HZ };
+    const fallback = 'so its loss is a constant conductivity, exact at loss_reference_ghz and still conducting at DC; ' +
+      'give it dispersion "djordjevic_sarkar" with its own corners, "poles" or "table" for a loss that vanishes at DC';
+    if (!(ds.atHz < ds.fHighHz)) {
+      notes.push(`loss_reference_ghz is at or above the wideband (Djordjevic-Sarkar) model's 1 THz upper corner, ${fallback}`);
+    } else {
+      permittivity = djordjevicSarkarIfBounded(ds, band.fMinHz, band.fMaxHz);
+      if (permittivity) defaultLoss = true;
+      else notes.push(`its tan δ ${m.tan_delta} at εr ${m.eps_r} is too lossy for the wideband (Djordjevic-Sarkar) model, whose high-frequency εr would fall below 1, ${fallback}`);
+    }
+  } else if (d?.model === 'djordjevic_sarkar') {
     permittivity = djordjevicSarkarResponse({
       epsR: m.eps_r, tanDelta: m.tan_delta, atHz: d.at_ghz * 1e9,
       fLowHz: d.f_low_hz ?? DS_DEFAULT_F_LOW_HZ, fHighHz: d.f_high_hz ?? DS_DEFAULT_F_HIGH_HZ,
@@ -63,7 +79,7 @@ export function materialResponses(m: DielectricMaterial, band: MaterialBand): Ma
     // As for a loss tangent on eps: a magnetic conductivity exact at the reference frequency.
     permeability = constantResponse(muR, 2 * Math.PI * band.lossReferenceHz * muR * muTan);
   }
-  return notes.length > 0 ? { permittivity, permeability, notes } : { permittivity, permeability };
+  return { permittivity, permeability, ...(notes.length > 0 ? { notes } : {}), ...(defaultLoss ? { defaultLoss } : {}) };
 }
 
 /** Band samples for shortestWavelength; pole frequencies inside the band are added to them. */

@@ -738,7 +738,9 @@ export function rasterise(project: Project, options: RasteriseOptions = {}): Ras
         fail(d.materialPath, `εr′ is ${re.toPrecision(4)} at loss_reference_ghz (${project.analysis.loss_reference_ghz} GHz), just above a resonance; ` +
           'move loss_reference_ghz to where the material is an ordinary dielectric');
       }
-      eps = re;
+      // A model anchored at the loss reference (the default for a loss tangent) returns eps_r there to rounding; keep eps_r
+      // itself, so layers of one eps_r still read as equal (a port may span them).
+      eps = Math.abs(re - d.epsR) <= 1e-12 * d.epsR ? d.epsR : re;
       sigma = -im * 2 * Math.PI * fRef * dtSec;
     }
     for (let kk = zIndex(d.z0); kk < zIndex(d.z1); kk++) {
@@ -1152,9 +1154,6 @@ function materialWarnings(input: MaterialWarningInput): string[] {
   }
   const magnetic = dielectrics.filter((d) => d.responses.permeability);
   if (magnetic.length === 0) return out;
-  const names = magnetic.map((d) => `"${d.name}"`).join(', ');
-  out.push(`magnetic layer ${names}: the energy stop (${input.energyStop} dB) counts magnetic energy as if μr were 1 and leaves out ` +
-    'the energy held in material poles, so the run can end early. Check the result against a run with a deeper energy_decay_db');
   for (const d of magnetic) {
     // A constant μr (lossy or not) is exact in the series mean at the loss reference; only its loss drifts elsewhere, slightly.
     if (d.responses.permeability!.poles.length === 0) continue;

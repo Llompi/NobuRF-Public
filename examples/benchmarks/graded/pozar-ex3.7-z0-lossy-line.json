@@ -18,7 +18,10 @@
   "materials": {
     "substrate": {
       "eps_r": 9.9,
-      "tan_delta": 0.3
+      "tan_delta": 0.3,
+      "dispersion": {
+        "model": "conductivity"
+      }
     }
   },
   "stackup": [

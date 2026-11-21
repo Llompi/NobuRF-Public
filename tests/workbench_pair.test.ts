@@ -21,17 +21,18 @@ describe('differential pair template', () => {
     expect(() => rasterise(p)).not.toThrow();
   });
 
-  it('gives a lossy substrate a Djordjevic-Sarkar model with the same eps_r and tan delta at the design frequency, so no DC leak', () => {
+  it('leaves a lossy substrate to the default Djordjevic-Sarkar model at the design frequency, so no DC leak', () => {
     const p = pairTemplate();
-    const core = p.stackup.find((l) => l.type === 'dielectric')!;
-    expect(p.materials[core.material]).toEqual({ eps_r: 4.4, tan_delta: 0.02, dispersion: { model: 'djordjevic_sarkar', at_ghz: 5 } });
+    const core = resolveProject(p).stackup.find((l) => l.type === 'dielectric')!;
+    expect(p.analysis.loss_reference_ghz).toBe(5);
+    expect(core.type === 'dielectric' && core.responses.defaultLoss).toBe(true);
     expect(constantLossDielectrics(resolveProject(p))).toEqual([]);
-    // The line template keeps the plain loss tangent, and the helper names its layer.
+    // The constant-conductivity opt-in conducts at DC, and the helper names its layer.
     const line = newProject({ template: 'line', name: 'line', frequencyGHz: 5, substrate: 'FR-4', thicknessMm: 0.5 });
-    expect(constantLossDielectrics(resolveProject(line))).toEqual(['core']);
-    // A lossless substrate needs no model.
-    const lossless = newProject({ template: 'pair', name: 'pair', frequencyGHz: 5, substrate: 'air', thicknessMm: 0.5 });
-    expect(lossless.stackup.find((l) => l.type === 'dielectric')!.material).toBe('air');
+    expect(constantLossDielectrics(resolveProject(line))).toEqual([]);
+    const constant = parseProject({ ...line, materials: { lam: { eps_r: 4.4, tan_delta: 0.02, dispersion: { model: 'conductivity' } } },
+      stackup: line.stackup.map((l) => (l.type === 'dielectric' ? { ...l, material: 'lam' } : l)) });
+    expect(constantLossDielectrics(resolveProject(constant))).toEqual(['core']);
     // A pole model whose poles supply only part of the loss leaves the rest as a constant conductivity: still a leak.
     const withPoles = (delta: number) => parseProject({ ...line, materials: { lam: { eps_r: 4, tan_delta: 0.02, dispersion: { model: 'poles', at_ghz: 5, poles: [{ type: 'debye', delta, f_relax_ghz: 5 }] } } },
       stackup: line.stackup.map((l) => (l.type === 'dielectric' ? { ...l, material: 'lam' } : l)) });

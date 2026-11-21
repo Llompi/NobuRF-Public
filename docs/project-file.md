@@ -73,7 +73,7 @@ is a complete project.
 | `components` | Optional lumped resistors, inductors and capacitors (SMD parts, matching networks): see [Lumped components](#lumped-components). |
 | `boundaries` | Per face (`x_min` … `z_max`): `{ type: "pml", cells }` or `{ type: "pec" }`. |
 | `mesh` | `cell` and `air_margin_cells: { xy, below, above }` (each at least 1, in multiples of `cell`). Without `graded` the cells are uniform cubes of `cell`. With `graded: { edge_cell, dielectric_cells, max_growth }`, see below. `conformal: true` models slanted and curved copper edges by the part of each cell they cover ([conformal.md](conformal.md)). |
-| `analysis` | Band (`f_min_ghz`, `f_max_ghz`, `n_freq`), `loss_reference_ghz` (loss tangents become a conductivity exact there), `stop: { energy_decay_db, max_steps }`, and optional `excite`: the ids of the ports to excite (default: every port). |
+| `analysis` | Band (`f_min_ghz`, `f_max_ghz`, `n_freq`), `loss_reference_ghz` (where `eps_r` and `tan_delta` hold exactly for a material without its own `at_ghz`), `stop: { energy_decay_db, max_steps }`, and optional `excite`: the ids of the ports to excite (default: every port). |
 | `outputs` | `zin_at_ghz`: frequencies at which `result.json` reports Z_in. Optional `far_field_ghz`: 1 to 16 frequencies inside the band at which to compute the far field (writes `far_field.json`). Optional `near_field_mm`: 1 to 4 heights above the top copper for a near-field scan (workbench only, see below). Optional `differential_pairs`: ports read as differential pairs, `{ id, positive, negative, differential_ohm?, common_ohm? }` per pair end (writes `differential.json`; see [differential-pairs.md](differential-pairs.md)). |
 
 ## Several ports
@@ -221,7 +221,7 @@ at any value and costs no extra time steps. What the grid adds around it is
 real and is not removed: a between-layers part has the inductance of its
 column (about 0.3 nH for a 1 mm post on 1 mm cells) and the capacitance of
 the cell it replaces, and a layer part has the fringing capacitance of its
-gap. On a dispersive substrate (`dispersion` on the material), the cells a
+gap. On a dispersive substrate (any lossy one, unless it is `conductivity` or too lossy for the wideband model), the cells a
 part occupies keep the substrate's single-frequency stand-in: its ε_r and
 loss at `analysis.loss_reference_ghz`. The rest of the substrate stays
 dispersive. See [validation.md](validation.md#76-lumped-components) for how close
@@ -503,8 +503,27 @@ anti-pad keeps the plain Rs.
 
 ## Materials that vary with frequency, and magnetic materials
 
-A plain dielectric has one `eps_r` and one `tan_delta` across the band; the
-loss becomes a conductivity exact at `analysis.loss_reference_ghz`. Three
+A dielectric given only `eps_r` and `tan_delta` is lossless and constant when
+`tan_delta` is 0. When it is lossy, it gets the Djordjevic-Sarkar wideband
+model below with those values at `analysis.loss_reference_ghz`: the loss stays
+nearly flat across the band and vanishes at DC, and εr′ falls about
+1.5 × tan δ × εr per decade (for FR-4, 0.13 per decade, 3 %), which is
+how a real laminate's loss and permittivity are tied (Kramers-Kronig). A
+constant εr′ with a constant loss tangent is not causal, so a time-domain
+solver has to pick one of these two models. The other, the opt-in
+`"dispersion": { "model": "conductivity" }`, keeps εr′ constant and makes the
+loss a conductivity exact at the loss reference, as openEMS does; its loss
+tangent grows as 1/f below the reference and it still conducts at DC, which a
+TDR level reads as a leak ([differential-pairs.md](differential-pairs.md#the-substrates-loss-model)).
+Use it to compare with a tool or a closed form that assumes a constant εr. A
+loss too high for the wideband model (its high-frequency εr would fall
+below 1, for example tan δ 0.2 on εr 1.2) keeps the constant conductivity,
+and rasterise says so. The wideband model costs about 9 to 16 Debye poles (two per decade of the band plus three guard decades) on every
+substrate edge, about 110 bytes of pole state per edge against 16 bytes of
+field arrays: Pozar's stepped filter on its refined mesh (5.8 M cells) holds
+337 MB of pole state beside 279 MB of fields, and an FR-4 patch solve took
+17 % longer per step on the software GPU. A GPU whose buffer limit the pole
+state exceeds refuses the model with the reason. Three
 optional keys go further:
 
 ```json
@@ -552,6 +571,8 @@ optional keys go further:
   `poles` for it), is fitted as near as it can be, and rasterise warns when
   that is worse than 2 % or when the analysis band runs past the table.
   Given `eps_r` and `tan_delta` are not checked against the table.
+- **`dispersion: { model: "conductivity" }`**: constant `eps_r`, the loss a
+  conductivity exact at `analysis.loss_reference_ghz` (above).
 - **`mu_r`, `mu_tan_delta`**: relative permeability and magnetic loss tangent
   (μ″/μ′), constant across the band with the loss exact at the loss
   reference, like `eps_r` and `tan_delta`. **`mu_dispersion`** takes the same
@@ -569,10 +590,8 @@ reference (just above a resonance) is refused, since the port needs a plain
 εr there. A Lorentz resonance must be resolved by the time step: with ∞ the
 material's high-frequency value, 2π f_res dt √(1 + Δ / ∞) ≤ 1, which on
 0.5 mm cells is about 170 GHz for a weak pole and 17 GHz for Δ / ∞ = 100.
-The energy stop weights H by 1 and leaves out the energy stored in the
-poles, so with a high-μ ferrite holding much of the energy, a run may stop
-early; give it more `energy_decay_db` or `max_steps` and check that the
-result moves. A coax probe's pin through a magnetic board sees the board's
+The energy stop counts the energy stored in the poles and weights H by μ
+on magnetic edges. A coax probe's pin through a magnetic board sees the board's
 μ, as a real one would. Its PTFE bore runs below the ground plane, and is
 painted for E only, so a magnetic layer under the ground keeps its μ inside
 the bore. Rasterise warns about each of these when it applies, and when a

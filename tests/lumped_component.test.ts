@@ -9,7 +9,7 @@ import { parseProject } from '../src/project/schema';
 import { rasterise } from '../src/project/rasterise';
 import { resolveProject } from '../src/project/resolve';
 import { scatteringMatrix, type Complex } from '../src/engine/port_dft';
-import { twoPortLineJson } from './project_fixtures';
+import { twoPortLineJson, withConstantLossFr4 } from './project_fixtures';
 
 const control = { maxSteps: 600, stopAtEnergyDecayDb: null, energyCheckEverySteps: 100 };
 const exc = { fMinGHz: 1, fMaxGHz: 10, nFreq: 19, z0: 50 };
@@ -17,10 +17,11 @@ const values = (v: Partial<ComponentValues>): ComponentValues => ({ resistanceOh
 
 describe('lumped component update', () => {
   it('a resistor is the passive lumped port of the same resistance, to float rounding', () => {
-    const portModel = rasterise(parseProject(twoPortLineJson())).model;
+    // Constant-loss FR-4: the resistor is placed by hand below, outside rasterise, which would take its column off a dispersive list.
+    const portModel = rasterise(parseProject(withConstantLossFr4(twoPortLineJson()))).model;
     const reference = new CpuFdtd(portModel).run(exc, control);
     // Same model, port p2 replaced by a 50 ohm resistor on its column.
-    const model = rasterise(parseProject(twoPortLineJson())).model;
+    const model = rasterise(parseProject(withConstantLossFr4(twoPortLineJson()))).model;
     const p2 = model.ports[1];
     for (const ez of p2.ezIndex) {
       // The port column is FR-4 without its loss (the port drops it); give the resistor the same medium.

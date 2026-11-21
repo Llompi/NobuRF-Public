@@ -302,7 +302,7 @@ export class Inspector {
           { label: 'Lowest frequency', path: ['analysis', 'f_min_ghz'], kind: 'number', unit: 'GHz' },
           { label: 'Highest frequency', path: ['analysis', 'f_max_ghz'], kind: 'number', unit: 'GHz' },
           { label: 'Frequency points', path: ['analysis', 'n_freq'], kind: 'integer' },
-          { label: 'Loss reference', path: ['analysis', 'loss_reference_ghz'], kind: 'number', unit: 'GHz', hint: 'Loss tangents without a wideband model are exact at this frequency. Copper loss follows √f across the band.' },
+          { label: 'Loss reference', path: ['analysis', 'loss_reference_ghz'], kind: 'number', unit: 'GHz', hint: 'Materials without their own reference frequency have their εr and loss tangent exactly here. Copper loss follows √f across the band.' },
           { label: 'Stop when energy falls', path: ['analysis', 'stop', 'energy_decay_db'], kind: 'number', unit: 'dB' },
           { label: 'Step limit', path: ['analysis', 'stop', 'max_steps'], kind: 'integer' },
           { label: 'Report Z at', path: ['outputs', 'zin_at_ghz'], kind: 'numbers', unit: 'GHz', hint: 'Comma-separated frequencies.' },
@@ -662,9 +662,11 @@ function dielectricFields(p: JsonPath, m: DielectricMaterial | undefined): Field
   const rows = model?.model === 'table' && Array.isArray(model.points) ? model.points : [];
   const epsHint = model?.model === 'table'
     ? `Shown for lists and exports only; the solver fits the material's ${rows.length}-row table${rows.length > 0 ? ` from ${rows[0]?.f_ghz} to ${rows[rows.length - 1]?.f_ghz} GHz` : ''}.`
-    : model
-      ? `The value at ${model.at_ghz} GHz; ${model.model === 'djordjevic_sarkar' ? 'the Djordjevic-Sarkar wideband model' : 'the material\'s Debye/Lorentz poles'} give the rest of the band.`
-      : undefined;
+    : model?.model === 'conductivity'
+      ? 'Constant across the band; the loss is a conductivity, exact at the loss reference.'
+      : model
+        ? `The value at ${model.at_ghz} GHz; ${model.model === 'djordjevic_sarkar' ? 'the Djordjevic-Sarkar wideband model' : 'the material\'s Debye/Lorentz poles'} give the rest of the band.`
+        : m && m.tan_delta > 0 ? 'The value at the loss reference; the Djordjevic-Sarkar wideband model gives the rest of the band.' : undefined;
   const fields: Field[] = [
     { label: 'Relative permittivity εr', path: [...p, 'eps_r'], kind: 'number', ...(epsHint ? { hint: epsHint } : {}) },
     { label: 'Loss tangent', path: [...p, 'tan_delta'], kind: 'number' },

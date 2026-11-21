@@ -269,7 +269,7 @@ export function addConformalSolids(model: VoxelModel, solids: readonly TriangleM
   if (Sc > CONFORMAL_SOLID_COURANT + 1e-12) {
     throw new Error(`conformal solids need a Courant number of ${CONFORMAL_SOLID_COURANT.toFixed(4)} or less (docs/conformal.md); the model runs at ${Sc}`);
   }
-  if (model.dispersion?.e || model.dispersion?.h) throw new Error('conformal solids do not support frequency-dependent or magnetic materials yet');
+  if (model.dispersion?.e || model.dispersion?.h) throw new Error('conformal solids do not support frequency-dependent or magnetic materials yet, and a lossy dielectric is frequency-dependent by default; give it dispersion { "model": "conductivity" }');
   const N = nx * ny * nz;
   const cover = solidCoverage(model.mesh, solids);
   const snap = (f: number) => (f <= COVERAGE_SNAP ? 0 : f >= 1 - COVERAGE_SNAP ? 1 : f);

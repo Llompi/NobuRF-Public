@@ -32,15 +32,18 @@ export interface VariableDef {
 
 /**
  * A dielectric, optionally magnetic and frequency-dependent. Without a model,
- * eps_r and tan_delta hold at every frequency (the loss becomes a
- * conductivity exact at analysis.loss_reference_ghz), and mu_r, mu_tan_delta
- * likewise. With a model, eps_r and tan_delta (or mu_r, mu_tan_delta) are its
- * values at the model's at_ghz. See docs/project-file.md, "Materials".
+ * a lossy dielectric is Djordjevic-Sarkar with eps_r and tan_delta at
+ * analysis.loss_reference_ghz, and a lossless one is a constant eps_r.
+ * model "conductivity" keeps eps_r constant and makes the loss a
+ * conductivity exact at the loss reference. With another model, eps_r and
+ * tan_delta are its values at the model's at_ghz. mu_r and mu_tan_delta are
+ * constant unless mu_dispersion is given, the magnetic loss a conductivity
+ * exact at the loss reference. See docs/project-file.md, "Materials".
  */
 export interface DielectricMaterial {
   eps_r: number;
   tan_delta: number;
-  /** Frequency model of the permittivity. Absent: constant. */
+  /** Frequency model of the permittivity. Absent: Djordjevic-Sarkar at the loss reference if lossy, else constant. */
   dispersion?: PermittivityModel;
   /** Relative permeability; absent: 1. */
   mu_r?: number;
@@ -57,6 +60,17 @@ export interface DjordjevicSarkarModel {
   /** Corner frequencies of the model's flat-loss region; absent: 1 kHz and 1 THz. */
   f_low_hz?: number;
   f_high_hz?: number;
+}
+
+/**
+ * eps_r constant at every frequency and the loss a conductivity exact at
+ * analysis.loss_reference_ghz: what a constant loss tangent must become in a
+ * time-domain solver. It still conducts at DC, so TDR levels and step
+ * responses read it as a leak; the opt-in for comparing with a tool that uses
+ * this model.
+ */
+export interface ConductivityModel {
+  model: 'conductivity';
 }
 
 /** Debye relaxation: delta / (1 + j f / f_relax). */
@@ -87,7 +101,7 @@ export interface TableModel {
   points: Array<{ f_ghz: number; eps_r: number; tan_delta: number }>;
 }
 
-export type PermittivityModel = DjordjevicSarkarModel | PoleModel | TableModel;
+export type PermittivityModel = DjordjevicSarkarModel | ConductivityModel | PoleModel | TableModel;
 
 /** A metal for copper layers. Its sheets get the skin-effect impedance of this conductivity (see rasterise.ts). */
 export interface ConductorMaterial {
@@ -550,10 +564,13 @@ function readDielectric(v: unknown, path: string): DielectricMaterial {
       m.dispersion = { model, at_ghz: readNumber(d.at_ghz, `${at}.at_ghz`, 1e-6, 1000) };
       if (d.f_low_hz !== undefined) m.dispersion.f_low_hz = readNumber(d.f_low_hz, `${at}.f_low_hz`, 1e-3, 1e15);
       if (d.f_high_hz !== undefined) m.dispersion.f_high_hz = readNumber(d.f_high_hz, `${at}.f_high_hz`, 1e-3, 1e15);
+    } else if (model === 'conductivity') {
+      readObject(o.dispersion, at, ['model'], []);
+      m.dispersion = { model };
     } else if (model === 'poles') {
       m.dispersion = readPoleModel(o.dispersion, at);
     } else {
-      fail(`${at}.model`, `must be "djordjevic_sarkar", "poles" or "table", got ${show(model)}`);
+      fail(`${at}.model`, `must be "djordjevic_sarkar", "conductivity", "poles" or "table", got ${show(model)}`);
     }
   }
   if (o.mu_r !== undefined) m.mu_r = readNumber(o.mu_r, `${path}.mu_r`, 1, 1e5);

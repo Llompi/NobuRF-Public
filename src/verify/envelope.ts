@@ -62,9 +62,12 @@ export function envelopeFindings(resolved: ResolvedProject, fMinGhz: number, fMa
     const t = VALIDATED.thicknessInWavelengths;
     add(`thickness of "${layer.name}" in wavelengths at ${fMaxGhz} GHz`, fmt(thickness), `up to ${t.max}`, thickness <= t.max, t.evidence);
   }
-  const modelled = resolved.stackup.flatMap((l) => (l.type === 'dielectric' && (l.responses.permittivity || l.responses.permeability) ? [l] : []));
-  add('materials', modelled.length > 0 ? `frequency-dependent or magnetic: ${modelled.map((l) => `"${l.name}"`).join(', ')}` : 'constant eps_r, mu_r 1',
-    'constant eps_r, mu_r 1', modelled.length === 0, VALIDATED.materials.evidence);
+  // A loss tangent alone counts as before: its default wideband model differs from the constant one only in how the loss
+  // spreads over the band, and the measured benchmarks are lossless, so neither loss model is checked against them.
+  const modelled = resolved.stackup.flatMap((l) => (l.type === 'dielectric' &&
+    ((l.responses.permittivity && !l.responses.defaultLoss) || l.responses.permeability) ? [l] : []));
+  add('materials', modelled.length > 0 ? `frequency-dependent or magnetic: ${modelled.map((l) => `"${l.name}"`).join(', ')}` : 'eps_r and tan delta, mu_r 1',
+    'eps_r and tan delta, mu_r 1', modelled.length === 0, VALIDATED.materials.evidence);
   const f = VALIDATED.frequencyGhz;
   add('band (GHz)', `${fMinGhz} to ${fMaxGhz}`, `${f.min} to ${f.max}`, fMinGhz >= f.min && fMaxGhz <= f.max, f.evidence);
 

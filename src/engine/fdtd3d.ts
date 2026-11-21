@@ -63,8 +63,9 @@ interface DispersionPass {
   state: GPUBuffer;
   pipes: { snapshot: GPUComputePipeline; update: GPUComputePipeline; energy: GPUComputePipeline };
   binds: { snapshot: GPUBindGroup; update: GPUBindGroup; energy: GPUBindGroup };
-  /** One float: the stored-energy correction of the listed edges at the last energy check. */
-  energyTotal: GPUBuffer;
+  /** The stored-energy correction of the listed edges at the last energy check, one partial sum per workgroup of 256 edges. */
+  energyPartials: GPUBuffer;
+  energyDispatch: [number, number];
   dispatch: [number, number];
 }
 
@@ -150,7 +151,8 @@ export class Fdtd3D {
   private readonly bufPsiE: GPUBuffer;
   private readonly bufPsiH: GPUBuffer;
   private readonly bufEnergy: GPUBuffer;
-  private readonly bufEnergyRead: GPUBuffer;
+  /** energy.wgsl's partials, then the lumped components' energy, then the dispersion partials (E, H); sized per model in loadDispersion. */
+  private bufEnergyRead: GPUBuffer;
   private readonly bufDummy: GPUBuffer;
   private readonly bufPortEz: GPUBuffer;
   private readonly bufPortLength: GPUBuffer;
@@ -260,9 +262,9 @@ export class Fdtd3D {
     this.bufPsiH = mk(Math.max(4, psiFloats * 4), S | CD, 'psiH');
     this.energyGroups = Math.ceil(this.N / ENERGY_WG);
     this.bufEnergy = mk(this.energyGroups * 4, S | CS, 'energy');
-    // Three slots more than the partials, each 0 when unused: the lumped components' energy
-    // (lumped_energy.wgsl), then the dispersive E and magnetic H edges' correction (dispersion.wgsl).
-    this.bufEnergyRead = mk((this.energyGroups + 3) * 4, GPUBufferUsage.MAP_READ | CD, 'energyRead');
+    // One slot more than the partials for the lumped components' energy (lumped_energy.wgsl), 0 when unused;
+    // loadDispersion adds room for the dispersive E and magnetic H edges' partials (dispersion.wgsl).
+    this.bufEnergyRead = mk((this.energyGroups + 1) * 4, GPUBufferUsage.MAP_READ | CD, 'energyRead');
     this.bufDummy = mk(4, S, 'dummy');
     this.bufPortEz = mk(MAX_PORT_CELLS * 4, S | CD, 'portEz');
     this.bufPortLength = mk(MAX_PORT_CELLS * 4, S | CD, 'portLength');
@@ -612,14 +614,18 @@ export class Fdtd3D {
           for (const d of dispersionPasses) {
             pass.setPipeline(d.pipes.energy);
             pass.setBindGroup(0, d.binds.energy);
-            pass.dispatchWorkgroups(1);
+            pass.dispatchWorkgroups(...d.energyDispatch);
           }
           pass.end();
-          // The extra slots may hold a previous model's values; unused ones must read 0.
-          enc.clearBuffer(this.bufEnergyRead, this.energyGroups * 4, 3 * 4);
           enc.copyBufferToBuffer(this.bufEnergy, 0, this.bufEnergyRead, 0, this.energyGroups * 4);
+          // The lumped slot reads 0 without components.
           if (this.lumped) enc.copyBufferToBuffer(this.lumped.total, 0, this.bufEnergyRead, this.energyGroups * 4, 4);
-          dispersionPasses.forEach((d, n) => enc.copyBufferToBuffer(d.energyTotal, 0, this.bufEnergyRead, (this.energyGroups + 1 + n) * 4, 4));
+          else enc.clearBuffer(this.bufEnergyRead, this.energyGroups * 4, 4);
+          let slot = this.energyGroups + 1;
+          for (const d of dispersionPasses) {
+            enc.copyBufferToBuffer(d.energyPartials, 0, this.bufEnergyRead, slot * 4, d.energyPartials.size);
+            slot += d.energyPartials.size / 4;
+          }
         }
         if (checkNow || stepsInSubmit >= MAX_STEPS_PER_SUBMIT || done >= steps) {
           dev.queue.submit([enc.finish()]);
@@ -706,6 +712,17 @@ export class Fdtd3D {
   /** Upload the model's dispersive and magnetic edge lists (dispersion.ts) and their pole state. */
   private loadDispersion(model: VoxelModel): void {
     for (const d of [this.dispersion.e, this.dispersion.h]) for (const b of d?.buffers ?? []) b.destroy();
+    this.dispersion = { e: null, h: null };
+    // Checked before any upload, so a refused model leaves nothing half loaded.
+    const limit = Math.min(this.device.limits.maxStorageBufferBindingSize, this.device.limits.maxBufferSize);
+    for (const [field, d] of [['E', model.dispersion?.e], ['H', model.dispersion?.h]] as const) {
+      const stateBytes = d ? d.index.length * stateStride(d.maxPoles) * 4 : 0;
+      if (d && stateBytes > limit) {
+        throw new Error(`the pole state of ${d.index.length} frequency-dependent ${field} edges (${d.maxPoles} poles each) needs ` +
+          `${Math.ceil(stateBytes / 2 ** 20)} MiB, over this GPU's ${Math.floor(limit / 2 ** 20)} MiB buffer limit; use larger cells, ` +
+          'or give the lossy layers dispersion { "model": "conductivity" } (a constant loss, no poles)');
+      }
+    }
     const build = (field: 'e' | 'h', d: EdgeDispersion | undefined): DispersionPass | null => {
       if (!d) return null;
       const key = `${field}:${d.maxPoles}`;
@@ -726,21 +743,24 @@ export class Fdtd3D {
       const index = upload(d.index, `${field}DispersionIndex`);
       const medium = upload(d.medium, `${field}DispersionMedium`);
       const media = upload(d.media, `${field}DispersionMedia`);
-      const state = this.device.createBuffer({ size: d.index.length * stateStride(d.maxPoles) * 4, usage: S | GPUBufferUsage.COPY_DST, label: `${field}DispersionState` });
+      const stateBytes = d.index.length * stateStride(d.maxPoles) * 4;
+      const state = this.device.createBuffer({ size: stateBytes, usage: S | GPUBufferUsage.COPY_DST, label: `${field}DispersionState` });
       const energyWeights = upload(d.energy, `${field}DispersionEnergyWeights`);
-      const energyTotal = this.device.createBuffer({ size: 4, usage: S | GPUBufferUsage.COPY_SRC, label: `${field}DispersionEnergy` });
+      const energyGroups = Math.ceil(d.index.length / ENERGY_WG);
+      const energyPartials = this.device.createBuffer({ size: energyGroups * 4, usage: S | GPUBufferUsage.COPY_SRC, label: `${field}DispersionEnergy` });
       const fieldBuffer = field === 'e' ? this.bufE : this.bufH;
       // Bindings 0..10 as in dispersion.wgsl; each entry point's auto layout keeps only the ones it uses.
       const factors = upload(energyFactors(model, field)!, `${field}DispersionEnergyFactors`);
-      const all = [this.bufParams, fieldBuffer, this.bufEDecay, this.bufECurl, index, medium, media, state, energyWeights, factors, energyTotal];
+      const all = [this.bufParams, fieldBuffer, this.bufEDecay, this.bufECurl, index, medium, media, state, energyWeights, factors, energyPartials];
       const bindFor = (p: GPUComputePipeline, used: number[]) => this.device.createBindGroup({
         layout: p.getBindGroupLayout(0),
         entries: used.map((binding) => ({ binding, resource: { buffer: all[binding] } })),
       });
       return {
-        buffers: [index, medium, media, state, energyWeights, factors, energyTotal],
+        buffers: [index, medium, media, state, energyWeights, factors, energyPartials],
         state,
-        energyTotal,
+        energyPartials,
+        energyDispatch: this.flatDispatch(energyGroups),
         pipes,
         binds: {
           snapshot: bindFor(pipes.snapshot, [1, 4, 7]),
@@ -751,6 +771,9 @@ export class Fdtd3D {
       };
     };
     this.dispersion = { e: build('e', model.dispersion?.e), h: build('h', model.dispersion?.h) };
+    const dispersionSlots = [this.dispersion.e, this.dispersion.h].reduce((n, d) => n + (d ? d.energyPartials.size / 4 : 0), 0);
+    this.bufEnergyRead.destroy();
+    this.bufEnergyRead = this.device.createBuffer({ size: (this.energyGroups + 1 + dispersionSlots) * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST, label: 'energyRead' });
   }
 
   private loadSheetLoss(model: VoxelModel): void {
@@ -834,15 +857,12 @@ export class Fdtd3D {
     this.thinSheets = { buffers, ghosts: [ghostE, ghostH], h: passOf(sheets.h, 'h'), e: passOf(sheets.e, 'e') };
   }
 
-  /** Buffers of the lumped component pass (lumped.wgsl) and its energy sum; the read-back's lumped slot is zeroed without components. */
+  /** Buffers of the lumped component pass (lumped.wgsl) and its energy sum (the read-back clears its slot each check without components). */
   private loadLumped(model: VoxelModel): void {
     for (const b of this.lumped?.buffers ?? []) b.destroy();
     this.lumped = null;
     const edges = model.lumped;
-    if (!edges || edges.eIndex.length === 0) {
-      this.device.queue.writeBuffer(this.bufEnergyRead, this.energyGroups * 4, new Float32Array(1));
-      return;
-    }
+    if (!edges || edges.eIndex.length === 0) return;
     const S = GPUBufferUsage.STORAGE;
     const CD = GPUBufferUsage.COPY_DST;
     const upload = (data: Uint32Array | Float32Array, label: string) => {

@@ -60,12 +60,15 @@ describe('noburf CLI', () => {
     // fully in the peak, so this run reaches its 30 dB at 500 steps instead of
     // 600: the same stop level is less conservative here, and s11_min moves from
     // -3.0039 to -3.2124 dB (Z at 12 GHz was 4.4443 + j23.1345 ohm).
+    // Nov 21: a loss tangent alone is Djordjevic-Sarkar at the 12 GHz loss reference. At 12 GHz Z barely moves
+    // (4.2979 + j22.8301 ohm before); at the 9.8 GHz dip the constant conductivity had given tan delta
+    // 0.02 x 12 / 9.8 = 0.0245 and the wideband model gives 0.020, so s11_min moves from -3.2124 to -2.8280 dB.
     expect(result.f0_ghz).toBe(9.8);
-    expect(result.s11_min_db).toBeCloseTo(-3.2124, 3);
+    expect(result.s11_min_db).toBeCloseTo(-2.8280, 3);
     expect(result.zin).toHaveLength(1);
     expect(result.zin[0].f_ghz).toBe(12);
-    expect(result.zin[0].re_ohm).toBeCloseTo(4.2979, 3);
-    expect(result.zin[0].im_ohm).toBeCloseTo(22.8301, 3);
+    expect(result.zin[0].re_ohm).toBeCloseTo(4.2831, 3);
+    expect(result.zin[0].im_ohm).toBeCloseTo(22.8326, 3);
     expect(result.steps).toBe(500);
     expect(result.stopped_on_energy).toBe(true);
     expect(result.energy_decay_db).toBeGreaterThanOrEqual(30);
@@ -81,7 +84,7 @@ describe('noburf CLI', () => {
       run_control: { maxSteps: 3000, stopAtEnergyDecayDb: 30, energyCheckEverySteps: 100 },
     });
     expect(result.provenance.mesh.courant).toBeCloseTo(0.99 / Math.sqrt(3), 12);
-    expect(result.provenance.mesh.signature).toMatch(/^[0-9a-f]{16}$/);
+    expect(result.provenance.mesh.signature).toMatch(/^([0-9a-f]{8}){5}$/); // eCurl, eDecay and the dispersive E edges' index, media and records
     expect(otherWarnings(result.provenance.warnings)).toEqual([]);
   });
 

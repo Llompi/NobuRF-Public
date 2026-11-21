@@ -42,6 +42,16 @@ export function smallProjectJson(): Record<string, any> {
 }
 
 /**
+ * The fixture with its FR-4 layers on the constant-conductivity loss (dispersion "conductivity"): the main
+ * kernels' plain lossy update, with no dispersive edges. In place; returns json.
+ */
+export function withConstantLossFr4(json: Record<string, any>): Record<string, any> {
+  json.materials['FR-4 constant loss'] = { eps_r: 4.4, tan_delta: 0.02, dispersion: { model: 'conductivity' } };
+  for (const layer of json.stackup) if (layer.type === 'dielectric' && layer.material === 'FR-4') layer.material = 'FR-4 constant loss';
+  return json;
+}
+
+/**
  * smallProjectJson on Djordjevic-Sarkar FR-4 with a 1 mm lossy ferrite cover
  * over the top copper (constant-plus-Lorentz permeability, Debye
  * permittivity): every kind of dispersive and magnetic edge, interfaces included.

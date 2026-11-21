@@ -69,7 +69,8 @@ export function patchProjectFromDsl(dsl: MicroGeometryDSL, grid: GridConfig): Pr
     noburf_project: 1,
     name: dsl.name,
     variables: {},
-    materials: { substrate: { eps_r: dsl.substrate.eps_r, tan_delta: dsl.substrate.tan_delta } },
+    // The legacy grid's loss model (a constant conductivity), which keeps this project bit for bit equal to voxelize().
+    materials: { substrate: { eps_r: dsl.substrate.eps_r, tan_delta: dsl.substrate.tan_delta, ...(dsl.substrate.tan_delta > 0 ? { dispersion: { model: 'conductivity' } } : {}) } },
     stackup: [
       { type: 'copper', name: 'gnd', material: 'pec' },
       { type: 'dielectric', name: 'substrate', material: 'substrate', thickness: mm(dsl.substrate.h_mm) },

@@ -184,7 +184,26 @@ const DS_GUARD_DECADES = 1.5;
  * measurement frequency.
  */
 export function djordjevicSarkarResponse(m: DjordjevicSarkar, fMinHz: number, fMaxHz: number): MediumResponse {
-  if (m.tanDelta === 0) return constantResponse(m.epsR); // k = 0: the model is a constant
+  const r = anchoredResponse(m.epsR, m.tanDelta, m.atHz, djordjevicSarkarPoles(m, fMinHz, fMaxHz), 'Djordjevic-Sarkar fit');
+  return { ...r, lossRate: 0 };
+}
+
+/**
+ * djordjevicSarkarResponse, or null where the fitted poles leave a
+ * high-frequency value below 1 (anchoredResponse's bound): a high loss on a
+ * low eps_r, whose log term takes eps' that far down by f_high.
+ */
+export function djordjevicSarkarIfBounded(m: DjordjevicSarkar, fMinHz: number, fMaxHz: number): MediumResponse | null {
+  const poles = djordjevicSarkarPoles(m, fMinHz, fMaxHz);
+  const [chiRe] = relativeValue({ inf: 0, lossRate: 0, poles }, m.atHz);
+  // The same rounding allowance as anchoredResponse.
+  if (!(m.epsR - chiRe >= 1 || Math.abs(m.epsR - chiRe - 1) < 1e-12 * m.epsR)) return null;
+  return { ...anchoredResponse(m.epsR, m.tanDelta, m.atHz, poles, 'Djordjevic-Sarkar fit'), lossRate: 0 };
+}
+
+/** The fitted Debye poles of djordjevicSarkarResponse, scaled so their loss is exact at atHz. */
+function djordjevicSarkarPoles(m: DjordjevicSarkar, fMinHz: number, fMaxHz: number): Pole[] {
+  if (m.tanDelta === 0) return []; // k = 0: the model is a constant
   const { k } = dsConstants(m);
   const weight = k / Math.LN10; // per unit of ln F
   const lo = Math.max(m.fLowHz, Math.min(fMinHz, m.atHz) / 10 ** DS_GUARD_DECADES);
@@ -219,9 +238,7 @@ export function djordjevicSarkarResponse(m: DjordjevicSarkar, fMinHz: number, fM
   // The quadrature's small loss error is a scale on all poles (the model's loss is all poles), not a conductivity, which would grow as 1/f.
   const [, fitIm] = relativeValue({ inf: 0, lossRate: 0, poles }, m.atHz);
   const scale = (m.epsR * m.tanDelta) / -fitIm;
-  const scaled = poles.map((p) => ({ ...p, delta: p.delta * scale }));
-  const r = anchoredResponse(m.epsR, m.tanDelta, m.atHz, scaled, 'Djordjevic-Sarkar fit');
-  return { ...r, lossRate: 0 };
+  return poles.map((p) => ({ ...p, delta: p.delta * scale }));
 }
 
 /* ------------------------------------------------------------------------ */
@@ -419,8 +436,11 @@ export class DispersionBuilder {
     media.forEach((r, n) => table.set(mediumRecord(r, this.dtSec, maxPoles), n * words));
     const energy = new Float32Array(media.length * energyWords(maxPoles));
     media.forEach((r, n) => energy.set(mediumEnergyWeights(r, this.dtSec, maxPoles), n * energyWords(maxPoles)));
-    if (new Set(this.edges).size !== this.edges.length) throw new Error('dispersion: an edge is listed twice');
-    return { index: Uint32Array.from(this.edges), medium: Uint32Array.from(this.edgeMedium), maxPoles, media: table, energy };
+    const index = Uint32Array.from(this.edges);
+    // Sorted, not a Set: a fine mesh can list more edges than a Set holds (2^24).
+    const sorted = index.slice().sort();
+    for (let n = 1; n < sorted.length; n++) if (sorted[n] === sorted[n - 1]) throw new Error(`dispersion: edge ${sorted[n]} is listed twice`);
+    return { index, medium: Uint32Array.from(this.edgeMedium), maxPoles, media: table, energy };
   }
 }
 

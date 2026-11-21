@@ -270,7 +270,7 @@ interface Region { unknown: number; area: number; terms: Array<{ unknown: number
  */
 export function addConformalSheets(model: VoxelModel, sheets: readonly TriangleMesh[], options: SheetMeshOptions = {}): VoxelModel {
   if (model.thinSheets) throw new Error('the model already has thin sheets; pass every sheet in one call');
-  if (model.dispersion?.e || model.dispersion?.h) throw new Error('thin sheets do not support frequency-dependent or magnetic materials yet');
+  if (model.dispersion?.e || model.dispersion?.h) throw new Error('thin sheets do not support frequency-dependent or magnetic materials yet, and a lossy dielectric is frequency-dependent by default; give it dispersion { "model": "conductivity" }');
   const nudge = options.nudgeMm ?? DEFAULT_NUDGE;
   const moved = sheets.map((s) => {
     const welded = weldMesh(s);

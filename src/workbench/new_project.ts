@@ -72,7 +72,6 @@ export function newProject(spec: NewProjectSpec): Project {
   project.name = spec.name;
   const entry = libraryMaterial(spec.substrate);
   if (entry) project.materials[spec.substrate] = projectMaterial(entry);
-  if (spec.template === 'pair') useWidebandSubstrate(project, spec);
   // A blank board has no port yet, so it cannot pass validation: it opens with that as the one problem to fix.
   if (spec.template === 'blank') return project;
   const parsed = parseProject(withoutUnusedVariables(project));
@@ -221,24 +220,6 @@ function pairProject(spec: NewProjectSpec, board: { w: number; l: number }): Pro
   project.outputs.differential_pairs = [{ id: 'D1', positive: 'p1', negative: 'n1' }, { id: 'D2', positive: 'p2', negative: 'n2' }];
   project.analysis.stop.energy_decay_db = TIMING_ENERGY_DECAY_DB;
   return project;
-}
-
-/**
- * A pair's TDR and step responses reach down to DC. A plain loss tangent is a
- * constant conductivity, exact at the design frequency but still leaking there
- * (on 0.5 mm FR-4 about 800 Ω to ground along an 18 mm line), which pulls the
- * TDR level down. The substrate becomes a Djordjevic-Sarkar material with the
- * same eps_r and tan delta at the design frequency, whose loss vanishes at DC.
- */
-function useWidebandSubstrate(project: Project, spec: NewProjectSpec): void {
-  const builtin = Object.hasOwn(BUILTIN_MATERIALS, spec.substrate) ? BUILTIN_MATERIALS[spec.substrate] : undefined;
-  const base = builtin?.kind === 'dielectric' ? builtin : project.materials[spec.substrate];
-  if (!base || !('eps_r' in base) || base.tan_delta === 0 || base.dispersion) return;
-  const name = `${spec.substrate} wideband at ${spec.frequencyGHz} GHz`;
-  const { kind: _kind, ...material } = { kind: 'dielectric', ...base };
-  project.materials[name] = { ...material, dispersion: { model: 'djordjevic_sarkar', at_ghz: spec.frequencyGHz } };
-  delete project.materials[spec.substrate];
-  for (const layer of project.stackup) if (layer.type === 'dielectric' && layer.material === spec.substrate) layer.material = name;
 }
 
 /**

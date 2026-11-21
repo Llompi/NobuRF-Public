@@ -47,9 +47,9 @@ afterwards.
   After a solve, the Line tab reports its Z0 and εeff.
 - Differential pair: two of those 50 Ω lines side by side, a gap of two line widths apart, with
   four ports already paired at each end. After a solve, the Differential tab reports the pair. The
-  gap is a variable, so you can tighten it toward an impedance target. A lossy laminate becomes a
-  wideband (Djordjevic-Sarkar) material with the same εr and tan δ at the design frequency, so the
-  TDR level is right down to DC ([differential-pairs.md](differential-pairs.md#the-substrates-loss-model)).
+  gap is a variable, so you can tighten it toward an impedance target. A lossy laminate is a
+  wideband (Djordjevic-Sarkar) material with its εr and tan δ at the design frequency, as every lossy
+  material is by default, so the TDR level is right down to DC ([differential-pairs.md](differential-pairs.md#the-substrates-loss-model)).
 - Blank board: ground, the laminate and an empty top layer. Draw or import copper, then add ports.
 
 Leave the board size empty to have it sized from the design. If the open project has unsaved

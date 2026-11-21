@@ -6,13 +6,17 @@ import { correctedLine } from './edge_fixtures';
 import { portSpectrum } from '../src/engine/port_dft';
 import { rasterise } from '../src/project/rasterise';
 import { parseProject } from '../src/project/schema';
-import { smallProjectJson } from './project_fixtures';
+import { smallProjectJson, withConstantLossFr4 } from './project_fixtures';
 
 const slow = process.env.SKIP_SLOW ? it.skip : it;
 
-/** The small patch (6 mm on 1 mm FR-4) with PML on five faces, on a uniform or graded mesh. */
+/**
+ * The small patch (6 mm on 1 mm FR-4) with PML on five faces, on a uniform or graded mesh. The FR-4 keeps the
+ * constant-conductivity loss its fine reference below was solved with: the coarse mesh has two dips 0.1 to 0.2 dB
+ * apart (9.7 and 10.7 GHz), and the wideband model's lower loss under 12 GHz swaps which one is deeper.
+ */
 function project(mesh: 'coarse' | 'graded') {
-  const json = smallProjectJson();
+  const json = withConstantLossFr4(smallProjectJson());
   const pml = { type: 'pml', cells: 8 };
   for (const f of ['x_min', 'x_max', 'y_min', 'y_max', 'z_max']) json.boundaries[f] = pml;
   json.analysis.stop.max_steps = 20000;

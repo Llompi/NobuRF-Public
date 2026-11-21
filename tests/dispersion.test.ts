@@ -11,7 +11,7 @@ import { parseProject, ProjectError } from '../src/project/schema';
 import { lineFromColumn, measureSlab, measureSlabLine, SLAB_DEFAULT, type SlabMaterial } from '../scripts/validate/dispersive_slab';
 import { shortestWavelength } from '../src/project/materials';
 import { resolveProject } from '../src/project/resolve';
-import { dispersiveProjectJson, rect, smallProjectJson, smaEdgeLineJson } from './project_fixtures';
+import { dispersiveProjectJson, rect, smallProjectJson, smaEdgeLineJson, withConstantLossFr4 } from './project_fixtures';
 
 const slow = process.env.SKIP_SLOW ? it.skip : it;
 
@@ -155,8 +155,8 @@ describe('pole responses', () => {
 
 describe('the ADE update in the FDTD loop', () => {
   it('a listed edge with a constant medium gives the same fields as the plain lossy update', () => {
-    // The FR-4 patch with every substrate E edge listed as its own constant medium: bit-close to the unlisted model.
-    const plain = rasterise(parseProject(smallProjectJson())).model;
+    // The constant-loss FR-4 patch with every substrate E edge listed as its own constant medium: bit-close to the unlisted model.
+    const plain = rasterise(parseProject(withConstantLossFr4(smallProjectJson()))).model;
     const N = plain.grid.nx * plain.grid.ny * plain.grid.nz;
     const builder = new DispersionBuilder(timestepSec(plain.grid));
     const media = new Map<string, MediumResponse>();
@@ -257,8 +257,47 @@ describe('dispersive materials in the project file', () => {
     expect(model.signature).not.toBe(rasterise(parseProject(smallProjectJson())).model.signature);
   });
 
-  it('a plain project has no dispersion and keeps its signature', () => {
-    expect(rasterise(parseProject(smallProjectJson())).model.dispersion).toBeUndefined();
+  it('a loss tangent alone is Djordjevic-Sarkar at the loss reference; constant loss and no loss have no dispersion', () => {
+    const json = smallProjectJson();
+    const { permittivity, defaultLoss } = resolveProject(parseProject(json)).stackup.flatMap((l) => (l.type === 'dielectric' ? [l.responses] : []))[0];
+    expect(defaultLoss).toBe(true);
+    // The values the file gives hold at the loss reference (12 GHz); the loss is flat across the band and gone at DC.
+    const [re, im] = relativeValue(permittivity!, 12e9);
+    expect(re).toBeCloseTo(4.4, 12);
+    expect(-im / re).toBeCloseTo(0.02, 12);
+    const [re8, im8] = relativeValue(permittivity!, 8e9);
+    expect(re8 / 4.4 - 1).toBeGreaterThan(0.002); // eps' falls with frequency, about 3 % a decade
+    expect(Math.abs(-im8 / re8 / 0.02 - 1)).toBeLessThan(0.01);
+    expect(permittivity!.lossRate).toBe(0);
+    expect(rasterise(parseProject(json)).model.dispersion!.e!.index.length).toBeGreaterThan(0);
+    expect(rasterise(parseProject(withConstantLossFr4(smallProjectJson()))).model.dispersion).toBeUndefined();
+    json.materials = { lossless: { eps_r: 4.4, tan_delta: 0 } };
+    json.stackup[1].material = 'lossless';
+    expect(rasterise(parseProject(json)).model.dispersion).toBeUndefined();
+  });
+
+  it('falls back to the constant loss, with a note, where the wideband model cannot hold the loss', () => {
+    const json = smallProjectJson();
+    // tan delta 0.2 on eps_r 1.2: the model's high-frequency value would be about 0.6.
+    json.materials = { foam: { eps_r: 1.2, tan_delta: 0.2 } };
+    json.stackup[1].material = 'foam';
+    const layer = resolveProject(parseProject(json)).stackup.find((l) => l.type === 'dielectric')!;
+    expect(layer.type === 'dielectric' && layer.responses.permittivity).toBe(null);
+    expect(layer.type === 'dielectric' && layer.responses.notes?.join()).toMatch(/too lossy for the wideband .* constant conductivity/);
+    expect(rasterise(parseProject(json)).warnings.join('\n')).toMatch(/"core".*too lossy for the wideband/);
+    // Just under the closed form's limit the fitted poles decide, never an error (eps_r 9.9 reaches it near tan delta 0.304 at 10 GHz).
+    json.analysis = { ...json.analysis, f_min_ghz: 8, f_max_ghz: 12, loss_reference_ghz: 10 };
+    for (const tan of [0.3, 0.3037, 0.304, 0.3043, 0.31]) {
+      json.materials = { foam: { eps_r: 9.9, tan_delta: tan } };
+      expect(() => resolveProject(parseProject(json))).not.toThrow();
+    }
+  });
+
+  it('reads the conductivity model and refuses keys it does not take', () => {
+    const json = smallProjectJson();
+    json.materials = { m: { eps_r: 4.4, tan_delta: 0.02, dispersion: { model: 'conductivity', at_ghz: 1 } } };
+    json.stackup[1].material = 'm';
+    expect(() => parseProject(json)).toThrow(/\$\.materials\.m\.dispersion\.at_ghz: unknown key/);
   });
 
   it('reads the material models and names the path of a bad one', () => {
@@ -307,7 +346,7 @@ describe('dispersive materials in the project file', () => {
     const h = rasterise(parseProject(json)).model.dispersion!.h!;
     expect(h.maxPoles).toBe(0);
     json.materials.m.mu_r = 1;
-    expect(rasterise(parseProject(json)).model.dispersion).toBeUndefined();
+    expect(rasterise(parseProject(json)).model.dispersion!.h).toBeUndefined();
   });
 
   slow('a coax connector takes the edges it repaints off the dispersive list', () => {
@@ -377,7 +416,7 @@ describe('dispersive materials in the project file', () => {
     json.outputs = { zin_at_ghz: [6] };
     const warnings = rasterise(parseProject(json)).warnings;
     expect(warnings.some((w) => /layer "core": 8\.\d cells per wavelength inside the material/.test(w))).toBe(true);
-    expect(warnings.some((w) => /energy stop .* as if μr were 1/.test(w))).toBe(true);
+    expect(warnings.some((w) => /energy stop/.test(w))).toBe(false); // the stop counts pole energy and weights magnetic H by mu
     // A constant μr has no poles to lose on the faces.
     expect(warnings.some((w) => /series mean/.test(w))).toBe(false);
     // The ferrite cover's Lorentz pole meets air above and copper-plane FR-4 below.

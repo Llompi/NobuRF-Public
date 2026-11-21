@@ -195,10 +195,12 @@ export class ProjectTree {
 }
 
 
-/** "εr 4.4", with the permeability and "wideband" or "poles" when the material has them. */
+const MODEL_DETAIL = { djordjevic_sarkar: 'wideband', conductivity: 'constant loss', table: 'table', poles: 'poles' } as const;
+
+/** "εr 4.4", with the permeability and the frequency model when the material names one ("poles" for mu_dispersion alone). */
 function dielectricDetail(m: DielectricMaterial): string {
   const parts = [`εr ${m.eps_r}`];
   if (m.mu_r !== undefined && m.mu_r !== 1) parts.push(`μr ${m.mu_r}`);
-  if (m.dispersion || m.mu_dispersion) parts.push(m.dispersion?.model === 'djordjevic_sarkar' ? 'wideband' : m.dispersion?.model === 'table' ? 'table' : 'poles');
+  if (m.dispersion || m.mu_dispersion) parts.push(MODEL_DETAIL[m.dispersion?.model ?? 'poles']);
   return parts.join(', ');
 }

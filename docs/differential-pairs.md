@@ -138,7 +138,11 @@ solve stopped below 55 dB.
 
 ### The substrate's loss model
 
-A plain `tan_delta` is a constant conductivity, σ = 2π f_ref ε0 εr tan δ, exact at
+This section compares the two loss models a time-domain solver can give a `tan_delta`. Since Nov 21, 2026, a
+loss tangent alone is the wideband one (below); the constant conductivity is the opt-in
+`"dispersion": { "model": "conductivity" }`.
+
+A constant conductivity, σ = 2π f_ref ε0 εr tan δ, is exact at
 `analysis.loss_reference_ghz` (openEMS models FR-4 the same way). It still conducts at DC, where real
 FR-4 barely does. Along the 18 mm pair on 0.5 mm FR-4 referenced at 5 GHz that is about 1.25 mS to
 ground per line (from the line's capacitance and the dielectric's filling factor, Hammerstad εeff
@@ -168,9 +172,10 @@ and at a 100 dB stop (16,000 steps per run instead of 2,700) it is 0.9990 and th
 4.40 at 5 GHz to 4.66 at 50 MHz), though that has not been separated out. At the template's 60 dB stop a
 wideband laminate's TDR level is therefore about 0.5 % low.
 
-The pair template therefore gives a lossy substrate this model, with the same εr and tan δ at the design
-frequency (a library laminate's datasheet values are taken at that frequency, as the plain loss tangent
-already was), and the Differential tab and `noburf solve` say so when a pair's dielectric conducts at DC.
+A lossy substrate therefore gets this model by default, with the same εr and tan δ at the loss
+reference, which the pair template sets to the design frequency. The Differential tab and `noburf solve`
+say so when a pair's dielectric conducts at DC (the `conductivity` opt-in, or a pole model that leaves
+part of its loss to a conductivity).
 
 ## Limits
 
