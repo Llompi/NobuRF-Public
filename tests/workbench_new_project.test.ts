@@ -19,6 +19,20 @@ describe('new project templates', () => {
     expect(p.ports.length).toBe(template === 'line' ? 2 : 1);
   });
 
+  it('patch: builds the Balanis Example 14.1 patch, whose 50 ohm feed is wider than a third of the patch', () => {
+    const p = newProject({ template: 'patch', name: 'balanis', frequencyGHz: 10, substrate: 'RT/duroid 5880', thicknessMm: 1.588 });
+    // Balanis eq. 14-6 to 14-7: W = 11.86 mm, L = 9.06 mm.
+    expect(Number.parseFloat(p.variables.patch_w.value)).toBeCloseTo(11.86, 1);
+    expect(Number.parseFloat(p.variables.patch_l.value)).toBeCloseTo(9.06, 1);
+    expect(Number.parseFloat(p.variables.feed_w.value)).toBeGreaterThan(11.86 / 3);
+    expect(() => rasterise(p)).not.toThrow();
+  });
+
+  it('patch: refuses a feed wider than half the patch, without suggesting a board that would not help', () => {
+    expect(() => newProject({ template: 'patch', name: 'thick', frequencyGHz: 10, substrate: 'PTFE', thicknessMm: 3.2 }))
+      .toThrow(/more than half the .* mm patch\. Use a thinner substrate\.$/);
+  });
+
   it('blank: an empty top layer and no port, and a valid project once copper and a port are added', () => {
     const p = newProject({ template: 'blank', name: 'blank', frequencyGHz: 2.45, substrate: 'RO4350B', thicknessMm: 0.762 });
     expect(p.geometry.top).toEqual([]);

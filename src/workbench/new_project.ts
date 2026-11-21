@@ -109,10 +109,16 @@ function patchProject(spec: NewProjectSpec, board: { w: number; l: number }): Pr
   });
   const est = patchEstimateMm(spec.frequencyGHz, epsR, spec.thicknessMm);
   const feedW = microstripWidthMm(50, epsR, spec.thicknessMm);
-  if (feedW > Math.min(est.w, board.w - 2) / 3) {
-    throw new Error(`A 50 Ω feed on ${spec.thicknessMm} mm ${spec.substrate} is ${feedW.toFixed(2)} mm wide, too wide for a ` +
-      `${Math.min(est.w, board.w - 2).toFixed(1)} mm patch. Use a thinner substrate or a wider board.`);
+  // The design agent keeps the feed under a third of the patch so an inset fits beside it. The plain
+  // edge-fed patch has no inset, and textbook designs on thick, low-εr laminates need more: Balanis
+  // Example 14.1 (10 GHz, εr 2.2, 1.588 mm) has a 4.9 mm feed on an 11.9 mm patch.
+  const patchW = Math.min(est.w, board.w - 2);
+  if (feedW > patchW / 2) {
+    const boardLimited = board.w - 2 < est.w;
+    throw new Error(`A 50 Ω feed on ${spec.thicknessMm} mm ${spec.substrate} is ${feedW.toFixed(2)} mm wide, more than half ` +
+      `the ${patchW.toFixed(1)} mm patch. Use a thinner substrate${boardLimited ? ' or a wider board' : ''}.`);
   }
+  design.project.variables.feed_w.max = 'patch_w / 2';
   const entry = libraryMaterial(spec.substrate);
   if (entry) design.project.materials[spec.substrate] = projectMaterial(entry);
   // The plain patch: the design agent's optional inset, slot, stub and chamfer shapes removed.

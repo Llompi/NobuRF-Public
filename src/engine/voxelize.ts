@@ -346,7 +346,9 @@ export function sheetFaceLoss(model: VoxelModel): FaceLoss {
   const listed = hIndex.length === 0 ? [] : [...rates.values()];
   // At the grid's Nyquist frequency h alternates sign, x = 1.5 h - 0.5 h_prev is 2 h and every low-pass is 0, so
   // one step takes (rate + 2 sum weight) h. Past MAX_FACE_STEP_LOSS the explicit face update nears instability.
-  const worst = Math.max(0, ...listed.map((q) => q.rate + 2 * q.weight.reduce((sum, w) => sum + w, 0)));
+  // A loop, not Math.max(...list): a fine board has a few hundred thousand faces, more arguments than a Web Worker's stack holds.
+  let worst = 0;
+  for (const q of listed) worst = Math.max(worst, q.rate + 2 * q.weight.reduce((sum, w) => sum + w, 0));
   if (worst > MAX_FACE_STEP_LOSS) {
     throw new Error(`a copper face would take ${(worst * 100).toPrecision(3)} % of its H field in one step at the grid's highest frequency ` +
       `(at most ${MAX_FACE_STEP_LOSS * 100} %; past 200 % the update grows): the surface impedance there is too large for the cells, ` +
