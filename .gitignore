@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+coverage/
+__pycache__/
+
+# Local agent worktrees
+.claude/worktrees/
+
+# design agent run outputs
+*.runs/
+*.mcp-*.jsonl
+dist-site/

@@ -1,0 +1,349 @@
+{
+  "noburf_project": 1,
+  "name": "pozar-7.5-branch-line-r2",
+  "variables": {},
+  "materials": {
+    "substrate": {
+      "eps_r": 3.55,
+      "tan_delta": 0.0
+    }
+  },
+  "stackup": [
+    {
+      "type": "copper",
+      "name": "gnd",
+      "material": "pec"
+    },
+    {
+      "type": "dielectric",
+      "name": "core",
+      "material": "substrate",
+      "thickness": "0.8130 mm"
+    },
+    {
+      "type": "copper",
+      "name": "top",
+      "material": "pec"
+    }
+  ],
+  "board": {
+    "outline": [
+      [
+        "-20.2482 mm",
+        "-15.0155 mm"
+      ],
+      [
+        "20.2482 mm",
+        "-15.0155 mm"
+      ],
+      [
+        "20.2482 mm",
+        "15.0155 mm"
+      ],
+      [
+        "-20.2482 mm",
+        "15.0155 mm"
+      ]
+    ]
+  },
+  "geometry": {
+    "gnd": [
+      {
+        "id": "ground1",
+        "op": "add",
+        "polygon": [
+          [
+            "-20.2482 mm",
+            "-15.0155 mm"
+          ],
+          [
+            "20.2482 mm",
+            "-15.0155 mm"
+          ],
+          [
+            "20.2482 mm",
+            "15.0155 mm"
+          ],
+          [
+            "-20.2482 mm",
+            "15.0155 mm"
+          ]
+        ]
+      }
+    ],
+    "top": [
+      {
+        "id": "trace1",
+        "op": "add",
+        "polygon": [
+          [
+            "-8.2482 mm",
+            "5.9671 mm"
+          ],
+          [
+            "8.2482 mm",
+            "5.9671 mm"
+          ],
+          [
+            "8.2482 mm",
+            "9.0155 mm"
+          ],
+          [
+            "-8.2482 mm",
+            "9.0155 mm"
+          ]
+        ]
+      },
+      {
+        "id": "trace2",
+        "op": "add",
+        "polygon": [
+          [
+            "-18.2482 mm",
+            "6.5820 mm"
+          ],
+          [
+            "-8.2482 mm",
+            "6.5820 mm"
+          ],
+          [
+            "-8.2482 mm",
+            "8.4006 mm"
+          ],
+          [
+            "-18.2482 mm",
+            "8.4006 mm"
+          ]
+        ]
+      },
+      {
+        "id": "trace3",
+        "op": "add",
+        "polygon": [
+          [
+            "8.2482 mm",
+            "6.5820 mm"
+          ],
+          [
+            "18.2482 mm",
+            "6.5820 mm"
+          ],
+          [
+            "18.2482 mm",
+            "8.4006 mm"
+          ],
+          [
+            "8.2482 mm",
+            "8.4006 mm"
+          ]
+        ]
+      },
+      {
+        "id": "trace4",
+        "op": "add",
+        "polygon": [
+          [
+            "-8.2482 mm",
+            "-9.0155 mm"
+          ],
+          [
+            "8.2482 mm",
+            "-9.0155 mm"
+          ],
+          [
+            "8.2482 mm",
+            "-5.9671 mm"
+          ],
+          [
+            "-8.2482 mm",
+            "-5.9671 mm"
+          ]
+        ]
+      },
+      {
+        "id": "trace5",
+        "op": "add",
+        "polygon": [
+          [
+            "-18.2482 mm",
+            "-8.4006 mm"
+          ],
+          [
+            "-8.2482 mm",
+            "-8.4006 mm"
+          ],
+          [
+            "-8.2482 mm",
+            "-6.5820 mm"
+          ],
+          [
+            "-18.2482 mm",
+            "-6.5820 mm"
+          ]
+        ]
+      },
+      {
+        "id": "trace6",
+        "op": "add",
+        "polygon": [
+          [
+            "8.2482 mm",
+            "-8.4006 mm"
+          ],
+          [
+            "18.2482 mm",
+            "-8.4006 mm"
+          ],
+          [
+            "18.2482 mm",
+            "-6.5820 mm"
+          ],
+          [
+            "8.2482 mm",
+            "-6.5820 mm"
+          ]
+        ]
+      },
+      {
+        "id": "trace7",
+        "op": "add",
+        "polygon": [
+          [
+            "6.4295 mm",
+            "-9.0155 mm"
+          ],
+          [
+            "8.2482 mm",
+            "-9.0155 mm"
+          ],
+          [
+            "8.2482 mm",
+            "9.0155 mm"
+          ],
+          [
+            "6.4295 mm",
+            "9.0155 mm"
+          ]
+        ]
+      },
+      {
+        "id": "trace8",
+        "op": "add",
+        "polygon": [
+          [
+            "-8.2482 mm",
+            "-9.0155 mm"
+          ],
+          [
+            "-6.4295 mm",
+            "-9.0155 mm"
+          ],
+          [
+            "-6.4295 mm",
+            "9.0155 mm"
+          ],
+          [
+            "-8.2482 mm",
+            "9.0155 mm"
+          ]
+        ]
+      }
+    ]
+  },
+  "ports": [
+    {
+      "id": "p1",
+      "x": "-18.2482 mm",
+      "y": "7.4913 mm",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    },
+    {
+      "id": "p2",
+      "x": "18.2482 mm",
+      "y": "7.4913 mm",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    },
+    {
+      "id": "p3",
+      "x": "18.2482 mm",
+      "y": "-7.4913 mm",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    },
+    {
+      "id": "p4",
+      "x": "-18.2482 mm",
+      "y": "-7.4913 mm",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    }
+  ],
+  "boundaries": {
+    "x_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "x_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_max": {
+      "type": "pml",
+      "cells": 8
+    }
+  },
+  "mesh": {
+    "cell": "1.0000 mm",
+    "air_margin_cells": {
+      "xy": 4,
+      "below": 3,
+      "above": 12
+    },
+    "graded": {
+      "edge_cell": "0.1000 mm",
+      "dielectric_cells": 8,
+      "max_growth": 1.3
+    }
+  },
+  "analysis": {
+    "f_min_ghz": 0.25,
+    "f_max_ghz": 6.5,
+    "n_freq": 126,
+    "loss_reference_ghz": 3.375,
+    "stop": {
+      "energy_decay_db": 50,
+      "max_steps": 60000
+    }
+  },
+  "outputs": {
+    "zin_at_ghz": [
+      3.0
+    ]
+  }
+}

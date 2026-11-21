@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>NobuRF Workbench</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/ui/style.css" />
+    <link rel="stylesheet" href="/src/workbench/workbench.css" />
+  </head>
+  <body class="workbench">
+    <header class="bar">
+      <h1 class="wordmark">NobuRF</h1>
+      <div class="bar-group" role="group" aria-label="File">
+        <button type="button" id="new">New</button>
+        <button type="button" id="open">Open</button>
+        <input type="file" id="open-file" accept=".json,application/json" hidden />
+        <label class="select-button">
+          <span class="visually-hidden">Open an example</span>
+          <select id="examples"><option value="">Examples</option></select>
+        </label>
+        <button type="button" id="import" title="Copper or a board outline from Gerber, DXF or STEP">Import</button>
+        <button type="button" id="save">Save</button>
+      </div>
+      <div class="bar-group" role="group" aria-label="History">
+        <button type="button" id="undo" title="Undo (Ctrl+Z)">Undo</button>
+        <button type="button" id="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
+      </div>
+      <p id="validity" class="validity" role="status"></p>
+      <div class="bar-group bar-end">
+        <label class="select-label" title="Off: one solve on the project's mesh. One finer mesh: also solves a mesh with cells 1/√2 the size, shows that mesh's result with a mesh error bar, about 3 times one solve in all. Two finer meshes: solves both and reports whether S and the resonance settled, about 10 times one solve. Graded meshes without coax feeds only. The error bar covers the mesh only, not the port or material model.">
+          Mesh check
+          <select id="mesh-check-choice">
+            <option value="off">Off</option>
+            <option value="check">One finer mesh</option>
+            <option value="refine">Two finer meshes</option>
+          </select>
+        </label>
+        <label class="select-label">
+          Solver
+          <select id="solver-choice">
+            <option value="auto">GPU, else CPU</option>
+            <option value="cpu">CPU only</option>
+          </select>
+        </label>
+        <button type="button" id="solve" class="primary">Solve</button>
+      </div>
+    </header>
+
+    <nav id="tree" class="tree" aria-label="Project"></nav>
+
+    <main id="stage" class="stage">
+      <div class="tabs" role="tablist" aria-label="Views">
+        <button type="button" role="tab" id="tab-model" aria-controls="view-model" aria-selected="true">Model</button>
+        <button type="button" role="tab" id="tab-sparams" aria-controls="view-sparams" aria-selected="false">S-parameters</button>
+        <button type="button" role="tab" id="tab-smith" aria-controls="view-smith" aria-selected="false">Smith chart</button>
+        <button type="button" role="tab" id="tab-impedance" aria-controls="view-impedance" aria-selected="false">Impedance</button>
+        <button type="button" role="tab" id="tab-farfield" aria-controls="view-farfield" aria-selected="false">Far field</button>
+        <button type="button" role="tab" id="tab-emissions" aria-controls="view-emissions" aria-selected="false">Emissions</button>
+        <button type="button" role="tab" id="tab-line" aria-controls="view-line" aria-selected="false" title="For two ports at the ends of a straight strip">Line</button>
+        <button type="button" role="tab" id="tab-pair" aria-controls="view-pair" aria-selected="false">Differential</button>
+        <button type="button" role="tab" id="tab-sensitivity" aria-controls="view-sensitivity" aria-selected="false" title="Which variables move the results most">Sensitivity</button>
+      </div>
+      <p id="stage-empty" class="stage-empty" hidden></p>
+
+      <section id="view-model" class="view model-view" role="tabpanel" aria-labelledby="tab-model">
+        <div id="model-canvas" class="model-canvas"></div>
+        <div class="view-tools" role="group" aria-label="Display">
+          <div class="segmented" role="group" aria-label="Field on the board">
+            <button type="button" data-field="none" aria-pressed="true">No field</button>
+            <button type="button" data-field="ez" aria-pressed="false" disabled>Ez</button>
+            <button type="button" data-field="current" aria-pressed="false" disabled>Current</button>
+            <button type="button" data-field="cut" aria-pressed="false" disabled title="Any field component on a plane through the solve box">Cut</button>
+          </div>
+          <label class="toggle"><input type="checkbox" id="show-lobe" disabled /> Radiation lobe</label>
+          <label class="toggle"><input type="checkbox" id="show-domain" checked /> Solve box</label>
+          <label class="toggle"><input type="checkbox" id="show-mesh" /> Mesh</label>
+          <div class="segmented" role="group" aria-label="Camera">
+            <button type="button" data-camera="iso">3D</button>
+            <button type="button" data-camera="top">Top</button>
+            <button type="button" data-camera="side">Side</button>
+          </div>
+        </div>
+        <div class="model-bottom">
+          <div id="field-legend" class="field-legend" hidden>
+            <p id="field-legend-title"></p>
+            <div id="field-legend-ramp" class="field-legend-ramp"></div>
+            <div class="field-legend-ticks"><span id="field-legend-low"></span><span id="field-legend-high"></span></div>
+            <button type="button" id="cut-resolve" class="cut-resolve" hidden>Solve with cuts</button>
+            <div id="cut-controls" class="cut-controls" hidden>
+              <div class="cut-row">
+                <label class="select-label">Field
+                  <select id="cut-quantity">
+                    <option value="ex">Ex</option><option value="ey">Ey</option><option value="ez">Ez</option><option value="e">|E|</option>
+                    <option value="hx">Hx</option><option value="hy">Hy</option><option value="hz">Hz</option><option value="h">|H|</option>
+                  </select>
+                </label>
+                <div class="segmented" role="group" aria-label="Cut plane">
+                  <button type="button" data-cut-axis="z" aria-pressed="true">XY</button>
+                  <button type="button" data-cut-axis="y" aria-pressed="false">XZ</button>
+                  <button type="button" data-cut-axis="x" aria-pressed="false">YZ</button>
+                </div>
+                <label class="toggle"><input type="checkbox" id="cut-arrows" /> Arrows</label>
+              </div>
+              <div class="cut-row">
+                <label class="phase-label"><span id="cut-position-label">z</span> <input type="range" id="cut-position" min="0" max="0" step="1" value="0" aria-label="Cut position" /></label>
+                <output id="cut-readout" for="cut-position" class="phase-readout cut-readout" aria-live="off"></output>
+              </div>
+            </div>
+            <div id="phase-row" class="phase-row" hidden>
+              <button type="button" id="phase-play">Play</button>
+              <label class="phase-label">Phase <input type="range" id="phase-slider" min="0" max="359" step="1" value="0" /></label>
+              <output id="phase-readout" for="phase-slider" class="phase-readout" aria-live="off">0°</output>
+            </div>
+            <label class="select-label" id="field-frequency-label" hidden>
+              At
+              <select id="field-frequency"></select>
+            </label>
+            <div class="export-row capture-row" role="group" aria-label="Export the field">
+              <button type="button" id="capture-png">Image</button>
+              <button type="button" id="capture-video" title="One full phase cycle, loops cleanly">Video</button>
+            </div>
+          </div>
+          <div class="draw-tools" role="toolbar" aria-label="Draw">
+            <p id="draw-hint" class="draw-hint" hidden></p>
+            <div class="draw-row">
+              <div class="segmented" role="group" aria-label="Tool">
+                <button type="button" data-tool="select" aria-pressed="true" title="Select and orbit (Esc)">Select</button>
+                <button type="button" data-tool="rectangle" aria-pressed="false" title="Drag to draw a rectangle (R)">Rectangle</button>
+                <button type="button" data-tool="polygon" aria-pressed="false" title="Click each corner, double-click or Enter to finish (P)">Polygon</button>
+                <button type="button" data-tool="port" aria-pressed="false" title="Click to place a lumped port (T)">Port</button>
+              </div>
+              <label class="select-label toggle">On <select id="draw-layer" aria-label="Copper layer to draw on"></select></label>
+              <output id="draw-cursor" class="draw-cursor" aria-live="off"></output>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-sparams" class="view chart-view" role="tabpanel" aria-labelledby="tab-sparams" hidden>
+        <div class="chart-area"><canvas id="sparams-chart" role="img" aria-label="S-parameter magnitude across the band"></canvas></div>
+<div class="result-side">
+          <div class="export-row" role="group" aria-label="Export"><button type="button" data-export="touchstone">Touchstone</button><button type="button" data-export="csv">CSV</button><button type="button" data-export="png" data-chart="sparams-chart">Image</button></div>
+          <dl id="sparams-facts" class="result-facts"></dl>
+        </div>
+      </section>
+      <section id="view-smith" class="view chart-view" role="tabpanel" aria-labelledby="tab-smith" hidden>
+        <div class="chart-area square"><canvas id="smith-chart" role="img" aria-label="Input impedance on a Smith chart"></canvas></div>
+<div class="result-side">
+          <div class="export-row" role="group" aria-label="Export"><button type="button" data-export="png" data-chart="smith-chart">Image</button></div>
+          <dl id="smith-facts" class="result-facts"></dl>
+        </div>
+      </section>
+      <section id="view-impedance" class="view chart-view" role="tabpanel" aria-labelledby="tab-impedance" hidden>
+        <div class="chart-area"><canvas id="impedance-chart" role="img" aria-label="Input impedance, real and imaginary parts, across the band"></canvas></div>
+        <div class="result-side">
+          <div class="export-row" role="group" aria-label="Export"><button type="button" data-export="csv">CSV</button><button type="button" data-export="png" data-chart="impedance-chart">Image</button></div>
+          <dl id="impedance-facts" class="result-facts"></dl>
+        </div>
+      </section>
+      <section id="view-farfield" class="view chart-view" role="tabpanel" aria-labelledby="tab-farfield" hidden>
+        <div id="farfield-plot" class="farfield-plot"></div>
+        <dl id="farfield-facts" class="result-facts"></dl>
+      </section>
+      <section id="view-emissions" class="view chart-view" role="tabpanel" aria-labelledby="tab-emissions" hidden>
+        <div class="emissions-main">
+          <div class="emissions-controls" role="group" aria-label="Near-field scan">
+            <label class="select-label">Height <select id="nf-height"></select></label>
+            <label class="select-label">At <select id="nf-frequency"></select></label>
+            <label class="select-label">Show <select id="nf-quantity"></select></label>
+            <label class="select-label">Drive <input id="nf-drive" type="number" step="1" min="-100" max="60" value="0" inputmode="decimal" /> dBm</label>
+          </div>
+          <div id="nf-map-area" class="chart-area"><canvas id="nf-map" role="img" aria-label="Near-field map over the board"></canvas></div>
+          <p id="nf-empty" class="note" hidden></p>
+        </div>
+        <div class="result-side">
+          <div class="export-row" role="group" aria-label="Export"><button type="button" data-export="png" data-chart="nf-map">Image</button></div>
+          <dl id="emissions-facts" class="result-facts"></dl>
+          <div id="emissions-notes"></div>
+        </div>
+      </section>
+      <section id="view-line" class="view chart-view" role="tabpanel" aria-labelledby="tab-line" hidden>
+        <div class="chart-area"><canvas id="line-chart" role="img" aria-label="Step time-domain reflectometry from each port: impedance against time"></canvas></div>
+        <div class="result-side">
+          <div class="export-row" role="group" aria-label="Export"><button type="button" data-export="png" data-chart="line-chart">Image</button></div>
+          <dl id="line-facts" class="result-facts"></dl>
+          <div id="line-notes"></div>
+        </div>
+      </section>
+      <section id="view-pair" class="view chart-view" role="tabpanel" aria-labelledby="tab-pair" hidden>
+        <div class="pair-main">
+          <div id="pair-bar" class="pair-bar" role="group" aria-label="Differential pairs"></div>
+          <div class="chart-area"><canvas id="pair-s-chart" role="img" aria-label="Mixed-mode S-parameters: differential insertion loss, differential return loss and mode conversion across the band"></canvas></div>
+          <div class="chart-area"><canvas id="pair-tdr-chart" role="img" aria-label="Differential impedance against time, from each end of the pair"></canvas></div>
+        </div>
+        <div class="result-side">
+          <div class="export-row" role="group" aria-label="Export"><button type="button" data-export="pair-json">JSON</button><button type="button" data-export="png" data-chart="pair-s-chart">S image</button><button type="button" data-export="png" data-chart="pair-tdr-chart">TDR image</button></div>
+          <dl id="pair-facts" class="result-facts"></dl>
+          <div id="pair-notes"></div>
+        </div>
+      </section>
+      <section id="view-sensitivity" class="view chart-view" role="tabpanel" aria-labelledby="tab-sensitivity" hidden>
+        <div class="sens-main">
+          <div class="sens-head">
+            <div>
+              <h2>Which variables matter most</h2>
+              <p class="note">Each unlocked length is stepped a little each way, two solves per variable, and ranked by how far its whole range moves the result.</p>
+            </div>
+            <div class="sens-controls">
+              <label class="select-label">Rank by <select id="sens-metric" disabled><option>Resonance</option></select></label>
+              <label class="select-label">Mesh
+                <select id="sens-mesh">
+                  <option value="coarse">Coarse, fast</option>
+                  <option value="project">Project mesh</option>
+                </select>
+              </label>
+              <label class="toggle" title="Solve every variable again at twice the step and downgrade slopes that change with it. Twice the solves."><input type="checkbox" id="sens-check-step" /> Check the step</label>
+              <button type="button" id="sens-run" class="primary">Rank variables</button>
+            </div>
+          </div>
+          <ol id="sens-rows" class="sens-rows"></ol>
+          <p id="sens-empty" class="note">Not run yet for this project.</p>
+        </div>
+        <div class="result-side">
+          <dl id="sens-facts" class="result-facts"></dl>
+          <div id="sens-notes"></div>
+        </div>
+      </section>
+    </main>
+
+    <aside id="inspector" class="inspector" aria-label="Properties"></aside>
+
+    <footer class="console" aria-label="Messages">
+      <div id="progress" class="progress" hidden>
+        <div class="progress-text"><span id="progress-label"></span><span id="progress-detail" class="number"></span></div>
+        <div class="progress-track" id="progress-track" role="progressbar" aria-labelledby="progress-label" aria-valuemin="0" aria-valuemax="100"><div id="progress-bar" class="progress-bar"></div></div>
+      </div>
+      <ol id="messages" class="messages" aria-live="polite"></ol>
+    </footer>
+    <dialog id="new-dialog" class="app-dialog" aria-labelledby="new-title">
+      <form id="new-form" method="dialog">
+        <h2 id="new-title">New project</h2>
+        <fieldset class="choice">
+          <legend>Start from</legend>
+          <label><input type="radio" name="new-template" value="patch" checked /> <span><strong>Patch antenna</strong> Edge-fed rectangular patch, sized for the frequency. One port.</span></label>
+          <label><input type="radio" name="new-template" value="line" /> <span><strong>Microstrip line</strong> A 50 Ω line between two ports, to check a laminate and a mesh.</span></label>
+          <label><input type="radio" name="new-template" value="pair" /> <span><strong>Differential pair</strong> Two coupled 50 Ω lines with four ports, paired at each end, for differential S-parameters, impedance and skew.</span></label>
+          <label><input type="radio" name="new-template" value="blank" /> <span><strong>Blank board</strong> Ground, the laminate and an empty top layer. Draw or import copper, then add ports.</span></label>
+        </fieldset>
+        <label class="field">Name <input type="text" id="new-name" value="untitled" spellcheck="false" autocomplete="off" /></label>
+        <div class="field-pair">
+          <label class="field">Design frequency <span class="with-unit"><input type="text" id="new-frequency" value="2.45" inputmode="decimal" /> GHz</span></label>
+          <label class="field">Substrate thickness <span class="with-unit"><input type="text" id="new-thickness" value="1.6" inputmode="decimal" /> mm</span></label>
+        </div>
+        <label class="field">Substrate <select id="new-substrate"></select></label>
+        <div class="field-pair">
+          <label class="field">Board width <span class="with-unit"><input type="text" id="new-board-w" inputmode="decimal" /> mm</span></label>
+          <label class="field">Board length <span class="with-unit"><input type="text" id="new-board-l" inputmode="decimal" /> mm</span></label>
+        </div>
+        <p class="note">Leave the board size empty to size it from the design. The open project is replaced; if it has unsaved changes, you are asked first.</p>
+        <p id="new-error" class="dialog-error" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button type="button" id="new-cancel">Cancel</button>
+          <button type="submit" class="primary">Create</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="material-dialog" class="app-dialog material-dialog" aria-labelledby="material-title">
+      <h2 id="material-title">Add a material</h2>
+      <input type="search" id="material-search" placeholder="Search, e.g. Rogers, alumina, gold" aria-label="Search the material library" spellcheck="false" autocomplete="off" />
+      <div id="material-list" class="material-list"></div>
+      <p class="note">Laminate values are the manufacturer's design Dk and Df near 10 GHz. Dk varies with thickness and frequency, so check your laminate's datasheet.</p>
+      <div class="dialog-actions">
+        <button type="button" data-custom="dielectric">Custom dielectric</button>
+        <button type="button" data-custom="conductor">Custom metal</button>
+        <span class="spacer"></span>
+        <button type="button" id="material-cancel">Cancel</button>
+      </div>
+    </dialog>
+
+    <dialog id="import-dialog" class="app-dialog" aria-labelledby="import-title">
+      <form id="import-form" method="dialog">
+        <h2 id="import-title">Import into this project</h2>
+        <label class="field">File <input type="file" id="import-file" accept=".gbr,.ger,.gtl,.gbl,.gko,.gm1,.art,.pho,.dxf,.step,.stp" /></label>
+        <label class="field">Replace <select id="import-target"></select></label>
+        <label class="field" id="import-dxf-row" hidden>DXF layer <select id="import-dxf-layer"></select></label>
+        <label class="field" id="import-step-row" hidden>STEP bodies
+          <input type="text" id="import-step-bodies" placeholder="*_PCB or @1.6mm..1.635mm" spellcheck="false" aria-describedby="import-step-bodies-list" />
+        </label>
+        <pre id="import-step-bodies-list" class="note step-bodies"></pre>
+        <label class="field">Position
+          <select id="import-origin">
+            <option value="keep">Keep the file's coordinates</option>
+            <option value="center">Center on the origin</option>
+            <option value="min">Lower-left corner at the origin</option>
+          </select>
+        </label>
+        <p class="note">Units come from the file. Ports, stackup and the other layers stay as they are, and Undo puts the old geometry back. Layers from one board line up only when each is imported with its own coordinates kept.</p>
+        <p id="import-error" class="dialog-error" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button type="button" id="import-cancel">Cancel</button>
+          <button type="submit" class="primary">Import</button>
+        </div>
+      </form>
+    </dialog>
+    <script type="module" src="/src/workbench/main.ts"></script>
+  </body>
+</html>

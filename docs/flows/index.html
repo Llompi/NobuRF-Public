@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>NobuRF flow maps</title>
+  <meta name="description" content="Every screen and state of NobuRF's solver app and agent race on one canvas, with the edge cases branching off the main path.">
+  <link rel="stylesheet" href="flow-map.css">
+  <script type="module" src="flow-map.js"></script>
+</head>
+<body>
+  <header class="toolbar">
+    <nav class="flow-switch" aria-label="Flow">
+      <a href="#solver" data-flow-link="solver">Solver app</a>
+      <a href="#race" data-flow-link="race">Agent race</a>
+    </nav>
+    <div class="filters" role="group" aria-label="Highlight">
+      <button type="button" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" data-filter="main" aria-pressed="false">Main path</button>
+      <button type="button" data-filter="alternate" aria-pressed="false">Alternate</button>
+      <button type="button" data-filter="slow" aria-pressed="false">Slow</button>
+      <button type="button" data-filter="error" aria-pressed="false">Error</button>
+      <button type="button" data-filter="finding" aria-pressed="false">Findings</button>
+      <button type="button" data-filter="gap" aria-pressed="false">Not captured</button>
+    </div>
+    <div class="zoom" role="group" aria-label="Zoom">
+      <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
+      <span id="zoom-level">100%</span>
+      <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+      <button type="button" data-zoom="fit">Fit</button>
+    </div>
+  </header>
+
+  <main id="viewport" tabindex="-1" aria-label="Flow map. Drag or scroll to move, hold Control or Command and scroll to zoom.">
+    <div id="world"></div>
+  </main>
+
+  <aside id="inspector" aria-labelledby="inspector-title" hidden>
+    <button type="button" class="close" aria-label="Close details">×</button>
+    <a id="inspector-shot" target="_blank" rel="noopener"><img alt=""></a>
+    <p id="inspector-gap" class="gap-note"></p>
+    <h2 id="inspector-title"></h2>
+    <p class="meta"><span id="inspector-state" class="badge"></span> <span id="inspector-status"></span></p>
+    <p id="inspector-summary"></p>
+    <section id="inspector-finding" class="finding">
+      <h3>Finding</h3>
+      <p></p>
+    </section>
+    <h3>Code</h3>
+    <p><code id="inspector-code"></code></p>
+    <h3>Transitions</h3>
+    <ul id="inspector-edges"></ul>
+  </aside>
+
+  <noscript><p class="fatal">This map needs JavaScript. The PNG exports are in the exports folder.</p></noscript>
+</body>
+</html>

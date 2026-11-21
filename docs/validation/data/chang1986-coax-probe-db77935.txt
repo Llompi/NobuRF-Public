@@ -1,0 +1,47 @@
+# Chang 1986 coax_probe rerun: scripts/validate/chang_probe_pin.ts examples/benchmarks/graded/<file> --coax
+# Build: main db77935 (includes PR #58), CPU, 2026-11-21 06:01 to 07:02 UTC, four at a time.
+# stdout of each run, unedited:
+
+## chang1986-10.5x7.json
+chang1986-10.5x7-graded: 173x173x71 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 9.4720 GHz
+
+## chang1986-12x8.json
+chang1986-12x8-graded: 167x163x72 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 8.5345 GHz
+
+## chang1986-14x9.json
+chang1986-14x9-graded: 167x165x72 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 7.8579 GHz
+
+## chang1986-17x11-h1.524.json
+chang1986-17x11-h1.524-graded: 169x165x69 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 7.6477 GHz
+
+## chang1986-17x11-h9.525.json
+chang1986-17x11-h9.525-graded: 161x156x78 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 4.1661 GHz
+
+## chang1986-17x11.json
+chang1986-17x11-graded: 165x161x72 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 6.6584 GHz
+
+## chang1986-19.5x13.json
+chang1986-19.5x13-graded: 161x156x72 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 5.8709 GHz
+
+## chang1986-29.5x19.5.json
+chang1986-29.5x19.5-graded: 163x157x72 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 4.1874 GHz
+
+## chang1986-45.5x30.5.json
+chang1986-45.5x30.5-graded: 163x156x72 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 2.8399 GHz
+
+## chang1986-57x38.json
+chang1986-57x38-graded: 163x156x72 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 2.3324 GHz
+
+## chang1986-9x6.json
+chang1986-9x6-graded: 173x172x71 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 10.8820 GHz

@@ -1,0 +1,109 @@
+{
+ "note": "Gonzaga open helix (docs/benchmarks/gonzaga.md geometry), PEC copper, Courant 1/3, arms staircased vs thin conformal sheets (scripts/validate/gonzaga_helix.ts --copper 0 --courant 0.3333333333333333 --sheet 0|1 --cell 1.0|0.7)",
+ "rows": [
+  {
+   "arms": "staircase",
+   "cell_mm": 1.0,
+   "cells": 1531134,
+   "steps": 20200,
+   "solve_s": 1938.8,
+   "f0_ghz": 0.925,
+   "s11_min_db": -20.283,
+   "band_10db_ghz": [
+    0.898,
+    0.954
+   ],
+   "at_915_mhz": {
+    "rhcp_azimuth_gain_dbi": 1.408,
+    "ripple_db": 0.7708,
+    "axial_ratio_db": 3.0951,
+    "efficiency": 0.9552
+   },
+   "axial_ratio_db_by_ghz": {
+    "0.88": 3.6607,
+    "0.9": 3.3358,
+    "0.915": 3.0951,
+    "0.93": 2.8524,
+    "0.95": 2.52
+   }
+  },
+  {
+   "arms": "sheet",
+   "cell_mm": 1.0,
+   "cells": 1585584,
+   "steps": 23600,
+   "solve_s": 2358.6,
+   "f0_ghz": 0.941,
+   "s11_min_db": -20.261,
+   "band_10db_ghz": [
+    0.914,
+    0.969
+   ],
+   "at_915_mhz": {
+    "rhcp_azimuth_gain_dbi": 1.446,
+    "ripple_db": 0.8182,
+    "axial_ratio_db": 3.5422,
+    "efficiency": 0.975
+   },
+   "axial_ratio_db_by_ghz": {
+    "0.88": 4.1036,
+    "0.9": 3.7882,
+    "0.915": 3.5422,
+    "0.93": 3.293,
+    "0.95": 2.9648
+   }
+  },
+  {
+   "arms": "staircase",
+   "cell_mm": 0.7,
+   "cells": 2673300,
+   "steps": 30000,
+   "solve_s": 4790.6,
+   "f0_ghz": 0.93,
+   "s11_min_db": -18.134,
+   "band_10db_ghz": [
+    0.902,
+    0.958
+   ],
+   "at_915_mhz": {
+    "rhcp_azimuth_gain_dbi": 1.408,
+    "ripple_db": 0.7634,
+    "axial_ratio_db": 3.1295,
+    "efficiency": 0.956
+   },
+   "axial_ratio_db_by_ghz": {
+    "0.88": 3.6911,
+    "0.9": 3.3689,
+    "0.915": 3.1295,
+    "0.93": 2.8884,
+    "0.95": 2.5593
+   }
+  },
+  {
+   "arms": "sheet",
+   "cell_mm": 0.7,
+   "cells": 2898000,
+   "steps": 32400,
+   "solve_s": 5415.9,
+   "f0_ghz": 0.944,
+   "s11_min_db": -17.924,
+   "band_10db_ghz": [
+    0.917,
+    0.973
+   ],
+   "at_915_mhz": {
+    "rhcp_azimuth_gain_dbi": 1.4458,
+    "ripple_db": 0.8022,
+    "axial_ratio_db": 3.4799,
+    "efficiency": 0.9729
+   },
+   "axial_ratio_db_by_ghz": {
+    "0.88": 4.0332,
+    "0.9": 3.717,
+    "0.915": 3.4799,
+    "0.93": 3.2413,
+    "0.95": 2.9197
+   }
+  }
+ ]
+}

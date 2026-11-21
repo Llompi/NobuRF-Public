@@ -1,0 +1,278 @@
+{
+  "cell_mm": 1,
+  "wall_s": 0,
+  "point_solve_s": 10512,
+  "cache": "/tmp/noburf-gonzaga-sensitivity-c2bb94c7fcc8",
+  "points_from_cache": [
+    "--pitch 10.5 --radius 23.6 --arm-width 14.6 --wrap 170 --cell 1",
+    "--pitch 9.695453 --radius 23.6 --arm-width 14.6 --wrap 170 --cell 1",
+    "--pitch 11.304547 --radius 23.6 --arm-width 14.6 --wrap 170 --cell 1",
+    "--pitch 10.5 --radius 22.6 --arm-width 14.6 --wrap 170 --cell 1",
+    "--pitch 10.5 --radius 24.6 --arm-width 14.6 --wrap 170 --cell 1",
+    "--pitch 10.5 --radius 23.6 --arm-width 13.6 --wrap 170 --cell 1",
+    "--pitch 10.5 --radius 23.6 --arm-width 15.6 --wrap 170 --cell 1",
+    "--pitch 10.5 --radius 23.6 --arm-width 14.6 --wrap 167.572213 --cell 1",
+    "--pitch 10.5 --radius 23.6 --arm-width 14.6 --wrap 172.427787 --cell 1"
+  ],
+  "base": {
+    "f0_mhz": 925.1216216216217,
+    "s11_min_db": -20.346820945945947,
+    "zin_target_ohm": 54.41815965282178,
+    "axial_ratio_db": 3.0959,
+    "gain_dbi": 1.3984
+  },
+  "metrics": [
+    {
+      "key": "f0_mhz",
+      "label": "Resonance",
+      "unit": "MHz"
+    },
+    {
+      "key": "s11_min_db",
+      "label": "Dip depth",
+      "unit": "dB"
+    },
+    {
+      "key": "zin_target_ohm",
+      "label": "|Z_in| at 915 MHz",
+      "unit": "ohm"
+    },
+    {
+      "key": "axial_ratio_db",
+      "label": "Axial ratio at 915 MHz",
+      "unit": "dB"
+    },
+    {
+      "key": "gain_dbi",
+      "label": "Azimuth co-polar gain at 915 MHz",
+      "unit": "dB"
+    }
+  ],
+  "rows": [
+    {
+      "variable": {
+        "name": "wrap",
+        "value": 170,
+        "unit": "deg",
+        "minStep": 2.427787267503488,
+        "minSet": false,
+        "maxSet": false,
+        "rangeSet": false,
+        "min": 153,
+        "max": 187.00000000000003
+      },
+      "h": 2.427787267503488,
+      "scheme": "central",
+      "slopes": {
+        "f0_mhz": {
+          "perUnit": -5.421196578325212,
+          "spread": 1.0090671240313709,
+          "acrossRange": -184.32068366305737,
+          "grade": "clean",
+          "curved": true
+        },
+        "s11_min_db": {
+          "perUnit": 0.3107929180809061,
+          "spread": 0.04846046584661212,
+          "acrossRange": 10.566959214750815,
+          "grade": "clean",
+          "curved": true
+        },
+        "zin_target_ohm": {
+          "perUnit": 3.3964098765848365,
+          "spread": 0.28468298875389264,
+          "acrossRange": 115.47793580388453,
+          "grade": "clean",
+          "curved": true
+        },
+        "axial_ratio_db": {
+          "perUnit": -0.0948394462241199,
+          "spread": 0.02300448673883635,
+          "acrossRange": -3.2245411716200794,
+          "grade": "clean",
+          "curved": true
+        },
+        "gain_dbi": {
+          "perUnit": -0.0019977038618327185,
+          "spread": 0.0025743606466915813,
+          "acrossRange": -0.06792193130231249,
+          "grade": "unresolved",
+          "curved": true
+        }
+      },
+      "notes": [
+        "the project gives no range: taken at the value +-10 %",
+        "the mesh changed with the step (1,531,134, 1,531,134, 1,556,442 cells)"
+      ]
+    },
+    {
+      "variable": {
+        "name": "radius",
+        "value": 23.6,
+        "unit": "mm",
+        "minStep": 1,
+        "minSet": false,
+        "maxSet": false,
+        "rangeSet": false,
+        "min": 21.240000000000002,
+        "max": 25.960000000000004
+      },
+      "h": 1,
+      "scheme": "central",
+      "slopes": {
+        "f0_mhz": {
+          "perUnit": -37.445802522836004,
+          "spread": 1.9021348882593543,
+          "acrossRange": -176.74418790778603,
+          "grade": "clean",
+          "curved": false
+        },
+        "s11_min_db": {
+          "perUnit": 1.0126724989125702,
+          "spread": 0.2317155522965333,
+          "acrossRange": 4.779814194867334,
+          "grade": "clean",
+          "curved": true
+        },
+        "zin_target_ohm": {
+          "perUnit": 13.733375834023803,
+          "spread": 9.494687634271706,
+          "acrossRange": 64.82153393659239,
+          "grade": "sign only",
+          "curved": true
+        },
+        "axial_ratio_db": {
+          "perUnit": -0.742,
+          "spread": 0.05790000000000006,
+          "acrossRange": -3.502240000000002,
+          "grade": "clean",
+          "curved": false
+        },
+        "gain_dbi": {
+          "perUnit": -0.024449999999999972,
+          "spread": 0.041549999999999865,
+          "acrossRange": -0.11540399999999992,
+          "grade": "unresolved",
+          "curved": true
+        }
+      },
+      "notes": [
+        "the project gives no range: taken at the value +-10 %",
+        "the mesh changed with the step (1,531,134, 1,477,168, 1,612,284 cells)"
+      ]
+    },
+    {
+      "variable": {
+        "name": "pitch",
+        "value": 10.5,
+        "unit": "deg",
+        "minStep": 0.8045465072397995,
+        "minSet": false,
+        "maxSet": false,
+        "rangeSet": false,
+        "min": 9.450000000000001,
+        "max": 11.55
+      },
+      "h": 0.8045465072397995,
+      "scheme": "central",
+      "slopes": {
+        "f0_mhz": {
+          "perUnit": 4.938694821810785,
+          "spread": 0.6399612880596575,
+          "acrossRange": 10.371259125802647,
+          "grade": "clean",
+          "curved": false
+        },
+        "s11_min_db": {
+          "perUnit": -4.426753584548863,
+          "spread": 0.7031806330107091,
+          "acrossRange": -9.296182527552611,
+          "grade": "clean",
+          "curved": false
+        },
+        "zin_target_ohm": {
+          "perUnit": -7.664447646561487,
+          "spread": 1.1080698212916267,
+          "acrossRange": -16.09534005777912,
+          "grade": "clean",
+          "curved": false
+        },
+        "axial_ratio_db": {
+          "perUnit": 0.6130782938729284,
+          "spread": 0.022434998893879954,
+          "acrossRange": 1.2874644171331495,
+          "grade": "clean",
+          "curved": false
+        },
+        "gain_dbi": {
+          "perUnit": -0.023677935120687877,
+          "spread": 0.008016938662910148,
+          "acrossRange": -0.04972366375344453,
+          "grade": "sign only",
+          "curved": false
+        }
+      },
+      "notes": [
+        "the project gives no range: taken at the value +-10 %",
+        "the mesh changed with the step (1,531,134, 1,505,826, 1,581,750 cells)"
+      ]
+    },
+    {
+      "variable": {
+        "name": "arm-width",
+        "value": 14.6,
+        "unit": "mm",
+        "minStep": 1,
+        "minSet": false,
+        "maxSet": false,
+        "rangeSet": false,
+        "min": 13.14,
+        "max": 16.060000000000002
+      },
+      "h": 1,
+      "scheme": "central",
+      "slopes": {
+        "f0_mhz": {
+          "perUnit": -2.268574448806987,
+          "spread": 0.04135886112629805,
+          "acrossRange": -6.624237390516407,
+          "grade": "clean",
+          "curved": false
+        },
+        "s11_min_db": {
+          "perUnit": -1.4852489806704927,
+          "spread": 0.10766059286408058,
+          "acrossRange": -4.336927023557841,
+          "grade": "clean",
+          "curved": false
+        },
+        "zin_target_ohm": {
+          "perUnit": 0.09558367613492535,
+          "spread": 0.10710770424637062,
+          "acrossRange": 0.2791043343139822,
+          "grade": "unresolved",
+          "curved": true
+        },
+        "axial_ratio_db": {
+          "perUnit": 0.18035,
+          "spread": 0.008949999999999791,
+          "acrossRange": 0.5266220000000004,
+          "grade": "clean",
+          "curved": false
+        },
+        "gain_dbi": {
+          "perUnit": -0.010950000000000015,
+          "spread": 0.0005500000000000504,
+          "acrossRange": -0.031974000000000065,
+          "grade": "clean",
+          "curved": false
+        }
+      },
+      "notes": [
+        "the project gives no range: taken at the value +-10 %",
+        "the mesh changed with the step (1,531,134, 1,505,826, 1,556,442 cells)"
+      ]
+    }
+  ],
+  "skipped": []
+}

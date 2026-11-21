@@ -1,0 +1,49 @@
+{
+  "$comment": "Tool contract for the bridge (server/bridge.ts). Base URL http://127.0.0.1:8787. Adapt to OpenClaw's tool/MCP registration at kickoff.",
+  "tools": [
+    {
+      "name": "get_state",
+      "description": "Current antenna geometry (mm) and the last simulation telemetry (S11 in dB, input impedance in ohms, resonant frequency in GHz).",
+      "http": { "method": "GET", "path": "/api/state" },
+      "input_schema": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "apply_edit",
+      "description": "Apply one small geometry change, run a full-wave FDTD solve in the browser, and return the new telemetry. Edits smaller than the 0.5 mm grid have no effect and come back with a no_voxel_change warning.",
+      "http": { "method": "POST", "path": "/api/apply_edit" },
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+                "properties": {
+          "reason": { "type": "string", "maxLength": 300, "description": "One line: why this edit. Logged for the demo, not applied." },
+          "inset_depth_mm": { "type": "number", "minimum": 0, "description": "Depth of the inset feed notch. Deeper lowers the input resistance." },
+          "inset_gap_mm": { "type": "number", "minimum": 0.1 },
+          "corner_chamfer_mm": { "type": "number", "minimum": 0 },
+          "patch_w_mm": { "type": "number", "minimum": 1 },
+          "patch_l_mm": { "type": "number", "minimum": 1, "description": "Resonant length. Shorter raises f0." },
+          "feed_w_mm": { "type": "number", "minimum": 0.5 },
+          "remove_feature_id": { "type": "string" },
+          "upsert_feature": {
+            "type": "object",
+            "required": ["id", "kind", "x_mm", "y_mm", "w_mm", "h_mm"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,24}$" },
+              "kind": { "enum": ["rect_slot", "u_slot", "stub"] },
+              "x_mm": { "type": "number" },
+              "y_mm": { "type": "number" },
+              "w_mm": { "type": "number", "minimum": 0.1 },
+              "h_mm": { "type": "number", "minimum": 0.1 },
+              "t_mm": { "type": "number", "minimum": 0.1, "description": "u_slot trace width only" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "reset",
+      "description": "Reset to the mismatched baseline patch and re-solve.",
+      "http": { "method": "POST", "path": "/api/reset" },
+      "input_schema": { "type": "object", "properties": {}, "additionalProperties": false }
+    }
+  ]
+}

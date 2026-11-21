@@ -1,0 +1,49 @@
+body.race { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; height: 100vh; overflow: hidden; }
+#race-header { display: flex; align-items: baseline; gap: var(--space-5); padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--rule); }
+#race-task { color: var(--text-muted); }
+#race-connection { margin-left: auto; font-size: 14px; }
+#race-banner { justify-self: center; margin-top: var(--space-3); padding: var(--space-1) var(--space-3); border: 1px solid var(--caution);
+  border-radius: var(--radius); color: var(--caution); font: 500 14px var(--font-code); }
+
+#lanes { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); min-height: 0; }
+.lane { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto auto; gap: var(--space-3); padding: var(--space-4) var(--space-5); min-height: 0; }
+.lane + .lane { border-left: 1px solid var(--rule); }
+.lane-head { display: flex; align-items: flex-start; gap: var(--space-4); }
+.lane-name { flex: 1; min-width: 0; }
+.lane-provider { display: flex; align-items: center; gap: var(--space-2); font-size: 24px; font-weight: 600; line-height: 1.2; }
+.lane-provider span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Trace swatch, as in an analyser's legend. */
+.lane-provider::before { content: ''; flex: none; width: 20px; height: 3px; border-radius: 2px; background: var(--lane-trace); }
+.lane-model { font-size: 14px; color: var(--text-muted); margin-left: 28px; }
+.lane-clock { text-align: right; }
+.lane-clock .number { display: block; font-size: 48px; line-height: 1; font-weight: 400; letter-spacing: -0.02em; }
+.lane-clock-caption { font-size: 14px; color: var(--text-muted); }
+.lane-clock.reached .number, .lane-clock.reached .lane-clock-caption { color: var(--good); }
+
+.lane-view { position: relative; min-height: 160px; }
+.lane-view canvas { width: 100%; height: 100%; display: block; }
+
+.lane-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); margin: 0; }
+.lane-facts div { min-width: 0; }
+.lane-facts dt { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+.lane-facts dd { margin: 0; font: 400 22px var(--font-number); font-variant-numeric: tabular-nums; }
+.lane-chart { width: 100%; height: 130px; display: block; }
+.lane-last { font-size: 14px; min-height: 3em; }
+.lane-last .edit-what { font-family: var(--font-code); }
+.lane-last .edit-reason { display: block; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+#race-footer { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-5); padding: var(--space-3) var(--space-5) var(--space-4); border-top: 1px solid var(--rule); }
+#race-result { font-size: 20px; font-weight: 500; }
+#race-note { font-size: 13px; color: var(--text-muted); max-width: 70ch; text-align: right; }
+
+@media (max-width: 900px) {
+  body.race { height: auto; overflow: visible; }
+  #race-header { flex-wrap: wrap; gap: var(--space-2) var(--space-4); padding: var(--space-3) var(--space-4); }
+  #lanes { grid-auto-flow: row; }
+  .lane { padding: var(--space-4); }
+  .lane + .lane { border-left: 0; border-top: 1px solid var(--rule); }
+  .lane-view { height: 260px; }
+  .lane-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #race-footer { flex-direction: column; padding: var(--space-3) var(--space-4); }
+  #race-note { text-align: left; }
+}

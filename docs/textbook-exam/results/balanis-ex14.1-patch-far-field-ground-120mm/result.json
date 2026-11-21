@@ -1,0 +1,155 @@
+{
+  "project": "balanis-ex14.1-patch-far-field-ground-120mm",
+  "f0_ghz": 9.525,
+  "s11_min_db": -2.9899032329093425,
+  "zin": [
+    {
+      "f_ghz": 10,
+      "re_ohm": 15.789655893370062,
+      "im_ohm": 75.61972068076487
+    }
+  ],
+  "steps": 5800,
+  "energy_decay_db": 50.09103110881032,
+  "stopped_on_energy": true,
+  "solve_ms": 106785,
+  "ports": [
+    {
+      "id": "feed",
+      "z0_ohm": 50,
+      "node": {
+        "i": 66,
+        "j": 63
+      },
+      "excited": true
+    }
+  ],
+  "self_check": {
+    "mesh_convergence": {
+      "mode": "off",
+      "unavailable": "off"
+    },
+    "checks": [
+      {
+        "name": "passivity",
+        "passed": true,
+        "marginal": false,
+        "worst": 0.959447,
+        "at_ghz": 8,
+        "limit": 1.02,
+        "detail": "largest singular value of S 0.9594 at 8.000 GHz (warns above 1.005, fails above 1.02)"
+      },
+      {
+        "name": "energy_decay",
+        "passed": true,
+        "marginal": false,
+        "worst": 50.091,
+        "at_ghz": null,
+        "limit": 50,
+        "detail": "least energy decay over 1 run(s): 50.1 dB (requested 50 dB)"
+      }
+    ],
+    "validated_envelope": [
+      {
+        "parameter": "substrate layers",
+        "value": "1",
+        "validated": "at most 1",
+        "inside": true,
+        "evidence": "every measured benchmark has one substrate: docs/validation.md section 7"
+      },
+      {
+        "parameter": "eps_r of \"core\"",
+        "value": "2.2",
+        "validated": "2.2 to 2.33",
+        "inside": true,
+        "evidence": "measured benchmarks that agree: eps_r 2.2 (Sheen 1990 patch, -1.0 %) and 2.33 (Chang 1986 patches, -1.2 to +1.4 %). The alumina line (9.9) reads eps_eff 1.1 to 1.7 % high, so it is not included: docs/validation.md section 7"
+      },
+      {
+        "parameter": "thickness of \"core\" in wavelengths at 11 GHz",
+        "value": "0.0864",
+        "validated": "up to 0.1",
+        "inside": true,
+        "evidence": "Chang 1986 measured patches: within 2.4 % up to h/lambda_d 0.11 (one row -3.2 %); above it NobuRF reads high, +5 % at 0.125 rising to +15 % at 0.23 with a lumped feed (docs/validation.md section 7.4)"
+      },
+      {
+        "parameter": "materials",
+        "value": "constant eps_r, mu_r 1",
+        "validated": "constant eps_r, mu_r 1",
+        "inside": true,
+        "evidence": "frequency-dependent and magnetic materials match the closed-form slab reflection and transmission coefficients within 6e-3, most within 2e-3 (docs/validation.md section 2.4), but no measured board or ferrite part has checked them yet"
+      },
+      {
+        "parameter": "band (GHz)",
+        "value": "8 to 11",
+        "validated": "2 to 8",
+        "inside": false,
+        "evidence": "the measured resonances that agree lie between 2.31 GHz (Chang 1986) and 7.5 GHz (Sheen 1990 patch): docs/validation.md section 7"
+      },
+      {
+        "parameter": "ports",
+        "value": "1 (lumped)",
+        "validated": "1 lumped",
+        "inside": true,
+        "evidence": "the measured benchmarks that agree are one-port patches with a lumped feed; the Sheen 1990 four-port branch-line coupler reads 7 to 9 % low, and the SMA edge launch and coax probe are checked against openEMS only (docs/validation.md sections 3.2, 7)"
+      },
+      {
+        "parameter": "copper model",
+        "value": "perfect conductor",
+        "validated": "perfect conductor",
+        "inside": true,
+        "evidence": "copper loss matches the Pozar 6.3 cavity wall Q within 0.3 %, but has no measured strip-loss benchmark yet (docs/validation.md sections 7.2, 7.3)"
+      },
+      {
+        "parameter": "copper edges",
+        "value": "axis-aligned",
+        "validated": "axis-aligned",
+        "inside": true,
+        "evidence": "every benchmark has axis-aligned copper; slanted or curved edges are staircased on the grid, which the mesh band measures but no benchmark has checked"
+      }
+    ]
+  },
+  "provenance": {
+    "noburf_project": 1,
+    "project_sha256": "48369df3ddc42f5466aa342d8e6d5629d51dd8ef317260c3000fd170376da1e7",
+    "mesh": {
+      "nx": 133,
+      "ny": 131,
+      "nz": 46,
+      "dx_mm": 0.20435742487821118,
+      "max_cell_mm": 1.9687526761814382,
+      "graded": true,
+      "courant": 0.5715767664977295,
+      "pml_cells": {
+        "xLow": 8,
+        "xHigh": 8,
+        "yLow": 8,
+        "yHigh": 8,
+        "zLow": 8,
+        "zHigh": 8
+      },
+      "signature": "4b5df213526385b5"
+    },
+    "excitation": {
+      "fMinGHz": 8,
+      "fMaxGHz": 11,
+      "nFreq": 121,
+      "z0": 50
+    },
+    "excited_ports": [
+      "feed"
+    ],
+    "components": [],
+    "run_control": {
+      "maxSteps": 60000,
+      "stopAtEnergyDecayDb": 50,
+      "energyCheckEverySteps": 100
+    },
+    "solver": "noburf 0.1.0 (WGSL on mesa software llvmpipe-llvm-20-1-2-256-bits- llvmpipe: Mesa 26.0.8-1ubuntu0.3 (LLVM 20.1.2))",
+    "git_commit": "08585372c580ab9336fcd583bba4c7989403a99d",
+    "tracked_files_modified": true,
+    "warnings": [
+      "layer \"core\": 9.3 cells per wavelength inside the material at 11.0 GHz (18.4 mm at refractive index 1.48, largest cell 1.97 mm). Below about 10 the wave travels too slowly on the grid and resonances read low; refine the mesh",
+      "outside the validated range: band (GHz) is 8 to 11 (validated: 2 to 8), so the model is unproven against measurement here. the measured resonances that agree lie between 2.31 GHz (Chang 1986) and 7.5 GHz (Sheen 1990 patch): docs/validation.md section 7"
+    ]
+  }
+}

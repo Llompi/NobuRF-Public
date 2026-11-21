@@ -1,0 +1,14 @@
+{
+ "case": "z0",
+ "port": "lumped",
+ "side_mm": 2.5,
+ "edge_mm": 0.025,
+ "dielectric_cells": 12,
+ "edges": "thirds",
+ "tan_delta": 0.3,
+ "cells": 475728,
+ "wall_s": 536.6,
+ "re_z_mean_8_12_ohm": 49.081,
+ "im_z_mean_8_12_ohm": 31.427,
+ "re_z_at_10_ohm": 47.449
+}

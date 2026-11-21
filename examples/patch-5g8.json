@@ -1,0 +1,87 @@
+{
+  "noburf_project": 1,
+  "name": "patch-5g8",
+  "variables": {
+    "board_w": { "value": "24 mm", "locked": true },
+    "board_l": { "value": "24 mm", "locked": true },
+    "patch_w": { "value": "16 mm", "min": "1 mm", "max": "board_w - 1 mm" },
+    "patch_l": { "value": "12.4 mm", "min": "1 mm", "max": "board_l - 1 mm" },
+    "feed_w": { "value": "2.5 mm", "min": "0.5 mm", "max": "patch_w / 2" },
+    "port_y": { "value": "-10 mm", "min": "-board_l / 2", "max": "-patch_l / 2" }
+  },
+  "materials": {
+    "fr4_lossless": { "eps_r": 4.4, "tan_delta": 0 }
+  },
+  "stackup": [
+    { "type": "copper", "name": "gnd", "material": "pec" },
+    { "type": "dielectric", "name": "core", "material": "fr4_lossless", "thickness": "1.5 mm" },
+    { "type": "copper", "name": "top", "material": "pec" }
+  ],
+  "board": {
+    "outline": [
+      ["-board_w / 2", "-board_l / 2"], ["board_w / 2", "-board_l / 2"],
+      ["board_w / 2", "board_l / 2"], ["-board_w / 2", "board_l / 2"]
+    ]
+  },
+  "geometry": {
+    "gnd": [
+      {
+        "id": "ground",
+        "op": "add",
+        "polygon": [
+          ["-board_w / 2", "-board_l / 2"], ["board_w / 2", "-board_l / 2"],
+          ["board_w / 2", "board_l / 2"], ["-board_w / 2", "board_l / 2"]
+        ]
+      }
+    ],
+    "top": [
+      {
+        "id": "patch",
+        "op": "add",
+        "polygon": [
+          ["-patch_w / 2", "-patch_l / 2"], ["patch_w / 2", "-patch_l / 2"],
+          ["patch_w / 2", "patch_l / 2"], ["-patch_w / 2", "patch_l / 2"]
+        ]
+      },
+      {
+        "id": "feed",
+        "op": "add",
+        "polygon": [
+          ["-feed_w / 2", "port_y"], ["feed_w / 2", "port_y"],
+          ["feed_w / 2", "-patch_l / 2"], ["-feed_w / 2", "-patch_l / 2"]
+        ]
+      }
+    ]
+  },
+  "ports": [
+    {
+      "id": "feed",
+      "x": "0 mm",
+      "y": "port_y",
+      "between": ["gnd", "top"],
+      "reference_impedance_ohm": 50
+    }
+  ],
+  "boundaries": {
+    "x_min": { "type": "pml", "cells": 8 },
+    "x_max": { "type": "pml", "cells": 8 },
+    "y_min": { "type": "pml", "cells": 8 },
+    "y_max": { "type": "pml", "cells": 8 },
+    "z_min": { "type": "pml", "cells": 8 },
+    "z_max": { "type": "pml", "cells": 8 }
+  },
+  "mesh": {
+    "cell": "0.5 mm",
+    "air_margin_cells": { "xy": 1, "below": 4, "above": 25 }
+  },
+  "analysis": {
+    "f_min_ghz": 4.5,
+    "f_max_ghz": 7.5,
+    "n_freq": 121,
+    "loss_reference_ghz": 5.8,
+    "stop": { "energy_decay_db": 50, "max_steps": 20000 }
+  },
+  "outputs": {
+    "zin_at_ghz": [5.8]
+  }
+}

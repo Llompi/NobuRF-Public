@@ -1,0 +1,182 @@
+{
+  "noburf_project": 1,
+  "name": "chang1986-29.5x19.5-graded",
+  "variables": {
+    "patch_w": {
+      "value": "29.5 mm",
+      "locked": true
+    },
+    "patch_l": {
+      "value": "19.5 mm",
+      "locked": true
+    },
+    "board_w": {
+      "value": "100 mm",
+      "locked": true
+    },
+    "board_l": {
+      "value": "100 mm",
+      "locked": true
+    }
+  },
+  "materials": {
+    "substrate": {
+      "eps_r": 2.33,
+      "tan_delta": 0
+    }
+  },
+  "stackup": [
+    {
+      "type": "copper",
+      "name": "gnd",
+      "material": "pec"
+    },
+    {
+      "type": "dielectric",
+      "name": "core",
+      "material": "substrate",
+      "thickness": "3.175 mm"
+    },
+    {
+      "type": "copper",
+      "name": "top",
+      "material": "pec"
+    }
+  ],
+  "board": {
+    "outline": [
+      [
+        "0 mm - board_w / 2",
+        "0 mm - board_l / 2"
+      ],
+      [
+        "0 mm + board_w / 2",
+        "0 mm - board_l / 2"
+      ],
+      [
+        "0 mm + board_w / 2",
+        "0 mm + board_l / 2"
+      ],
+      [
+        "0 mm - board_w / 2",
+        "0 mm + board_l / 2"
+      ]
+    ]
+  },
+  "geometry": {
+    "gnd": [
+      {
+        "id": "ground",
+        "op": "add",
+        "polygon": [
+          [
+            "0 mm - board_w / 2",
+            "0 mm - board_l / 2"
+          ],
+          [
+            "0 mm + board_w / 2",
+            "0 mm - board_l / 2"
+          ],
+          [
+            "0 mm + board_w / 2",
+            "0 mm + board_l / 2"
+          ],
+          [
+            "0 mm - board_w / 2",
+            "0 mm + board_l / 2"
+          ]
+        ]
+      }
+    ],
+    "top": [
+      {
+        "id": "patch",
+        "op": "add",
+        "polygon": [
+          [
+            "0 mm - patch_w / 2",
+            "0 mm - patch_l / 2"
+          ],
+          [
+            "0 mm + patch_w / 2",
+            "0 mm - patch_l / 2"
+          ],
+          [
+            "0 mm + patch_w / 2",
+            "0 mm + patch_l / 2"
+          ],
+          [
+            "0 mm - patch_w / 2",
+            "0 mm + patch_l / 2"
+          ]
+        ]
+      }
+    ]
+  },
+  "ports": [
+    {
+      "id": "feed",
+      "x": "0 mm",
+      "y": "-patch_l / 2 + 1.5 mm",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    }
+  ],
+  "boundaries": {
+    "x_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "x_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_max": {
+      "type": "pml",
+      "cells": 8
+    }
+  },
+  "mesh": {
+    "cell": "2 mm",
+    "air_margin_cells": {
+      "xy": 4,
+      "below": 3,
+      "above": 15
+    },
+    "graded": {
+      "edge_cell": "0.4 mm",
+      "dielectric_cells": 6,
+      "max_growth": 1.3
+    }
+  },
+  "analysis": {
+    "f_min_ghz": 3.18,
+    "f_max_ghz": 5.3,
+    "n_freq": 201,
+    "loss_reference_ghz": 4.24,
+    "stop": {
+      "energy_decay_db": 50,
+      "max_steps": 40000
+    }
+  },
+  "outputs": {
+    "zin_at_ghz": [
+      4.24
+    ]
+  }
+}

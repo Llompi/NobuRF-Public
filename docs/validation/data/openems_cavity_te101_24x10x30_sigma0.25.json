@@ -1,0 +1,18 @@
+{
+ "case": "cavity",
+ "size_mm": [
+  24.0,
+  10.0,
+  30.0
+ ],
+ "sigma_scale": 0.25,
+ "f0_ghz": 7.997614443299844,
+ "q": 7613.93382398604,
+ "windows": 38,
+ "cells": 68200,
+ "probe_samples": 3894,
+ "sample_s": 1.3480832363087594e-11,
+ "wall_s": 254.9,
+ "q_textbook": 7651.4,
+ "q_error_pct": -0.49
+}

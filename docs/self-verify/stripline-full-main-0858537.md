@@ -1,0 +1,29 @@
+# NobuRF self-verification, full tier
+
+Seed `stripline-study-1`. 21 checks: 15 pass, 6 fail, 0 inconclusive.
+
+## stripline (255 s)
+
+| Case | Check | Verdict | Measured | Expected | Tolerance | Note |
+|---|---|---|---|---|---|---|
+| stripline-0: W 1.419 mm, b 2.681 mm, eps_r 5.642, edge cell 0.1989 mm, 2 cells per half | beta extrapolated vs 1D Yee dispersion | pass | 2.239e-5 | 0.00000 | 4.918e-4 | largest relative error over the band by level 5.36e-5 / 4.60e-6 / 6.98e-6 / 1.55e-5; Richardson at order 2, band GCI (Fs 1.25) + extraction + roundoff |
+| stripline-0: W 1.419 mm, b 2.681 mm, eps_r 5.642, edge cell 0.1989 mm, 2 cells per half | observed order of the Z0 error | **FAIL** | 0.633290 | 2.00000 |  | needs 1.5 to 3; slope of ln/error/ over 4 levels; Z0 by level 40.3828 / 40.5035 / 40.5763 / 40.6768 ohm vs Cohn 40.9677 ohm; strip edge lines moved, moved, moved, moved |
+| stripline-0: W 1.419 mm, b 2.681 mm, eps_r 5.642, edge cell 0.1989 mm, 2 cells per half | Z0 extrapolated vs Cohn (exact) | **FAIL** | 40.7572 | 40.9677 | 0.104651 | Richardson at order 2 from the two finest levels; band = GCI (Fs 1.25) + Cohn's wall error + extraction error |
+| stripline-0: W 1.419 mm, b 2.681 mm, eps_r 5.642, edge cell 0.1989 mm, 2 cells per half | Z0 under a sub-cell translation | pass | 40.3828 | 40.3828 | 0.0129961 | mesh maps onto the original: same discrete problem, roundoff only |
+| stripline-0: W 1.419 mm, b 2.681 mm, eps_r 5.642, edge cell 0.1989 mm, 2 cells per half | Z0 under a mirror in x | pass | 40.3828 | 40.3828 | 0.0129961 | mesh maps onto the original: same discrete problem, roundoff only |
+| stripline-0: W 1.419 mm, b 2.681 mm, eps_r 5.642, edge cell 0.1989 mm, 2 cells per half | Z0 under scaling with the mesh | pass | 40.3828 | 40.3828 | 0.0129961 | mesh maps onto the original: same discrete problem, roundoff only |
+| stripline-0: W 1.419 mm, b 2.681 mm, eps_r 5.642, edge cell 0.1989 mm, 2 cells per half | Z0 under scaling without the mesh | pass | 40.3721 | 40.3828 | 1.22447 | board x 0.885, mesh unchanged; both levels' two-level bands (GCI, Fs 3) |
+| stripline-1: W 1.568 mm, b 2.945 mm, eps_r 4.785, edge cell 0.2120 mm, 2 cells per half | beta extrapolated vs 1D Yee dispersion | pass | 2.084e-5 | 0.00000 | 4.681e-4 | largest relative error over the band by level 3.32e-5 / 5.67e-6 / 1.02e-5 / 1.61e-5; Richardson at order 2, band GCI (Fs 1.25) + extraction + roundoff |
+| stripline-1: W 1.568 mm, b 2.945 mm, eps_r 4.785, edge cell 0.2120 mm, 2 cells per half | observed order of the Z0 error | **FAIL** | -0.0462907 | 2.00000 |  | needs 1.5 to 3; slope of ln/error/ over 4 levels; Z0 by level 43.6071 / 43.7663 / 43.8350 / 43.5397 ohm vs Cohn 44.3427 ohm; strip edge lines moved, moved, moved, on the drawn edge |
+| stripline-1: W 1.568 mm, b 2.945 mm, eps_r 4.785, edge cell 0.2120 mm, 2 cells per half | Z0 extrapolated vs Cohn (exact) | **FAIL** | 43.3035 | 44.3427 | 0.299839 | Richardson at order 2 from the two finest levels; band = GCI (Fs 1.25) + Cohn's wall error + extraction error |
+| stripline-1: W 1.568 mm, b 2.945 mm, eps_r 4.785, edge cell 0.2120 mm, 2 cells per half | Z0 under a sub-cell translation | pass | 43.6071 | 43.6071 | 0.0136562 | mesh maps onto the original: same discrete problem, roundoff only |
+| stripline-1: W 1.568 mm, b 2.945 mm, eps_r 4.785, edge cell 0.2120 mm, 2 cells per half | Z0 under a mirror in x | pass | 43.6071 | 43.6071 | 0.0136562 | mesh maps onto the original: same discrete problem, roundoff only |
+| stripline-1: W 1.568 mm, b 2.945 mm, eps_r 4.785, edge cell 0.2120 mm, 2 cells per half | Z0 under scaling with the mesh | pass | 43.6071 | 43.6071 | 0.0136562 | mesh maps onto the original: same discrete problem, roundoff only |
+| stripline-1: W 1.568 mm, b 2.945 mm, eps_r 4.785, edge cell 0.2120 mm, 2 cells per half | Z0 under scaling without the mesh | pass | 43.6325 | 43.6071 | 6.63786 | board x 0.786, mesh unchanged; both levels' two-level bands (GCI, Fs 3) |
+| stripline-2: W 2.051 mm, b 1.628 mm, eps_r 1.821, edge cell 0.4108 mm, 2 cells per half | beta extrapolated vs 1D Yee dispersion | **FAIL** | 9.811e-4 | 0.00000 | 4.255e-4 | largest relative error over the band by level 1.56e-3 / 1.20e-3 / 1.22e-3 / 1.09e-3; Richardson at order 2, band GCI (Fs 1.25) + extraction + roundoff |
+| stripline-2: W 2.051 mm, b 1.628 mm, eps_r 1.821, edge cell 0.4108 mm, 2 cells per half | observed order of the Z0 error | **FAIL** | 1.39485 | 2.00000 |  | needs 1.5 to 3; slope of ln/error/ over 4 levels; Z0 by level 40.3886 / 40.6979 / 40.8134 / 40.8955 ohm vs Cohn 41.0359 ohm; strip edge lines moved, moved, moved, moved |
+| stripline-2: W 2.051 mm, b 1.628 mm, eps_r 1.821, edge cell 0.4108 mm, 2 cells per half | Z0 extrapolated vs Cohn (exact) | pass | 40.9611 | 41.0359 | 0.0863579 | Richardson at order 2 from the two finest levels; band = GCI (Fs 1.25) + Cohn's wall error + extraction error |
+| stripline-2: W 2.051 mm, b 1.628 mm, eps_r 1.821, edge cell 0.4108 mm, 2 cells per half | Z0 under a sub-cell translation | pass | 40.3886 | 40.3886 | 0.00891932 | mesh maps onto the original: same discrete problem, roundoff only |
+| stripline-2: W 2.051 mm, b 1.628 mm, eps_r 1.821, edge cell 0.4108 mm, 2 cells per half | Z0 under a mirror in x | pass | 40.3886 | 40.3886 | 0.00891932 | mesh maps onto the original: same discrete problem, roundoff only |
+| stripline-2: W 2.051 mm, b 1.628 mm, eps_r 1.821, edge cell 0.4108 mm, 2 cells per half | Z0 under scaling with the mesh | pass | 40.3886 | 40.3886 | 0.00891932 | mesh maps onto the original: same discrete problem, roundoff only |
+| stripline-2: W 2.051 mm, b 1.628 mm, eps_r 1.821, edge cell 0.4108 mm, 2 cells per half | Z0 under scaling without the mesh | pass | 36.7840 | 40.3886 | 22.8865 | board x 0.808, mesh unchanged; both levels' two-level bands (GCI, Fs 3) |

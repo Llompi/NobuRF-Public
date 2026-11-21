@@ -1,0 +1,346 @@
+{
+  "post": {
+    "what": "two posts between 1 mm parallel plates, 5 mm apart: the change in loop inductance from the reference drill",
+    "rows": [
+      {
+        "edge_cell_mm": 0.2,
+        "drill_mm": 0.8,
+        "reference_drill_mm": 1.6,
+        "one_column": false,
+        "steps": 6700,
+        "l_nh": 1.49909,
+        "delta_l_nh": 0.13701,
+        "exact_delta_l_nh": 0.14253,
+        "error_nh": -0.00552
+      },
+      {
+        "edge_cell_mm": 0.2,
+        "drill_mm": 0.4,
+        "reference_drill_mm": 1.6,
+        "one_column": false,
+        "steps": 6700,
+        "l_nh": 1.62305,
+        "delta_l_nh": 0.26098,
+        "exact_delta_l_nh": 0.28213,
+        "error_nh": -0.02115
+      },
+      {
+        "edge_cell_mm": 0.2,
+        "drill_mm": 0.2,
+        "reference_drill_mm": 1.6,
+        "one_column": false,
+        "steps": 14200,
+        "l_nh": 1.79793,
+        "delta_l_nh": 0.43586,
+        "exact_delta_l_nh": 0.42099,
+        "error_nh": 0.01486
+      },
+      {
+        "edge_cell_mm": 0.2,
+        "drill_mm": 0.15,
+        "reference_drill_mm": 1.6,
+        "one_column": true,
+        "steps": 8200,
+        "l_nh": 1.89316,
+        "delta_l_nh": 0.53109,
+        "exact_delta_l_nh": 0.47857,
+        "error_nh": 0.05252
+      },
+      {
+        "edge_cell_mm": 0.2,
+        "drill_mm": 0.1,
+        "reference_drill_mm": 1.6,
+        "one_column": true,
+        "steps": 8200,
+        "l_nh": 1.89316,
+        "delta_l_nh": 0.53109,
+        "exact_delta_l_nh": 0.55968,
+        "error_nh": -0.0286
+      },
+      {
+        "edge_cell_mm": 0.2,
+        "drill_mm": 0.05,
+        "reference_drill_mm": 1.6,
+        "one_column": true,
+        "steps": 8200,
+        "l_nh": 1.89316,
+        "delta_l_nh": 0.53109,
+        "exact_delta_l_nh": 0.69833,
+        "error_nh": -0.16724
+      },
+      {
+        "edge_cell_mm": 0.1,
+        "drill_mm": 0.4,
+        "reference_drill_mm": 1.6,
+        "one_column": false,
+        "steps": 13400,
+        "l_nh": 1.77959,
+        "delta_l_nh": 0.28729,
+        "exact_delta_l_nh": 0.28213,
+        "error_nh": 0.00517
+      },
+      {
+        "edge_cell_mm": 0.1,
+        "drill_mm": 0.2,
+        "reference_drill_mm": 1.6,
+        "one_column": false,
+        "steps": 13600,
+        "l_nh": 1.89473,
+        "delta_l_nh": 0.40243,
+        "exact_delta_l_nh": 0.42099,
+        "error_nh": -0.01857
+      },
+      {
+        "edge_cell_mm": 0.1,
+        "drill_mm": 0.1,
+        "reference_drill_mm": 1.6,
+        "one_column": false,
+        "steps": 31900,
+        "l_nh": 2.06826,
+        "delta_l_nh": 0.57596,
+        "exact_delta_l_nh": 0.55968,
+        "error_nh": 0.01628
+      }
+    ]
+  },
+  "short": {
+    "what": "via at the end of a 50 ohm microstrip (RO4003C-like, h 0.813 mm, W 1.8 mm): its reactance as an inductance at the via centre, from the de-embedded S11",
+    "rows": [
+      {
+        "drill_mm": 0.4,
+        "edge_cell_mm": 0.1,
+        "z_line_ohm": 50.129,
+        "eps_eff_at_2": 2.7972538333542087,
+        "l_nh_at": {
+          "1": 0.22877,
+          "2": 0.22147,
+          "4": 0.22123,
+          "6": 0.22212,
+          "8": 0.21493
+        },
+        "steps": 5500,
+        "warnings": []
+      },
+      {
+        "drill_mm": 0.2,
+        "edge_cell_mm": 0.1,
+        "z_line_ohm": 50.129,
+        "eps_eff_at_2": 2.7972538333542087,
+        "l_nh_at": {
+          "1": 0.33228,
+          "2": 0.32416,
+          "4": 0.32627,
+          "6": 0.33134,
+          "8": 0.32608
+        },
+        "steps": 5800,
+        "warnings": []
+      },
+      {
+        "drill_mm": 0.8,
+        "edge_cell_mm": 0.1,
+        "z_line_ohm": 50.129,
+        "eps_eff_at_2": 2.7972538333542087,
+        "l_nh_at": {
+          "1": 0.10246,
+          "2": 0.09211,
+          "4": 0.08787,
+          "6": 0.09267,
+          "8": 0.08486
+        },
+        "steps": 6700,
+        "warnings": []
+      },
+      {
+        "drill_mm": 0.4,
+        "edge_cell_mm": 0.05,
+        "z_line_ohm": 50.21,
+        "eps_eff_at_2": 2.800392795023622,
+        "l_nh_at": {
+          "1": 0.22678,
+          "2": 0.22113,
+          "4": 0.213,
+          "6": 0.22478,
+          "8": 0.21339
+        },
+        "steps": 14100,
+        "warnings": []
+      }
+    ]
+  },
+  "short_openems": {
+    "what": "the same board in openEMS (validation/openems/via_openems.py): MSL port at the plane 3 mm before the via, its own Z0 and beta for the move to the via centre; v0.37.0, run 2026-11-21",
+    "rows": [
+      {
+        "drill_mm": 0.4,
+        "fine_mm": 0.025,
+        "edge_mm": 0.1,
+        "dielectric_cells": 6,
+        "plane_mm": 3,
+        "pad_mm": 0.6,
+        "cells": 301860,
+        "wall_s": 737.6,
+        "l_nh_at": {
+          "1": 0.17663,
+          "2": 0.17841,
+          "4": 0.17869,
+          "6": 0.1791,
+          "8": 0.17735
+        },
+        "z0_at_2": 50.4323,
+        "eps_eff_at_2": 2.90032
+      },
+      {
+        "drill_mm": 0.2,
+        "fine_mm": 0.025,
+        "edge_mm": 0.1,
+        "dielectric_cells": 6,
+        "plane_mm": 3,
+        "pad_mm": 0.6,
+        "cells": 294840,
+        "wall_s": 1123.5,
+        "l_nh_at": {
+          "1": 0.29764,
+          "2": 0.3007,
+          "4": 0.30388,
+          "6": 0.30878,
+          "8": 0.31132
+        },
+        "z0_at_2": 50.45825,
+        "eps_eff_at_2": 2.89795
+      },
+      {
+        "drill_mm": 0.8,
+        "fine_mm": 0.025,
+        "edge_mm": 0.1,
+        "dielectric_cells": 6,
+        "plane_mm": 3,
+        "pad_mm": 0.6,
+        "cells": 288288,
+        "wall_s": 589.8,
+        "l_nh_at": {
+          "1": 0.05216,
+          "2": 0.05303,
+          "4": 0.05178,
+          "6": 0.04971,
+          "8": 0.04557
+        },
+        "z0_at_2": 50.44099,
+        "eps_eff_at_2": 2.90828
+      },
+      {
+        "drill_mm": 0.4,
+        "fine_mm": 0.0125,
+        "edge_mm": 0.1,
+        "dielectric_cells": 6,
+        "plane_mm": 3,
+        "pad_mm": 0.6,
+        "cells": 322608,
+        "wall_s": 1316.1,
+        "l_nh_at": {
+          "1": 0.17847,
+          "2": 0.17947,
+          "4": 0.17977,
+          "6": 0.18001,
+          "8": 0.17801
+        },
+        "z0_at_2": 50.44325,
+        "eps_eff_at_2": 2.9013
+      },
+      {
+        "drill_mm": 0.4,
+        "fine_mm": 0.025,
+        "edge_mm": 0.05,
+        "dielectric_cells": 6,
+        "plane_mm": 3,
+        "pad_mm": 0.6,
+        "cells": 400998,
+        "wall_s": 977.1,
+        "l_nh_at": {
+          "1": 0.1781,
+          "2": 0.1797,
+          "4": 0.18,
+          "6": 0.18037,
+          "8": 0.17862
+        },
+        "z0_at_2": 50.12107,
+        "eps_eff_at_2": 2.90283
+      },
+      {
+        "drill_mm": 0.4,
+        "fine_mm": 0.025,
+        "edge_mm": 0.1,
+        "dielectric_cells": 12,
+        "plane_mm": 3,
+        "pad_mm": 0.6,
+        "cells": 379260,
+        "wall_s": 539.3,
+        "l_nh_at": {
+          "1": 0.17599,
+          "2": 0.17733,
+          "4": 0.17759,
+          "6": 0.17788,
+          "8": 0.17605
+        },
+        "z0_at_2": 50.88911,
+        "eps_eff_at_2": 2.89778
+      }
+    ]
+  },
+  "short_checks": {
+    "what": "the short again with finer cells at the via (0.8 mm drill), 12 cells across the substrate, and the plane 6 mm before the via",
+    "rows": [
+      {
+        "drill_mm": 0.8,
+        "edge_cell_mm": 0.05,
+        "dielectric_cells": 6,
+        "plane_mm": 3,
+        "z_line_ohm": 50.21,
+        "eps_eff_at_2": 2.800392795023622,
+        "l_nh_at": {
+          "1": 0.09885,
+          "2": 0.09695,
+          "4": 0.08886,
+          "6": 0.09205,
+          "8": 0.08291
+        },
+        "steps": 12100,
+        "warnings": []
+      },
+      {
+        "drill_mm": 0.4,
+        "edge_cell_mm": 0.1,
+        "dielectric_cells": 12,
+        "plane_mm": 3,
+        "z_line_ohm": 50.138,
+        "eps_eff_at_2": 2.7969961001602575,
+        "l_nh_at": {
+          "1": 0.22883,
+          "2": 0.2209,
+          "4": 0.22156,
+          "6": 0.22237,
+          "8": 0.21455
+        },
+        "steps": 8000,
+        "warnings": []
+      },
+      {
+        "drill_mm": 0.4,
+        "edge_cell_mm": 0.1,
+        "dielectric_cells": 6,
+        "plane_mm": 6,
+        "z_line_ohm": 50.129,
+        "eps_eff_at_2": 2.7972538333542087,
+        "l_nh_at": {
+          "1": 0.22938,
+          "2": 0.22078,
+          "4": 0.22679,
+          "6": 0.21848,
+          "8": 0.2142
+        },
+        "steps": 6400,
+        "warnings": []
+      }
+    ]
+  }
+}

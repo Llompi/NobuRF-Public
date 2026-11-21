@@ -1,0 +1,9 @@
+{
+ "case": "inset4",
+ "port": "line",
+ "res_mm": 0.25,
+ "cells": 585144,
+ "wall_s": 214.6,
+ "f0_ghz": 5.41,
+ "s11_min_db": -15.64
+}

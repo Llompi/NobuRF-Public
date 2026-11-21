@@ -1,0 +1,35 @@
+{
+  "noburf_project": 1,
+  "name": "imported-board",
+  "variables": {},
+  "materials": {},
+  "stackup": [
+    { "type": "copper", "name": "gnd", "material": "copper" },
+    { "type": "dielectric", "name": "core", "material": "FR-4", "thickness": "1 mm" },
+    { "type": "copper", "name": "top", "material": "copper" }
+  ],
+  "geometry": {},
+  "ports": [
+    { "id": "feed", "x": "2 mm", "y": "12 mm", "between": ["gnd", "top"], "reference_impedance_ohm": 50 }
+  ],
+  "boundaries": {
+    "x_min": { "type": "pml", "cells": 6 },
+    "x_max": { "type": "pml", "cells": 6 },
+    "y_min": { "type": "pml", "cells": 6 },
+    "y_max": { "type": "pml", "cells": 6 },
+    "z_min": { "type": "pml", "cells": 6 },
+    "z_max": { "type": "pml", "cells": 6 }
+  },
+  "mesh": {
+    "cell": "1 mm",
+    "air_margin_cells": { "xy": 1, "below": 2, "above": 4 }
+  },
+  "analysis": {
+    "f_min_ghz": 2,
+    "f_max_ghz": 6,
+    "n_freq": 41,
+    "loss_reference_ghz": 4,
+    "stop": { "energy_decay_db": 40, "max_steps": 2000 }
+  },
+  "outputs": { "zin_at_ghz": [4] }
+}

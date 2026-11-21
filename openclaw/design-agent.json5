@@ -1,0 +1,64 @@
+// OpenClaw as the harness for AI-directed design (docs/design-agent.md).
+// The design tools come from an MCP server (noburf__brief, noburf__optimise, ...).
+//
+//   NOBURF_ROOT=<repo> NOBURF_DESIGN=<file.design.json> CEREBRAS_API_KEY=... \
+//     openclaw agent exec "Design the antenna in the brief." --config openclaw/design-agent.json5 \
+//       --cwd <workspace> --json --thinking low
+//
+// Spend: these calls bypass the spend guard in scripts/design.ts (OpenClaw calls the provider
+// itself). For guarded live runs use `npm run design -- run --model cerebras`.
+// Never run this with the Cerebras key that holds the owner's $5 credit: use a key with a small
+// provider-side limit of its own (an OpenRouter sub-key). The MCP server stops answering
+// after finish and after 40 tool calls (--max-calls), which bounds the solves, not the model calls.
+//
+// Put src/design/strategist.ts's STRATEGIST_PROMPT in the workspace's AGENTS.md.
+// The model id is the hackathon trial id; before kickoff use one the key can
+// reach (gpt-oss-120b) by editing a local copy.
+{
+  mcp: {
+    servers: {
+      noburf: {
+        command: "node",
+        args: ["${NOBURF_ROOT}/scripts/design-mcp.mjs", "mcp", "${NOBURF_DESIGN}", "--gpu"],
+        enabled: true,
+        connectionTimeoutMs: 20000,
+        // An optimise call runs many solves; allow it 15 minutes.
+        requestTimeoutMs: 900000,
+      },
+    },
+  },
+  // Only the MCP tools: every extra schema is prompt tokens on every turn.
+  tools: {
+    profile: "minimal",
+    alsoAllow: ["bundle-mcp"],
+    deny: ["session_status", "gateway", "presence"],
+    toolSearch: false,
+  },
+  agents: {
+    defaults: {
+      model: { primary: "cerebras/moonshotai-kimi-k3.1-pro-trial" },
+      thinkingDefault: "low",
+    },
+  },
+  models: {
+    mode: "merge",
+    providers: {
+      cerebras: {
+        baseUrl: "https://api.cerebras.ai/v1",
+        apiKey: "${CEREBRAS_API_KEY}",
+        api: "openai-completions",
+        models: [
+          {
+            id: "moonshotai-kimi-k3.1-pro-trial",
+            name: "Kimi K3.1 Pro (Cerebras trial)",
+            reasoning: true,
+            input: ["text"],
+            contextWindow: 131072,
+            maxTokens: 8192,
+            compat: { supportedReasoningEfforts: ["low", "medium", "high", "max"] },
+          },
+        ],
+      },
+    },
+  },
+}

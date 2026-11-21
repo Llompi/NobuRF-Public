@@ -1,0 +1,173 @@
+{
+  "noburf_project": 1,
+  "name": "pozar-ex3.7-z0-lossy-line",
+  "variables": {
+    "line_w": {
+      "value": "0.5 mm",
+      "locked": true
+    },
+    "line_len": {
+      "value": "25 mm",
+      "locked": true
+    },
+    "side": {
+      "value": "2.5 mm",
+      "locked": true
+    }
+  },
+  "materials": {
+    "substrate": {
+      "eps_r": 9.9,
+      "tan_delta": 0.3
+    }
+  },
+  "stackup": [
+    {
+      "type": "copper",
+      "name": "gnd",
+      "material": "pec"
+    },
+    {
+      "type": "dielectric",
+      "name": "core",
+      "material": "substrate",
+      "thickness": "0.5 mm"
+    },
+    {
+      "type": "copper",
+      "name": "top",
+      "material": "pec"
+    }
+  ],
+  "board": {
+    "outline": [
+      [
+        "-line_w / 2 - side",
+        "0 mm"
+      ],
+      [
+        "line_w / 2 + side",
+        "0 mm"
+      ],
+      [
+        "line_w / 2 + side",
+        "line_len"
+      ],
+      [
+        "-line_w / 2 - side",
+        "line_len"
+      ]
+    ]
+  },
+  "geometry": {
+    "gnd": [
+      {
+        "id": "ground",
+        "op": "add",
+        "polygon": [
+          [
+            "-line_w / 2 - side",
+            "0 mm"
+          ],
+          [
+            "line_w / 2 + side",
+            "0 mm"
+          ],
+          [
+            "line_w / 2 + side",
+            "line_len"
+          ],
+          [
+            "-line_w / 2 - side",
+            "line_len"
+          ]
+        ]
+      }
+    ],
+    "top": [
+      {
+        "id": "line",
+        "op": "add",
+        "polygon": [
+          [
+            "-line_w / 2",
+            "0 mm"
+          ],
+          [
+            "line_w / 2",
+            "0 mm"
+          ],
+          [
+            "line_w / 2",
+            "line_len"
+          ],
+          [
+            "-line_w / 2",
+            "line_len"
+          ]
+        ]
+      }
+    ]
+  },
+  "ports": [
+    {
+      "id": "feed",
+      "x": "0 mm",
+      "y": "0 mm",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    }
+  ],
+  "boundaries": {
+    "x_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "x_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_max": {
+      "type": "pml",
+      "cells": 8
+    }
+  },
+  "mesh": {
+    "cell": "0.1 mm",
+    "air_margin_cells": {
+      "xy": 1,
+      "below": 4,
+      "above": 20
+    }
+  },
+  "analysis": {
+    "f_min_ghz": 6,
+    "f_max_ghz": 14,
+    "n_freq": 161,
+    "loss_reference_ghz": 10,
+    "stop": {
+      "energy_decay_db": 40,
+      "max_steps": 20000
+    }
+  },
+  "outputs": {
+    "zin_at_ghz": [
+      10.0
+    ]
+  }
+}

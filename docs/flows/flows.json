@@ -1,0 +1,1506 @@
+{
+  "version": 1,
+  "state_vocabulary": [
+    "happy",
+    "empty",
+    "loading",
+    "pending",
+    "needs_approval",
+    "rejected",
+    "error",
+    "slow",
+    "offline",
+    "paused",
+    "failed",
+    "success"
+  ],
+  "flows": [
+    {
+      "id": "workbench",
+      "name": "Workbench",
+      "description": "Someone opens the workbench, starts an antenna (from a template, a blank board they draw on, or an imported Gerber, DXF or STEP file), solves it and reads the results.",
+      "provenance": "Screens captured on Nov 21, 2026 from main at ac0d27d plus the fixes in this branch, in headless Chromium with SwiftShader WebGPU at 1440×900. SwiftShader is a software GPU, so the solve on screen takes 4 minutes; a laptop GPU solves the same example in a few seconds.",
+      "nodes": [
+        {
+          "id": "1",
+          "title": "Open the workbench",
+          "state_type": "happy",
+          "status": "captured",
+          "screen": "screens/wb-first-load.webp",
+          "summary": "The default example, an inset-fed patch for the 5.8 GHz band, opens ready to solve. The status line says \"Ready to solve\"; result tabs stay disabled until a solve lands.",
+          "code_ref": "src/workbench/main.ts · boot()"
+        },
+        {
+          "id": "1a",
+          "title": "Restored last session",
+          "state_type": "paused",
+          "place": "above",
+          "status": "captured",
+          "screen": "screens/wb-restored.webp",
+          "summary": "A reload brings back the last project, unsaved edits included, and says so. Open an example to start over.",
+          "code_ref": "src/workbench/main.ts · readAutosave(), boot()"
+        },
+        {
+          "id": "1b",
+          "title": "Saved copy unreadable",
+          "state_type": "error",
+          "status": "not_captured",
+          "summary": "A saved copy that no longer loads is reported and the example opens instead, without asking to keep the broken copy.",
+          "code_ref": "src/workbench/main.ts · boot()"
+        },
+        {
+          "id": "2",
+          "title": "New project",
+          "state_type": "happy",
+          "status": "captured",
+          "screen": "screens/wb-new-dialog.webp",
+          "summary": "Four starting points: patch, microstrip line, differential pair, or a blank board. Frequency, laminate and thickness size the template; the board size can be left to the template.",
+          "code_ref": "src/workbench/new_project_dialog.ts"
+        },
+        {
+          "id": "2a",
+          "title": "Blank board",
+          "state_type": "empty",
+          "place": "above",
+          "status": "captured",
+          "screen": "screens/wb-blank-board.webp",
+          "summary": "Ground, laminate and an empty top layer. The panel says the project cannot be solved yet because it has no port; the message line says what to do next.",
+          "code_ref": "src/workbench/new_project.ts · blank template"
+        },
+        {
+          "id": "2b",
+          "title": "Drew a patch, feed and port",
+          "state_type": "happy",
+          "place": "above",
+          "status": "captured",
+          "screen": "screens/wb-drawn.webp",
+          "summary": "Rectangle and Port tools in the top view. Edges now line up with nearby copper, so the feed meets the patch exactly.",
+          "finding": "Fixed in this branch: points snapped only to the 0.1 mm grid, so a hand-drawn feed ended 0.1 mm short of the patch. See 4c for what that cost.",
+          "code_ref": "src/workbench/draw_tool.ts"
+        },
+        {
+          "id": "2c",
+          "title": "Imported Gerber copper and outline",
+          "state_type": "happy",
+          "place": "above",
+          "status": "captured",
+          "screen": "screens/wb-gerber.webp",
+          "summary": "KiCad front copper onto layer top, then the Edge_Cuts file as the board outline, both with the file coordinates kept.",
+          "code_ref": "src/workbench/import_dialog.ts"
+        },
+        {
+          "id": "2d",
+          "title": "STEP: choose the bodies",
+          "state_type": "pending",
+          "place": "above",
+          "status": "captured",
+          "screen": "screens/wb-step-bodies.webp",
+          "summary": "After choosing a STEP file, the dialog lists its bodies by height with the selector that picks each group.",
+          "finding": "Fixed in this branch: the dialog asked for body names (\"*_PCB\") without showing any, so a first-time user had to guess. The list only appeared in an error.",
+          "code_ref": "src/workbench/import_dialog.ts · onFile()"
+        },
+        {
+          "id": "2e",
+          "title": "Wrong kind of file",
+          "state_type": "rejected",
+          "status": "captured",
+          "screen": "screens/wb-import-wrong-file.webp",
+          "summary": "A project file chosen in Import is refused with a plain message pointing to Open.",
+          "finding": "Fixed in this branch: any file that was not DXF or STEP was parsed as Gerber, and a JSON file failed with \"command … is not terminated by *\".",
+          "code_ref": "src/workbench/import_dialog.ts · notGerber()"
+        },
+        {
+          "id": "2f",
+          "title": "Copper off the board",
+          "state_type": "error",
+          "status": "captured",
+          "screen": "screens/wb-import-off-board.webp",
+          "summary": "STEP copper kept at KiCad page coordinates (x 80 to 98 mm) lands outside a new 62 mm board. A warning now says a solve would leave it out and how to fix it.",
+          "finding": "Fixed in this branch: the import reported success and the copper silently fell outside the board; only the mesh warning at solve time mentioned it.",
+          "code_ref": "src/workbench/import_dialog.ts · copperOffBoard()"
+        },
+        {
+          "id": "2g",
+          "title": "Unsaved changes",
+          "state_type": "needs_approval",
+          "status": "not_captured",
+          "summary": "New, Open, an example or a dropped file over an edited project asks first: \"Open … ? Your unsaved changes to … will be lost.\" Cancel keeps everything.",
+          "code_ref": "src/workbench/main.ts · mayReplaceProject()"
+        },
+        {
+          "id": "3",
+          "title": "Patch from the template",
+          "state_type": "happy",
+          "status": "captured",
+          "screen": "screens/wb-template.webp",
+          "summary": "A 2.45 GHz edge-fed patch on FR-4, sized from the textbook formulas, ready to solve.",
+          "code_ref": "src/workbench/new_project.ts"
+        },
+        {
+          "id": "3a",
+          "title": "Value does not parse",
+          "state_type": "rejected",
+          "status": "captured",
+          "screen": "screens/wb-invalid-value.webp",
+          "summary": "\"banana mm\" in a variable. The field says why, the tree marks the variable, Solve is disabled, and the model keeps the last valid version.",
+          "code_ref": "src/workbench/inspector.ts, store.ts"
+        },
+        {
+          "id": "3b",
+          "title": "Port off copper",
+          "state_type": "error",
+          "status": "captured",
+          "screen": "screens/wb-port-off-copper.webp",
+          "summary": "Moving the feed port off the trace turns the status amber and the message names the port and layer. Solve stays enabled; that port would drive nothing.",
+          "code_ref": "src/workbench/port_check.ts"
+        },
+        {
+          "id": "4",
+          "title": "Solving",
+          "state_type": "loading",
+          "status": "captured",
+          "screen": "screens/wb-solving.webp",
+          "summary": "The button turns to Stop. The progress bar shows the step and how far the energy has fallen; the message line gives the grid size and step limit.",
+          "code_ref": "src/workbench/main.ts · solve(); solve_client.ts"
+        },
+        {
+          "id": "4a",
+          "title": "Stopped",
+          "state_type": "paused",
+          "status": "captured",
+          "screen": "screens/wb-stopped.webp",
+          "summary": "Stop ends the worker at once. Nothing partial is shown; the earlier result, if any, stays.",
+          "code_ref": "src/workbench/solve_client.ts"
+        },
+        {
+          "id": "4b",
+          "title": "No WebGPU: CPU fallback",
+          "state_type": "slow",
+          "status": "captured",
+          "screen": "screens/wb-cpu-fallback.webp",
+          "summary": "Without a WebGPU adapter the solve runs on the CPU, with a warning that it is much slower and how to get the GPU.",
+          "code_ref": "src/workbench/solve.ts"
+        },
+        {
+          "id": "4c",
+          "title": "Hand-drawn gap: 0.1 mm cell",
+          "state_type": "slow",
+          "status": "captured",
+          "screen": "screens/wb-tiny-cell.webp",
+          "summary": "The drawn feed and patch were 0.1 mm apart. The mesh put lines there, that cell set the time step, and the solve hit its 40,000-step budget. Still running after 6 minutes on SwiftShader.",
+          "finding": "Fixed at the source in this branch (draw snapping, 2b). The warning text is still written for a mesh expert: it names edge_cell but not which two edges are close.",
+          "code_ref": "src/project/rasterise.ts · graded mesh"
+        },
+        {
+          "id": "4d",
+          "title": "Reloaded mid-solve",
+          "state_type": "failed",
+          "status": "captured",
+          "screen": "screens/wb-interrupted.webp",
+          "summary": "Leaving during a solve asks first. After a reload or crash the page says the solve did not finish and nothing was kept.",
+          "code_ref": "src/workbench/main.ts · reportInterruptedSolve()"
+        },
+        {
+          "id": "4e",
+          "title": "GPU device lost",
+          "state_type": "failed",
+          "status": "not_captured",
+          "summary": "A driver reset ends the solve with a message that suggests solving again or CPU only, instead of hanging.",
+          "code_ref": "src/workbench/solve.ts · failOnDeviceLoss()"
+        },
+        {
+          "id": "5",
+          "title": "S-parameters",
+          "state_type": "success",
+          "status": "captured",
+          "screen": "screens/wb-sparams.webp",
+          "summary": "S11 with the deepest dip, the −10 dB bandwidth, solver, mesh and steps beside it. Touchstone, CSV and image export.",
+          "code_ref": "src/workbench/results.ts"
+        },
+        {
+          "id": "5a",
+          "title": "Smith chart",
+          "state_type": "happy",
+          "place": "above",
+          "status": "captured",
+          "screen": "screens/wb-smith.webp",
+          "summary": "The same S11 on a Smith chart, with the −10 dB circle.",
+          "code_ref": "src/workbench/results.ts"
+        },
+        {
+          "id": "5b",
+          "title": "Impedance",
+          "state_type": "happy",
+          "place": "above",
+          "status": "captured",
+          "screen": "screens/wb-impedance.webp",
+          "summary": "Input impedance over the band, Z at the design frequency.",
+          "code_ref": "src/workbench/results.ts"
+        },
+        {
+          "id": "5c",
+          "title": "Edited after the solve",
+          "state_type": "pending",
+          "status": "captured",
+          "screen": "screens/wb-stale.webp",
+          "summary": "Any edit marks the results as from the earlier version. Undo back to the solved document clears it.",
+          "code_ref": "src/workbench/main.ts · renderStale()"
+        },
+        {
+          "id": "6",
+          "title": "Fields on the model",
+          "state_type": "success",
+          "status": "captured",
+          "screen": "screens/wb-current.webp",
+          "summary": "Surface current on the copper at 5.8 GHz, with a legend and image export. Ez plays through a cycle; Video records it.",
+          "code_ref": "src/workbench/model_view.ts"
+        },
+        {
+          "id": "6a",
+          "title": "Radiation lobe",
+          "state_type": "happy",
+          "place": "above",
+          "status": "captured",
+          "screen": "screens/wb-lobe.webp",
+          "summary": "The 3D gain pattern over the board.",
+          "code_ref": "src/workbench/model_view.ts"
+        },
+        {
+          "id": "6b",
+          "title": "Cut mode needs another solve",
+          "state_type": "pending",
+          "status": "captured",
+          "screen": "screens/wb-cut-mode.webp",
+          "summary": "Cuts record E and H in the whole box, so only a solve started in Cut mode has them. \"Solve with cuts\" starts one.",
+          "finding": "Fixed in this branch: while a solve was running, \"Solve with cuts\" called solve(), which stopped it. It is now disabled while anything runs.",
+          "code_ref": "src/workbench/main.ts · showCutControls()"
+        },
+        {
+          "id": "6c",
+          "title": "Video during a solve",
+          "state_type": "rejected",
+          "status": "not_captured",
+          "summary": "Video now refuses to start while a solve runs, and a file dropped during encoding is not opened.",
+          "finding": "Fixed in this branch: recording held the Stop button, so a running solve could not be stopped, and its result replaced the field mid-recording.",
+          "code_ref": "src/workbench/main.ts · wirePhaseControls()"
+        },
+        {
+          "id": "7",
+          "title": "Far field",
+          "state_type": "success",
+          "status": "captured",
+          "screen": "screens/wb-farfield.webp",
+          "summary": "E- and H-plane cuts with directivity, gain, realized gain, efficiency, beamwidth, front to back and cross-polar.",
+          "finding": "The polar plots fill about a third of the panel and their labels are small at 1440×900 (open since Nov 19).",
+          "code_ref": "src/workbench/results.ts · far field"
+        },
+        {
+          "id": "7a",
+          "title": "Emissions",
+          "state_type": "happy",
+          "place": "above",
+          "status": "captured",
+          "screen": "screens/wb-emissions.webp",
+          "summary": "Near-field scan above the board and the field at 3 m and 10 m against reference limits.",
+          "code_ref": "src/workbench/emissions_view.ts"
+        },
+        {
+          "id": "8",
+          "title": "Rank variables",
+          "state_type": "empty",
+          "status": "captured",
+          "screen": "screens/wb-sensitivity.webp",
+          "summary": "Which variables move the result most: two solves per unlocked variable. Not run in this walkthrough (each solve takes minutes on SwiftShader).",
+          "code_ref": "src/workbench/sensitivity.ts"
+        }
+      ],
+      "edges": [
+        {
+          "from": "1",
+          "to": "1a",
+          "label": "Reload",
+          "trigger_kind": "user_action",
+          "condition": "a saved copy exists"
+        },
+        {
+          "from": "1",
+          "to": "1b",
+          "label": "Copy unreadable",
+          "trigger_kind": "system_event",
+          "condition": "store.load throws"
+        },
+        {
+          "from": "1",
+          "to": "2",
+          "label": "New",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "2",
+          "to": "2a",
+          "label": "Blank board",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "2a",
+          "to": "2b",
+          "label": "Draw",
+          "trigger_kind": "user_action",
+          "condition": "Rectangle, Polygon, Port tools"
+        },
+        {
+          "from": "2b",
+          "to": "2c",
+          "label": "Import",
+          "trigger_kind": "user_action",
+          "condition": "Gerber, DXF or STEP"
+        },
+        {
+          "from": "2c",
+          "to": "2d",
+          "label": "STEP file",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "2",
+          "to": "2e",
+          "label": "Wrong file",
+          "trigger_kind": "user_action",
+          "condition": "no %FS, or a project file"
+        },
+        {
+          "from": "2",
+          "to": "2f",
+          "label": "Off the board",
+          "trigger_kind": "system_event",
+          "condition": "imported copper outside the outline"
+        },
+        {
+          "from": "2",
+          "to": "2g",
+          "label": "Unsaved edits",
+          "trigger_kind": "system_event",
+          "condition": "store.dirty"
+        },
+        {
+          "from": "2",
+          "to": "3",
+          "label": "Create",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "3",
+          "to": "3a",
+          "label": "Bad value",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "3",
+          "to": "3b",
+          "label": "Port moved",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "3",
+          "to": "4",
+          "label": "Solve",
+          "trigger_kind": "user_action",
+          "condition": "document valid"
+        },
+        {
+          "from": "4",
+          "to": "4a",
+          "label": "Stop",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "4",
+          "to": "4b",
+          "label": "No adapter",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "4",
+          "to": "4c",
+          "label": "Cells 0.1 mm",
+          "trigger_kind": "system_event",
+          "condition": "close edges"
+        },
+        {
+          "from": "4",
+          "to": "4d",
+          "label": "Reload",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "4",
+          "to": "4e",
+          "label": "Device lost",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "4",
+          "to": "5",
+          "label": "Solved",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "5",
+          "to": "5a",
+          "label": "Smith",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "5",
+          "to": "5b",
+          "label": "Impedance",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "5",
+          "to": "5c",
+          "label": "Edit",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "5",
+          "to": "6",
+          "label": "Model tab",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "6",
+          "to": "6a",
+          "label": "Lobe",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "6",
+          "to": "6b",
+          "label": "Cut",
+          "trigger_kind": "user_action",
+          "condition": "solve had no cuts"
+        },
+        {
+          "from": "6",
+          "to": "6c",
+          "label": "Video",
+          "trigger_kind": "user_action",
+          "condition": "a solve is running"
+        },
+        {
+          "from": "6",
+          "to": "7",
+          "label": "Far field",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "7",
+          "to": "7a",
+          "label": "Emissions",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "7",
+          "to": "8",
+          "label": "Sensitivity",
+          "trigger_kind": "user_action"
+        }
+      ]
+    },
+    {
+      "id": "solve",
+      "name": "Solve engine",
+      "description": "What one workbench solve goes through behind the progress bar, from meshing to the far field, and every way it can end early. Each state shows the message the page prints.",
+      "provenance": "Messages copied from src/workbench/solve.ts, main.ts and src/engine/energy_stop.ts at ac0d27d. The grid, steps and times come from the SwiftShader walkthrough run; the numbers in the failure messages are examples.",
+      "nodes": [
+        {
+          "id": "1",
+          "title": "Building the mesh",
+          "state_type": "loading",
+          "status": "log",
+          "log": "Building the mesh",
+          "summary": "The project is rasterised onto the graded mesh in the worker. Mesh warnings are printed before the time loop starts.",
+          "code_ref": "src/workbench/solve.ts · rasterise()"
+        },
+        {
+          "id": "1a",
+          "title": "Project cannot be meshed",
+          "state_type": "rejected",
+          "status": "log",
+          "log": "The solve failed: $.vias[0] via at (31.2, 0) mm reaches off the board",
+          "summary": "A rasterise error ends the solve before any GPU work, for example a via that runs off the board.",
+          "code_ref": "src/project/rasterise.ts"
+        },
+        {
+          "id": "1b",
+          "title": "A tiny cell",
+          "state_type": "slow",
+          "status": "log",
+          "log": "Warning  mesh: smallest cell 0.100 mm is below edge_cell (0.35 mm) and sets the time step; look for copper edges, the port or layer interfaces closer together than edge_cell.",
+          "summary": "Two edges a hair apart set a small cell, and the smallest cell sets the time step for the whole grid.",
+          "finding": "The text is for a mesh expert. It should name the two edges (shape ids and coordinates) that are close.",
+          "code_ref": "src/project/rasterise.ts · graded mesh"
+        },
+        {
+          "id": "2",
+          "title": "GPU setup",
+          "state_type": "loading",
+          "status": "log",
+          "log": "Info  Solving on WebGPU: 85 × 79 × 45 cells (0.30 million), up to 20,000 steps.",
+          "summary": "Buffers for the grid are allocated and the shaders compiled.",
+          "code_ref": "src/workbench/solve.ts"
+        },
+        {
+          "id": "2a",
+          "title": "No WebGPU adapter",
+          "state_type": "slow",
+          "status": "log",
+          "log": "Warning  This browser has no WebGPU adapter, so the solve runs on the CPU, which is much slower. Chrome or Edge with hardware acceleration on uses the GPU.",
+          "summary": "The CPU solver runs instead, with a warning. \"CPU only\" picks it on purpose.",
+          "code_ref": "src/workbench/solve.ts"
+        },
+        {
+          "id": "2b",
+          "title": "WebGPU setup failed",
+          "state_type": "failed",
+          "status": "log",
+          "log": "The solve failed: WebGPU setup failed for this 85 × 79 × 45 grid: … Choose \"CPU only\" to solve it on the processor.",
+          "summary": "The grid does not fit the GPU, or a buffer is refused. No silent fallback.",
+          "code_ref": "src/workbench/solve.ts:274"
+        },
+        {
+          "id": "3",
+          "title": "Time loop",
+          "state_type": "loading",
+          "status": "log",
+          "log": "step 6,500\nenergy down 41 of 50 dB · 3:28",
+          "summary": "Steps run in batches. Every check, the field energy is compared with its peak; the run stops once it has fallen by the amount asked for.",
+          "code_ref": "src/engine/energy_stop.ts"
+        },
+        {
+          "id": "3a",
+          "title": "Stopped",
+          "state_type": "paused",
+          "status": "log",
+          "log": "Info  Solve stopped.",
+          "summary": "The worker is terminated; there is no stopping state.",
+          "code_ref": "src/workbench/solve_client.ts"
+        },
+        {
+          "id": "3b",
+          "title": "GPU device lost",
+          "state_type": "failed",
+          "status": "log",
+          "log": "The solve failed: The GPU stopped during the solve (…). Drivers do this when a GPU job runs too long or the laptop switches graphics cards. Solve again, or choose \"CPU only\".",
+          "summary": "Every GPU wait races device.lost, so a driver reset ends the solve.",
+          "code_ref": "src/workbench/solve.ts:258"
+        },
+        {
+          "id": "3c",
+          "title": "No field at all",
+          "state_type": "failed",
+          "status": "log",
+          "log": "The solve failed: The field energy is still zero after 812 steps, with the source finished: the solver produced no fields. On the GPU this usually means the device ran out of memory or rejected a buffer; try a coarser mesh or \"CPU only\".",
+          "summary": "Energy still zero after the source ended: on the GPU this is almost always out of memory. Before #76 this showed a flat 0 dB \"converged\" result.",
+          "code_ref": "src/engine/energy_stop.ts:23"
+        },
+        {
+          "id": "3d",
+          "title": "Diverged",
+          "state_type": "failed",
+          "status": "log",
+          "log": "The solve failed: The field energy became NaN after 2400 steps: the solve diverged. Check for a cell far smaller than its neighbors or a material constant that is not physical.",
+          "summary": "A non-finite energy ends the run.",
+          "finding": "Fixed in this branch: UK spelling (\"neighbours\") in a message the user reads.",
+          "code_ref": "src/engine/energy_stop.ts:19"
+        },
+        {
+          "id": "3e",
+          "title": "Step limit first",
+          "state_type": "slow",
+          "status": "log",
+          "log": "Warning  The field fell 31.0 dB of the 50 dB asked for within 40000 steps, so the results are approximate. Raise analysis.stop.max_steps.",
+          "summary": "The run hits max_steps before the energy falls far enough. Results are shown, marked approximate.",
+          "code_ref": "src/workbench/solve.ts · notRungDown()"
+        },
+        {
+          "id": "4",
+          "title": "Fields and far field",
+          "state_type": "loading",
+          "status": "log",
+          "log": "Computing the far field",
+          "summary": "The DFT planes are read back and the near-to-far transform runs.",
+          "code_ref": "src/workbench/solve.ts"
+        },
+        {
+          "id": "4a",
+          "title": "Gain approximate",
+          "state_type": "slow",
+          "status": "log",
+          "log": "Warning  The run stopped before the field rang down, so efficiency and gain are approximate. The pattern shape is less affected.",
+          "summary": "With the field not rung down, efficiency and gain are approximate; the pattern shape much less so.",
+          "code_ref": "src/workbench/solve.ts:645"
+        },
+        {
+          "id": "5",
+          "title": "Solved",
+          "state_type": "success",
+          "status": "log",
+          "log": "Info  Solved in 4:03.6 on WebGPU, google swiftshader (time loop 4:00.9).",
+          "summary": "The result replaces the last one and the S-parameters tab opens.",
+          "code_ref": "src/workbench/main.ts · solve()"
+        },
+        {
+          "id": "5a",
+          "title": "Page closed mid-solve",
+          "state_type": "failed",
+          "status": "log",
+          "log": "Warning  The solve of patch-5g8-far-field.json started at 14:58 did not finish: the page was reloaded, closed or crashed. Nothing from it was kept. The project is unchanged, so Solve runs it again.",
+          "summary": "The running solve is kept in sessionStorage; finding it at the next start means it never finished.",
+          "code_ref": "src/workbench/main.ts · reportInterruptedSolve()"
+        }
+      ],
+      "edges": [
+        {
+          "from": "1",
+          "to": "1a",
+          "label": "Rasterise error",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "1",
+          "to": "1b",
+          "label": "Small cell",
+          "trigger_kind": "system_event",
+          "condition": "smallest cell < edge_cell"
+        },
+        {
+          "from": "1",
+          "to": "2",
+          "label": "Meshed",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "2",
+          "to": "2a",
+          "label": "No adapter",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "2",
+          "to": "2b",
+          "label": "Setup failed",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "2",
+          "to": "3",
+          "label": "Started",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "3",
+          "to": "3a",
+          "label": "Stop",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "3",
+          "to": "3b",
+          "label": "Device lost",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "3",
+          "to": "3c",
+          "label": "Energy zero",
+          "trigger_kind": "system_event",
+          "condition": "source ended, peak still 0"
+        },
+        {
+          "from": "3",
+          "to": "3d",
+          "label": "Not finite",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "3",
+          "to": "3e",
+          "label": "max_steps",
+          "trigger_kind": "system_event",
+          "condition": "before the decay target"
+        },
+        {
+          "from": "3",
+          "to": "4",
+          "label": "Energy fell",
+          "trigger_kind": "system_event",
+          "condition": "decay target reached"
+        },
+        {
+          "from": "4",
+          "to": "4a",
+          "label": "Not rung down",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "4",
+          "to": "5",
+          "label": "Done",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "5",
+          "to": "5a",
+          "label": "Next start",
+          "trigger_kind": "system_event",
+          "condition": "record left in sessionStorage"
+        }
+      ]
+    },
+    {
+      "id": "agent-race",
+      "name": "Sentence race (one lane)",
+      "description": "npm run design -- agent-race \"<sentence>\": the same sentence goes to Kimi on Cerebras and on a GPU provider, each driving NobuRF through OpenClaw behind a spend-guarded proxy. This map follows one lane; the second lane is held until the first finishes.",
+      "provenance": "From PR #57 (branch claude/project-thread-6l7qqu at 033d1d1, not on main yet): scripts/design.ts, src/design/openclaw_lane.ts and model_proxy.ts. The lane runs in a terminal, so each state shows a terminal line. The line formats come from the code; the sentence, numbers and error wording inside them are examples, since no real-model run was captured for this map.",
+      "nodes": [
+        {
+          "id": "1",
+          "title": "Sentence in",
+          "state_type": "happy",
+          "status": "log",
+          "log": "$ npm run design -- agent-race \"a 2.4 GHz patch under 30 mm, S11 at most -10 dB\"\nkimi on cerebras via OpenClaw, medium effort: spent so far $0.4120 of the $4 cap; run cap $1",
+          "summary": "Both lane keys are checked, the spend ledger is read, and the run folders are created under runs/agent/race-<time>.",
+          "code_ref": "scripts/design.ts · agentRace()"
+        },
+        {
+          "id": "1a",
+          "title": "A key is missing",
+          "state_type": "rejected",
+          "status": "log",
+          "log": "Error: CEREBRAS_API_KEY is not set (environment or .env): lane cerebras cannot run",
+          "summary": "The race refuses to start rather than run one lane.",
+          "code_ref": "scripts/design.ts · agentRace()"
+        },
+        {
+          "id": "2",
+          "title": "Harnesses start",
+          "state_type": "loading",
+          "status": "log",
+          "log": "(OpenClaw loading, starting the NobuRF MCP server; 4 to 9 minutes on the Windows laptop)",
+          "summary": "Both OpenClaw harnesses start at once, each with its own state folder and no keys in its environment. Each holds its first model request at the proxy.",
+          "code_ref": "src/design/openclaw_lane.ts · runOpenClawLane()"
+        },
+        {
+          "id": "2a",
+          "title": "No request in 900 s",
+          "state_type": "failed",
+          "status": "log",
+          "log": "cerebras: OpenClaw sent no model request within 900 s; ending the lane",
+          "summary": "A harness that never asks for a model turn is killed, so the race cannot hang on it.",
+          "code_ref": "openclaw_lane.ts · HARNESS_STARTUP_S"
+        },
+        {
+          "id": "2b",
+          "title": "Second lane held",
+          "state_type": "paused",
+          "status": "log",
+          "log": "(second lane: first request held at the proxy)",
+          "summary": "The second lane is up but waits at the proxy until the first lane ends; the lanes never share the solver.",
+          "code_ref": "scripts/design.ts · holdUntil"
+        },
+        {
+          "id": "3",
+          "title": "Race starts",
+          "state_type": "happy",
+          "status": "log",
+          "log": "both harnesses are up: the race starts",
+          "summary": "Once both harnesses are up, the first lane's request goes through and its clock starts. Start-up time is reported apart from the race.",
+          "code_ref": "scripts/design.ts · onReady"
+        },
+        {
+          "id": "3a",
+          "title": "Spend cap",
+          "state_type": "rejected",
+          "status": "log",
+          "log": "[cerebras] model call 402: run cap $1 would be passed",
+          "summary": "Before each call the proxy reserves its worst-case cost; a call that would pass the run or provider cap gets 402 and is never sent.",
+          "code_ref": "src/design/model_proxy.ts"
+        },
+        {
+          "id": "3b",
+          "title": "Rate limited",
+          "state_type": "slow",
+          "status": "log",
+          "log": "[openrouter] model call 429: rate limited\n...\nwall 212 s = model 140 s + tools 51 s + rate-limit waits 21 s",
+          "summary": "A 429 is passed back to OpenClaw, which waits and retries. The wait is counted apart from thinking time.",
+          "code_ref": "src/design/model_proxy.ts · REFUSED_STATUS"
+        },
+        {
+          "id": "4",
+          "title": "Agent designs",
+          "state_type": "loading",
+          "status": "log",
+          "log": "[cerebras] model 1.8 s, 412 tokens: start_design {\"target_ghz\":2.4,...}\n[cerebras] model 0.9 s, 120 tokens: solve {}",
+          "summary": "start_design reads the sentence into a goal, then the agent solves, edits and optimizes through the NobuRF tools.",
+          "code_ref": "src/design/session.ts, openclaw/tools.json"
+        },
+        {
+          "id": "4a",
+          "title": "Person types a correction",
+          "state_type": "pending",
+          "place": "above",
+          "status": "log",
+          "log": "type a message and press Enter to tell the agent something while it works\n> make it 2.45 GHz",
+          "summary": "A line typed in the terminal goes to the session inbox and reaches the model with the next tool result.",
+          "code_ref": "src/design/inbox.ts · withMessages()"
+        },
+        {
+          "id": "4b",
+          "title": "Deadline",
+          "state_type": "failed",
+          "status": "log",
+          "log": "harness_error: best confirmed null",
+          "summary": "A harness still running at its timeout plus 60 s is killed (the whole process tree on Windows).",
+          "code_ref": "openclaw_lane.ts · killHarness()"
+        },
+        {
+          "id": "5",
+          "title": "Finish",
+          "state_type": "success",
+          "status": "log",
+          "log": "[cerebras] model 1.1 s, 88 tokens: finish {\"summary\":\"...\"}",
+          "summary": "The agent calls finish. The proxy closes and the calls are written to model-calls.json.",
+          "code_ref": "openclaw_lane.ts"
+        },
+        {
+          "id": "5a",
+          "title": "Ended without finish",
+          "state_type": "error",
+          "status": "log",
+          "log": "no_finish: best confirmed {\"f0_ghz\":2.41,...}",
+          "summary": "OpenClaw exited cleanly but the agent never called finish; the summary says no_finish, or spend_cap if a call was refused.",
+          "code_ref": "openclaw_lane.ts · summary.ended"
+        },
+        {
+          "id": "6",
+          "title": "Closing confirm",
+          "state_type": "loading",
+          "status": "log",
+          "log": "closing_confirm (6.2 s) -> {\"met\":true,...}",
+          "summary": "After OpenClaw exits, the best design is solved once more at confirm fidelity, on the lane's clock.",
+          "code_ref": "openclaw_lane.ts · closingConfirm()"
+        },
+        {
+          "id": "7",
+          "title": "Replay files",
+          "state_type": "success",
+          "status": "log",
+          "log": "cerebras: met, model 38.2 s, $0.21 -> runs/agent/race-…/cerebras.replay.json\nplay it: npm run design -- serve, then open http://localhost:8000/launch/race-replay/?left=…&right=…",
+          "summary": "Both lanes done: replay logs and lobes are written and the command prints the replay link.",
+          "code_ref": "scripts/design.ts · replay()"
+        },
+        {
+          "id": "7a",
+          "title": "Lanes read it differently",
+          "state_type": "error",
+          "status": "log",
+          "log": "warning: the lanes read the request differently ({\"target_ghz\":2.4} vs {\"target_ghz\":2.45}); the race view says so",
+          "summary": "If the two models set different goals from the same sentence, the race says so on the replay.",
+          "code_ref": "scripts/design.ts:447"
+        }
+      ],
+      "edges": [
+        {
+          "from": "1",
+          "to": "1a",
+          "label": "Key missing",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "1",
+          "to": "2",
+          "label": "Keys present",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "2",
+          "to": "2a",
+          "label": "900 s, no request",
+          "trigger_kind": "timer"
+        },
+        {
+          "from": "2",
+          "to": "2b",
+          "label": "Lane 2",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "2",
+          "to": "3",
+          "label": "Both up",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "3",
+          "to": "3a",
+          "label": "402",
+          "trigger_kind": "system_event",
+          "condition": "reservation passes a cap"
+        },
+        {
+          "from": "3",
+          "to": "3b",
+          "label": "429",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "3",
+          "to": "4",
+          "label": "First answer",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "4",
+          "to": "4a",
+          "label": "Typed line",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "4",
+          "to": "4b",
+          "label": "Timeout",
+          "trigger_kind": "timer",
+          "condition": "--timeout + 60 s"
+        },
+        {
+          "from": "4",
+          "to": "5",
+          "label": "finish",
+          "trigger_kind": "agent_decision"
+        },
+        {
+          "from": "5",
+          "to": "5a",
+          "label": "Exit without finish",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "5",
+          "to": "6",
+          "label": "Harness exited",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "6",
+          "to": "7",
+          "label": "Both lanes done",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "7",
+          "to": "7a",
+          "label": "Goals differ",
+          "trigger_kind": "system_event"
+        }
+      ]
+    },
+    {
+      "id": "solver",
+      "name": "Bridge demo page (Nov 19)",
+      "description": "Someone opens NobuRF, sees the baseline patch antenna, edits the geometry and solves until S11 at 5.8 GHz drops below −10 dB.",
+      "provenance": "Screens captured on Nov 19, 2026 from commit 849c782 in headless Chromium with SwiftShader WebGPU. That is a software GPU, so solves read 38 to 58 s; on a GTX 1660 Ti the same solve takes 552 ms.",
+      "nodes": [
+        {
+          "id": "1",
+          "title": "Open the app",
+          "state_type": "loading",
+          "status": "captured",
+          "screen": "screens/first-solve.webp",
+          "summary": "The page starts WebGPU, asks the bridge for the current design and solves it: 3,000 steps on a 64×64×48 grid. The panel stays empty until that first solve lands.",
+          "code_ref": "src/main.ts · boot()"
+        },
+        {
+          "id": "1a",
+          "place": "above",
+          "title": "Bridge not running",
+          "state_type": "offline",
+          "status": "captured",
+          "screen": "screens/bridge-offline.webp",
+          "summary": "Without the bridge the page solves the baseline on its own and says “local mode”. The agent cannot reach this page.",
+          "finding": "Apply and Reset still post to the bridge. Clicking Apply in local mode fails with “Unexpected end of JSON input”. Disable both and say the bridge is off.",
+          "code_ref": "src/main.ts · boot(), wireButtons()"
+        },
+        {
+          "id": "1b",
+          "title": "No WebGPU",
+          "state_type": "error",
+          "status": "captured",
+          "screen": "screens/webgpu-unavailable.webp",
+          "summary": "No adapter means no solve. The status line reads “WebGPU unavailable: No WebGPU adapter found” and the panel stays empty.",
+          "finding": "The message is small, in a corner, and gives no next step. Name the browsers that work and how to turn WebGPU on.",
+          "code_ref": "src/main.ts · boot()"
+        },
+        {
+          "id": "1c",
+          "title": "GPU device lost",
+          "state_type": "failed",
+          "status": "not_captured",
+          "summary": "On Windows, Edge can pick the integrated GPU. A long GPU job trips the driver’s 2 s watchdog and the device is lost. Runs are now split into submits of 250 steps or fewer.",
+          "finding": "If the device is lost anyway, it is only logged to the console. The status keeps saying “solving”.",
+          "code_ref": "src/engine/fdtd3d.ts · device.lost"
+        },
+        {
+          "id": "2",
+          "title": "Baseline result",
+          "state_type": "happy",
+          "status": "captured",
+          "screen": "screens/baseline.webp",
+          "summary": "The edge-fed patch is badly matched: −2.4 dB at 5.8 GHz and a shallow dip at 5.40 GHz. Z_in is 11+j41 Ω, so the badge says mismatched.",
+          "code_ref": "src/main.ts · showTelemetry()"
+        },
+        {
+          "id": "3",
+          "title": "Manual edit",
+          "state_type": "happy",
+          "status": "captured",
+          "screen": "screens/manual-edit.webp",
+          "summary": "One geometry edit as JSON. Apply sends it through the bridge, so the page and the agent always work on the same design.",
+          "code_ref": "src/main.ts · wireButtons()"
+        },
+        {
+          "id": "3a",
+          "title": "Typo in the edit",
+          "state_type": "error",
+          "status": "captured",
+          "screen": "screens/edit-typo.webp",
+          "summary": "A missing brace. The status line shows the raw parser message; the box keeps the text, so the fix is one keystroke.",
+          "finding": "“Expected ',' or '}' after property value in JSON at position 20 (line 1 column 21)” appears far from the box. Show it under the box, in plain words.",
+          "code_ref": "src/main.ts · wireButtons()"
+        },
+        {
+          "id": "3b",
+          "title": "Value out of range",
+          "state_type": "rejected",
+          "status": "captured",
+          "screen": "screens/edit-rejected.webp",
+          "summary": "The bridge answers 422 and the page shows “inset_depth_mm=40 out of range [0, 5.58]”. Nothing is solved and the design is unchanged.",
+          "code_ref": "src/engine/geometry.ts · applyEdit()"
+        },
+        {
+          "id": "4",
+          "title": "Solving the edit",
+          "state_type": "loading",
+          "status": "captured",
+          "screen": "screens/solving-edit.webp",
+          "summary": "The status line reads “solving #1…” while the old result stays on screen. Buttons are disabled until the bridge answers.",
+          "code_ref": "src/main.ts · solveNow()"
+        },
+        {
+          "id": "4a",
+          "title": "Solve slower than 15 s",
+          "state_type": "slow",
+          "status": "captured",
+          "screen": "screens/solve-timeout.webp",
+          "summary": "The bridge stops waiting after 15 s and returns 504, which is what this screen shows. The page keeps solving in the background.",
+          "finding": "In a run on Nov 19 the late result still landed in the log as #1, although the bridge never committed the edit. The next edit was also #1, applied to the old design. Page and bridge disagree.",
+          "code_ref": "server/bridge.ts · solveTimeoutMs"
+        },
+        {
+          "id": "5",
+          "title": "Dip found, off target",
+          "state_type": "happy",
+          "status": "captured",
+          "screen": "screens/dip-off-target.webp",
+          "summary": "A 4 mm inset pulls the dip down to −19.3 dB, but at 5.55 GHz. At 5.8 GHz the match is still −2.5 dB, so the badge stays red.",
+          "code_ref": "src/viewer/s11_chart.ts"
+        },
+        {
+          "id": "6",
+          "title": "Matched",
+          "state_type": "success",
+          "status": "captured",
+          "screen": "screens/matched.webp",
+          "summary": "Length 11 mm, inset 2 mm, width 20 mm: −16.7 dB at 5.8 GHz, with the dip at 5.85 GHz and 200 MHz of −10 dB bandwidth.",
+          "code_ref": "src/main.ts · quality()"
+        },
+        {
+          "id": "6a",
+          "title": "Edit below the grid",
+          "state_type": "rejected",
+          "status": "captured",
+          "screen": "screens/subgrid-edit.webp",
+          "summary": "0.2 mm is finer than the 0.5 mm grid, so the geometry does not change. The cached result comes back and the log adds #3 with the same −16.7 dB.",
+          "finding": "The agent gets a no_voxel_change warning. The page shows none, so a person sees a solve that did nothing. Show the warning in the log row.",
+          "code_ref": "src/engine/sim_runner.ts · solve()"
+        },
+        {
+          "id": "7",
+          "title": "Share view",
+          "state_type": "happy",
+          "status": "captured",
+          "screen": "screens/share-mode.webp",
+          "summary": "Adding ?share hides the edit box, status line and GPU chips, for clean screenshots and video.",
+          "code_ref": "src/main.ts · ?share"
+        },
+        {
+          "id": "7a",
+          "title": "Another tab took over",
+          "state_type": "offline",
+          "status": "captured",
+          "screen": "screens/tab-replaced.webp",
+          "summary": "Opening a second tab hands the bridge to it. The first tab stops answering and does not reconnect.",
+          "finding": "It says “bridge offline · npm run dev”, but the bridge is running. Say another NobuRF tab is in control.",
+          "code_ref": "src/bridge_client.ts · close code 4000"
+        }
+      ],
+      "edges": [
+        {
+          "from": "1",
+          "to": "2",
+          "label": "Solve lands",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "1",
+          "to": "1a",
+          "label": "Bridge down",
+          "trigger_kind": "system_event",
+          "condition": "GET /api/state fails"
+        },
+        {
+          "from": "1",
+          "to": "1b",
+          "label": "No adapter",
+          "trigger_kind": "system_event",
+          "condition": "the browser has no WebGPU adapter"
+        },
+        {
+          "from": "1",
+          "to": "1c",
+          "label": "Integrated GPU",
+          "trigger_kind": "system_event",
+          "condition": "a GPU job outlasts the driver watchdog"
+        },
+        {
+          "from": "2",
+          "to": "3",
+          "label": "Manual edit",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "3",
+          "to": "4",
+          "label": "Apply",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "3",
+          "to": "3a",
+          "label": "Bad JSON",
+          "trigger_kind": "user_action",
+          "condition": "JSON.parse throws"
+        },
+        {
+          "from": "3",
+          "to": "3b",
+          "label": "Out of range",
+          "trigger_kind": "system_event",
+          "condition": "bridge returns 422"
+        },
+        {
+          "from": "4",
+          "to": "5",
+          "label": "Telemetry",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "4",
+          "to": "4a",
+          "label": "15 s passed",
+          "trigger_kind": "timer",
+          "condition": "solve takes longer than BRIDGE_SOLVE_TIMEOUT_MS (15 s)"
+        },
+        {
+          "from": "5",
+          "to": "6",
+          "label": "Next edit",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "6",
+          "to": "6a",
+          "label": "Under 0.5 mm",
+          "trigger_kind": "user_action",
+          "condition": "edit voxelises to the same grid"
+        },
+        {
+          "from": "6",
+          "to": "7",
+          "label": "?share",
+          "trigger_kind": "user_action"
+        },
+        {
+          "from": "7",
+          "to": "7a",
+          "label": "Second tab",
+          "trigger_kind": "system_event",
+          "condition": "bridge closes the old socket with code 4000"
+        }
+      ]
+    },
+    {
+      "id": "race",
+      "name": "Knob-tuning race (Nov 19)",
+      "description": "The same Kimi K3.1 Pro agent tunes the same antenna twice at once: one lane on Cerebras, one on a GPU provider. Only the host differs.",
+      "provenance": "Screens from the offline rehearsal (npm run race) on Nov 19, 2026, with a scripted model at simulated speeds and the analytic mock solver. Every time on this map comes from those simulated speeds. Race frames are site/race.html (commit 65bc89f) replaying that run.",
+      "nodes": [
+        {
+          "id": "1",
+          "title": "Start the race",
+          "state_type": "loading",
+          "status": "captured",
+          "screen": "screens/race-start.webp",
+          "summary": "One command starts the bridge, a timing proxy per provider and two OpenClaw agents. Live mode adds -- --mode live.",
+          "code_ref": "openclaw/race.mjs · main()"
+        },
+        {
+          "id": "1a",
+          "place": "above",
+          "title": "No solver tab",
+          "state_type": "offline",
+          "status": "captured",
+          "screen": "screens/race-mock-solver.webp",
+          "summary": "With no NobuRF tab connected, the harness attaches the analytic mock solver. Its S11 comes from a transmission-line model, not a full-wave solve.",
+          "code_ref": "openclaw/mock-sim-client.mjs"
+        },
+        {
+          "id": "1b",
+          "title": "API key missing",
+          "state_type": "error",
+          "status": "captured",
+          "screen": "screens/race-missing-key.webp",
+          "summary": "Live mode needs CEREBRAS_API_KEY and FIREWORKS_API_KEY in .env. Without one, the harness exits with code 2 before it starts anything.",
+          "code_ref": "openclaw/race.mjs · lanes()"
+        },
+        {
+          "id": "2",
+          "title": "Both agents ready",
+          "state_type": "pending",
+          "status": "captured",
+          "screen": "screens/race-ready.webp",
+          "summary": "Each proxy holds its lane’s first model call until both agents have booted, then starts both clocks at once. Start-up time stays off the race clock. The replay shows this moment as both clocks at 0.0.",
+          "code_ref": "openclaw/race.mjs · gate()"
+        },
+        {
+          "id": "3",
+          "title": "Model thinks",
+          "state_type": "happy",
+          "status": "captured",
+          "screen": "screens/race-thinking.webp",
+          "summary": "Same model, prompt, tools and reasoning effort in both lanes. The timing proxy records time to first token, tokens and decode speed per call.",
+          "code_ref": "openclaw/llm-proxy.mjs"
+        },
+        {
+          "id": "3a",
+          "title": "Rate limited",
+          "state_type": "failed",
+          "status": "not_captured",
+          "summary": "A test on Nov 19 got 429 request_quota_exceeded on the 6th request (free tier, gpt-oss-120b). The proxy passes the 429 to OpenClaw.",
+          "finding": "Not tested in a race. Nobody knows yet whether OpenClaw retries or the lane ends as an error.",
+          "code_ref": "openclaw/llm-proxy.mjs"
+        },
+        {
+          "id": "3b",
+          "title": "Spending cap reached",
+          "state_type": "paused",
+          "status": "not_built",
+          "summary": "Nothing stops a race on spend. The meter shows requests and tokens per minute against the hackathon limits (100 and 100K). rate_meter.ts has a waitForBudget, but nothing calls it.",
+          "finding": "Add a token budget per race that finishes a lane as gave_up when it runs out.",
+          "code_ref": "server/rate_meter.ts"
+        },
+        {
+          "id": "3c",
+          "title": "Agent crashed",
+          "state_type": "error",
+          "status": "not_captured",
+          "summary": "If OpenClaw exits with an error mid-run, the lane is finished as error and the report keeps the first 300 characters of its message.",
+          "code_ref": "openclaw/race.mjs · finishLane()"
+        },
+        {
+          "id": "4",
+          "title": "Edit and solve",
+          "state_type": "happy",
+          "status": "captured",
+          "screen": "screens/race-solving.webp",
+          "summary": "Each apply_edit runs a full solve and returns telemetry with a one-line reason the viewer sees. Both lanes share one GPU, so solves queue.",
+          "code_ref": "openclaw/mcp-server.mjs · forward()"
+        },
+        {
+          "id": "4a",
+          "title": "Edit rejected",
+          "state_type": "rejected",
+          "status": "captured",
+          "screen": "screens/tool-422.webp",
+          "summary": "The model gets the bridge’s 422 message and a hint naming the fix. The lane keeps running.",
+          "code_ref": "openclaw/mcp-server.mjs · HINTS"
+        },
+        {
+          "id": "4b",
+          "title": "Solve timed out",
+          "state_type": "slow",
+          "status": "captured",
+          "screen": "screens/tool-504.webp",
+          "summary": "After 15 s the bridge returns 504. The hint tells the model to retry once, then stop and report.",
+          "code_ref": "openclaw/mcp-server.mjs · HINTS"
+        },
+        {
+          "id": "4c",
+          "title": "Solver offline",
+          "state_type": "failed",
+          "status": "captured",
+          "screen": "screens/tool-503.webp",
+          "summary": "No solver is connected, so the bridge returns 503. The hint tells the model to stop and ask for the NobuRF page to be opened.",
+          "code_ref": "openclaw/mcp-server.mjs · HINTS"
+        },
+        {
+          "id": "4d",
+          "title": "Gave up",
+          "state_type": "failed",
+          "status": "not_captured",
+          "summary": "The prompt caps a lane at 12 edits. The replay stamps the lane STOPPED in red, and the report lists it as gave_up.",
+          "code_ref": "openclaw/system_prompt.md"
+        },
+        {
+          "id": "5",
+          "title": "First lane matches",
+          "state_type": "success",
+          "status": "captured",
+          "screen": "screens/race-first-match.webp",
+          "summary": "The Cerebras lane reaches −24.9 dB after two edits, at 2.8 s. The GPU lane is still on its first turn.",
+          "code_ref": "server/bridge.ts · noteRaceResult()"
+        },
+        {
+          "id": "6",
+          "title": "Both lanes finish",
+          "state_type": "success",
+          "status": "captured",
+          "screen": "screens/race-done.webp",
+          "summary": "The GPU lane matches at 16.3 s with the same two edits and the same −24.9 dB.",
+          "code_ref": "site/race.html"
+        },
+        {
+          "id": "7",
+          "title": "Report",
+          "state_type": "success",
+          "status": "captured",
+          "screen": "screens/race-report.webp",
+          "summary": "summary.md and race.json record race time, model time, tokens and decode speed per lane. Every model call is in events.jsonl.",
+          "code_ref": "openclaw/race.mjs · summarize()"
+        }
+      ],
+      "edges": [
+        {
+          "from": "1",
+          "to": "2",
+          "label": "Agents booted",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "1",
+          "to": "1a",
+          "label": "No tab open",
+          "trigger_kind": "system_event",
+          "condition": "GET /api/health reports no browser"
+        },
+        {
+          "from": "1",
+          "to": "1b",
+          "label": "Key missing",
+          "trigger_kind": "system_event",
+          "condition": "--mode live runs without a key in .env"
+        },
+        {
+          "from": "2",
+          "to": "3",
+          "label": "Gate opens",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "3",
+          "to": "4",
+          "label": "apply_edit",
+          "trigger_kind": "agent_decision"
+        },
+        {
+          "from": "3",
+          "to": "3a",
+          "label": "429",
+          "trigger_kind": "system_event",
+          "condition": "provider returns 429"
+        },
+        {
+          "from": "3",
+          "to": "3b",
+          "label": "Over budget",
+          "trigger_kind": "system_event",
+          "condition": "token budget used up (not built)"
+        },
+        {
+          "from": "4",
+          "to": "5",
+          "label": "S11 ≤ −15 dB",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "4",
+          "to": "4a",
+          "label": "422",
+          "trigger_kind": "system_event",
+          "condition": "edit fails validation"
+        },
+        {
+          "from": "4",
+          "to": "4b",
+          "label": "504",
+          "trigger_kind": "timer",
+          "condition": "solve takes longer than 15 s"
+        },
+        {
+          "from": "4",
+          "to": "4c",
+          "label": "503",
+          "trigger_kind": "system_event",
+          "condition": "no solver is connected"
+        },
+        {
+          "from": "5",
+          "to": "6",
+          "label": "Other lane ends",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "4",
+          "to": "4d",
+          "label": "12 edits",
+          "trigger_kind": "agent_decision",
+          "condition": "12 edits pass without a match"
+        },
+        {
+          "from": "6",
+          "to": "7",
+          "label": "Write report",
+          "trigger_kind": "system_event"
+        },
+        {
+          "from": "3",
+          "to": "3c",
+          "label": "Exit code ≠ 0",
+          "trigger_kind": "system_event",
+          "condition": "openclaw exits non-zero"
+        }
+      ]
+    }
+  ]
+}

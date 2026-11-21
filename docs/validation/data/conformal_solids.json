@@ -1,0 +1,206 @@
+{
+ "references": {
+  "sphere": "Harrington 6-4, TM101 ka = 2.743707",
+  "cylinder": "Pozar 6.4, TM010 ka = 2.404826"
+ },
+ "rows": [
+  {
+   "cavity": "sphere TM101",
+   "closed_form_ghz": 13.091173112814515,
+   "cell_mm": 2,
+   "method": "staircase",
+   "f0_ghz": 13.343456852182706,
+   "error": 0.019271285865224686,
+   "cells": 2197,
+   "steps": 9317,
+   "faces": 0
+  },
+  {
+   "cavity": "sphere TM101",
+   "closed_form_ghz": 13.091173112814515,
+   "cell_mm": 2,
+   "method": "conformal",
+   "f0_ghz": 13.011138606750759,
+   "error": -0.0061136236893401565,
+   "cells": 2197,
+   "steps": 9317,
+   "faces": 924
+  },
+  {
+   "cavity": "sphere TM101",
+   "closed_form_ghz": 13.091173112814515,
+   "cell_mm": 1.5,
+   "method": "staircase",
+   "f0_ghz": 13.372802080714276,
+   "error": 0.021512890057506336,
+   "cells": 4913,
+   "steps": 12423,
+   "faces": 0
+  },
+  {
+   "cavity": "sphere TM101",
+   "closed_form_ghz": 13.091173112814515,
+   "cell_mm": 1.5,
+   "method": "conformal",
+   "f0_ghz": 13.041603639931095,
+   "error": -0.003786480589344403,
+   "cells": 4913,
+   "steps": 12423,
+   "faces": 1677
+  },
+  {
+   "cavity": "sphere TM101",
+   "closed_form_ghz": 13.091173112814515,
+   "cell_mm": 1,
+   "method": "staircase",
+   "f0_ghz": 13.275550742309303,
+   "error": 0.014084118199789686,
+   "cells": 15625,
+   "steps": 18634,
+   "faces": 0
+  },
+  {
+   "cavity": "sphere TM101",
+   "closed_form_ghz": 13.091173112814515,
+   "cell_mm": 1,
+   "method": "conformal",
+   "f0_ghz": 13.064539476826814,
+   "error": -0.0020344728282318263,
+   "cells": 15625,
+   "steps": 18634,
+   "faces": 3770
+  },
+  {
+   "cavity": "sphere TM101",
+   "closed_form_ghz": 13.091173112814515,
+   "cell_mm": 0.75,
+   "method": "staircase",
+   "f0_ghz": 13.227285510113514,
+   "error": 0.010397265098096044,
+   "cells": 35937,
+   "steps": 24845,
+   "faces": 0
+  },
+  {
+   "cavity": "sphere TM101",
+   "closed_form_ghz": 13.091173112814515,
+   "cell_mm": 0.75,
+   "method": "conformal",
+   "f0_ghz": 13.075164139913863,
+   "error": -0.0012228829886132351,
+   "cells": 35937,
+   "steps": 24845,
+   "faces": 6672
+  },
+  {
+   "cavity": "sphere TM101",
+   "closed_form_ghz": 13.091173112814515,
+   "cell_mm": 0.5,
+   "method": "staircase",
+   "f0_ghz": 13.187178355273948,
+   "error": 0.007333585892730836,
+   "cells": 103823,
+   "steps": 37267,
+   "faces": 0
+  },
+  {
+   "cavity": "sphere TM101",
+   "closed_form_ghz": 13.091173112814515,
+   "cell_mm": 0.5,
+   "method": "conformal",
+   "f0_ghz": 13.081604017864342,
+   "error": -0.0007309577887107861,
+   "cells": 103823,
+   "steps": 37267,
+   "faces": 15114
+  },
+  {
+   "cavity": "turned cylinder TM010",
+   "closed_form_ghz": 19.1237581565119,
+   "cell_mm": 1,
+   "method": "staircase",
+   "f0_ghz": 18.366318267333547,
+   "error": -0.03960727190646025,
+   "cells": 4913,
+   "steps": 12756,
+   "faces": 0
+  },
+  {
+   "cavity": "turned cylinder TM010",
+   "closed_form_ghz": 19.1237581565119,
+   "cell_mm": 1,
+   "method": "conformal",
+   "f0_ghz": 19.05772725883918,
+   "error": -0.0034528201586902572,
+   "cells": 4913,
+   "steps": 12756,
+   "faces": 1330
+  },
+  {
+   "cavity": "turned cylinder TM010",
+   "closed_form_ghz": 19.1237581565119,
+   "cell_mm": 0.75,
+   "method": "staircase",
+   "f0_ghz": 18.62061611029584,
+   "error": -0.026309789221253866,
+   "cells": 12167,
+   "steps": 17008,
+   "faces": 0
+  },
+  {
+   "cavity": "turned cylinder TM010",
+   "closed_form_ghz": 19.1237581565119,
+   "cell_mm": 0.75,
+   "method": "conformal",
+   "f0_ghz": 19.08042969063703,
+   "error": -0.0022656878172305213,
+   "cells": 12167,
+   "steps": 17008,
+   "faces": 2375
+  },
+  {
+   "cavity": "turned cylinder TM010",
+   "closed_form_ghz": 19.1237581565119,
+   "cell_mm": 0.5,
+   "method": "staircase",
+   "f0_ghz": 18.83786683618564,
+   "error": -0.014949536486839072,
+   "cells": 35937,
+   "steps": 25511,
+   "faces": 0
+  },
+  {
+   "cavity": "turned cylinder TM010",
+   "closed_form_ghz": 19.1237581565119,
+   "cell_mm": 0.5,
+   "method": "conformal",
+   "f0_ghz": 19.097609850827137,
+   "error": -0.0013673204540008224,
+   "cells": 35937,
+   "steps": 25511,
+   "faces": 5349
+  },
+  {
+   "cavity": "turned cylinder TM010",
+   "closed_form_ghz": 19.1237581565119,
+   "cell_mm": 0.375,
+   "method": "staircase",
+   "f0_ghz": 18.913745642839704,
+   "error": -0.010981759545034038,
+   "cells": 83205,
+   "steps": 34015,
+   "faces": 0
+  },
+  {
+   "cavity": "turned cylinder TM010",
+   "closed_form_ghz": 19.1237581565119,
+   "cell_mm": 0.375,
+   "method": "conformal",
+   "f0_ghz": 19.105419242363723,
+   "error": -0.0009589597399260623,
+   "cells": 83205,
+   "steps": 34015,
+   "faces": 9547
+  }
+ ]
+}

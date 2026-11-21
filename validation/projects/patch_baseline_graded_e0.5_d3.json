@@ -1,0 +1,209 @@
+{
+  "noburf_project": 1,
+  "name": "patch_baseline_graded_e0.5_d3",
+  "variables": {
+    "W": {
+      "value": "16 mm"
+    },
+    "L": {
+      "value": "12.4 mm"
+    },
+    "fw": {
+      "value": "2.5 mm"
+    },
+    "flen": {
+      "value": "4 mm"
+    },
+    "gap": {
+      "value": "1 mm"
+    },
+    "inset": {
+      "value": "0 mm"
+    },
+    "half": {
+      "value": "12 mm"
+    }
+  },
+  "materials": {
+    "fr4_lossless": {
+      "eps_r": 4.4,
+      "tan_delta": 0
+    }
+  },
+  "stackup": [
+    {
+      "type": "copper",
+      "name": "gnd",
+      "material": "pec"
+    },
+    {
+      "type": "dielectric",
+      "name": "core",
+      "material": "fr4_lossless",
+      "thickness": "1.5 mm"
+    },
+    {
+      "type": "copper",
+      "name": "top",
+      "material": "pec"
+    }
+  ],
+  "board": {
+    "outline": [
+      [
+        "-half",
+        "-half"
+      ],
+      [
+        "half",
+        "-half"
+      ],
+      [
+        "half",
+        "half"
+      ],
+      [
+        "-half",
+        "half"
+      ]
+    ]
+  },
+  "geometry": {
+    "gnd": [
+      {
+        "id": "ground",
+        "op": "add",
+        "polygon": [
+          [
+            "-half",
+            "-half"
+          ],
+          [
+            "half",
+            "-half"
+          ],
+          [
+            "half",
+            "half"
+          ],
+          [
+            "-half",
+            "half"
+          ]
+        ]
+      }
+    ],
+    "top": [
+      {
+        "id": "patch",
+        "op": "add",
+        "polygon": [
+          [
+            "-W / 2",
+            "-L / 2"
+          ],
+          [
+            "W / 2",
+            "-L / 2"
+          ],
+          [
+            "W / 2",
+            "L / 2"
+          ],
+          [
+            "-W / 2",
+            "L / 2"
+          ]
+        ]
+      },
+      {
+        "id": "feed",
+        "op": "add",
+        "polygon": [
+          [
+            "-fw / 2",
+            "-L / 2 - flen"
+          ],
+          [
+            "fw / 2",
+            "-L / 2 - flen"
+          ],
+          [
+            "fw / 2",
+            "-L / 2 + inset"
+          ],
+          [
+            "-fw / 2",
+            "-L / 2 + inset"
+          ]
+        ]
+      }
+    ]
+  },
+  "ports": [
+    {
+      "id": "feed",
+      "x": "0 mm",
+      "y": "-10 mm",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    }
+  ],
+  "boundaries": {
+    "x_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "x_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_max": {
+      "type": "pml",
+      "cells": 8
+    }
+  },
+  "mesh": {
+    "cell": "1.875 mm",
+    "air_margin_cells": {
+      "xy": 11,
+      "below": 11,
+      "above": 11
+    },
+    "graded": {
+      "edge_cell": "0.5 mm",
+      "dielectric_cells": 3,
+      "max_growth": 1.3
+    }
+  },
+  "analysis": {
+    "f_min_ghz": 4,
+    "f_max_ghz": 8,
+    "n_freq": 401,
+    "loss_reference_ghz": 5.8,
+    "stop": {
+      "energy_decay_db": 50,
+      "max_steps": 200000
+    }
+  },
+  "outputs": {
+    "zin_at_ghz": [
+      5.4
+    ]
+  }
+}

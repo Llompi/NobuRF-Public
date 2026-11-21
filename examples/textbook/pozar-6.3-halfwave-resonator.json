@@ -1,0 +1,219 @@
+{
+  "noburf_project": 1,
+  "name": "pozar-6.3-halfwave-resonator",
+  "variables": {},
+  "materials": {
+    "substrate": {
+      "eps_r": 2.08,
+      "tan_delta": 0.0
+    }
+  },
+  "stackup": [
+    {
+      "type": "copper",
+      "name": "gnd",
+      "material": "pec"
+    },
+    {
+      "type": "dielectric",
+      "name": "core",
+      "material": "substrate",
+      "thickness": "1.5900 mm"
+    },
+    {
+      "type": "copper",
+      "name": "top",
+      "material": "pec"
+    }
+  ],
+  "board": {
+    "outline": [
+      [
+        "-24.2115 mm",
+        "-8.5378 mm"
+      ],
+      [
+        "24.2115 mm",
+        "-8.5378 mm"
+      ],
+      [
+        "24.2115 mm",
+        "8.5378 mm"
+      ],
+      [
+        "-24.2115 mm",
+        "8.5378 mm"
+      ]
+    ]
+  },
+  "geometry": {
+    "gnd": [
+      {
+        "id": "ground1",
+        "op": "add",
+        "polygon": [
+          [
+            "-24.2115 mm",
+            "-8.5378 mm"
+          ],
+          [
+            "24.2115 mm",
+            "-8.5378 mm"
+          ],
+          [
+            "24.2115 mm",
+            "8.5378 mm"
+          ],
+          [
+            "-24.2115 mm",
+            "8.5378 mm"
+          ]
+        ]
+      }
+    ],
+    "top": [
+      {
+        "id": "trace1",
+        "op": "add",
+        "polygon": [
+          [
+            "-11.2115 mm",
+            "-2.5378 mm"
+          ],
+          [
+            "11.2115 mm",
+            "-2.5378 mm"
+          ],
+          [
+            "11.2115 mm",
+            "2.5378 mm"
+          ],
+          [
+            "-11.2115 mm",
+            "2.5378 mm"
+          ]
+        ]
+      },
+      {
+        "id": "trace2",
+        "op": "add",
+        "polygon": [
+          [
+            "-22.2115 mm",
+            "-2.5378 mm"
+          ],
+          [
+            "-12.2115 mm",
+            "-2.5378 mm"
+          ],
+          [
+            "-12.2115 mm",
+            "2.5378 mm"
+          ],
+          [
+            "-22.2115 mm",
+            "2.5378 mm"
+          ]
+        ]
+      },
+      {
+        "id": "trace3",
+        "op": "add",
+        "polygon": [
+          [
+            "12.2115 mm",
+            "-2.5378 mm"
+          ],
+          [
+            "22.2115 mm",
+            "-2.5378 mm"
+          ],
+          [
+            "22.2115 mm",
+            "2.5378 mm"
+          ],
+          [
+            "12.2115 mm",
+            "2.5378 mm"
+          ]
+        ]
+      }
+    ]
+  },
+  "ports": [
+    {
+      "id": "p1",
+      "x": "-22.2115 mm",
+      "y": "0.0000 mm",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    },
+    {
+      "id": "p2",
+      "x": "22.2115 mm",
+      "y": "0.0000 mm",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    }
+  ],
+  "boundaries": {
+    "x_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "x_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_max": {
+      "type": "pml",
+      "cells": 8
+    }
+  },
+  "mesh": {
+    "cell": "1.0000 mm",
+    "air_margin_cells": {
+      "xy": 4,
+      "below": 3,
+      "above": 12
+    },
+    "graded": {
+      "edge_cell": "0.2000 mm",
+      "dielectric_cells": 4,
+      "max_growth": 1.3
+    }
+  },
+  "analysis": {
+    "f_min_ghz": 4.0,
+    "f_max_ghz": 5.5,
+    "n_freq": 301,
+    "loss_reference_ghz": 4.75,
+    "stop": {
+      "energy_decay_db": 50,
+      "max_steps": 120000
+    }
+  },
+  "outputs": {
+    "zin_at_ghz": [
+      5.0
+    ]
+  }
+}

@@ -1,0 +1,1000 @@
+{
+ "terminal": [
+  {
+   "part": {
+    "r_ohm": 20,
+    "l_nh": 3,
+    "c_pf": 1,
+    "connection": "series"
+   },
+   "worstAbsDeltaS11": 0.00101
+  },
+  {
+   "part": {
+    "r_ohm": 200,
+    "l_nh": 2,
+    "c_pf": 0.5,
+    "connection": "parallel"
+   },
+   "worstAbsDeltaS11": 0.00133
+  },
+  {
+   "part": {
+    "l_nh": 1
+   },
+   "worstAbsDeltaS11": 0.00157
+  },
+  {
+   "part": {
+    "c_pf": 2
+   },
+   "worstAbsDeltaS11": 0.000608
+  }
+ ],
+ "gap": [
+  {
+   "part": {
+    "r_ohm": 50
+   },
+   "rows": [
+    {
+     "fGHz": 0.5,
+     "zRe": 49.87,
+     "zIm": -0.05071,
+     "idealRe": 50,
+     "idealIm": 0
+    },
+    {
+     "fGHz": 1,
+     "zRe": 49.44,
+     "zIm": -0.1023,
+     "idealRe": 50,
+     "idealIm": 0
+    },
+    {
+     "fGHz": 1.5,
+     "zRe": 48.7,
+     "zIm": -0.1518,
+     "idealRe": 50,
+     "idealIm": 0
+    },
+    {
+     "fGHz": 2,
+     "zRe": 47.56,
+     "zIm": -0.1987,
+     "idealRe": 50,
+     "idealIm": 0
+    },
+    {
+     "fGHz": 2.5,
+     "zRe": 45.88,
+     "zIm": -0.2436,
+     "idealRe": 50,
+     "idealIm": 0
+    },
+    {
+     "fGHz": 3,
+     "zRe": 43.39,
+     "zIm": -0.2872,
+     "idealRe": 50,
+     "idealIm": 0
+    }
+   ]
+  },
+  {
+   "part": {
+    "r_ohm": 10
+   },
+   "rows": [
+    {
+     "fGHz": 0.5,
+     "zRe": 9.973,
+     "zIm": 0.01508,
+     "idealRe": 10,
+     "idealIm": 0
+    },
+    {
+     "fGHz": 1,
+     "zRe": 9.891,
+     "zIm": 0.02939,
+     "idealRe": 10,
+     "idealIm": 0
+    },
+    {
+     "fGHz": 1.5,
+     "zRe": 9.746,
+     "zIm": 0.0426,
+     "idealRe": 10,
+     "idealIm": 0
+    },
+    {
+     "fGHz": 2,
+     "zRe": 9.521,
+     "zIm": 0.05422,
+     "idealRe": 10,
+     "idealIm": 0
+    },
+    {
+     "fGHz": 2.5,
+     "zRe": 9.188,
+     "zIm": 0.06341,
+     "idealRe": 10,
+     "idealIm": 0
+    },
+    {
+     "fGHz": 3,
+     "zRe": 8.694,
+     "zIm": 0.06844,
+     "idealRe": 10,
+     "idealIm": 0
+    }
+   ]
+  },
+  {
+   "part": {
+    "l_nh": 2
+   },
+   "rows": [
+    {
+     "fGHz": 0.5,
+     "zRe": 0.03486,
+     "zIm": 6.298,
+     "idealRe": 0,
+     "idealIm": 6.283
+    },
+    {
+     "fGHz": 1,
+     "zRe": 0.01508,
+     "zIm": 12.45,
+     "idealRe": 0,
+     "idealIm": 12.57
+    },
+    {
+     "fGHz": 1.5,
+     "zRe": -0.008761,
+     "zIm": 18.41,
+     "idealRe": 0,
+     "idealIm": 18.85
+    },
+    {
+     "fGHz": 2,
+     "zRe": -0.0182,
+     "zIm": 24.02,
+     "idealRe": 0,
+     "idealIm": 25.13
+    },
+    {
+     "fGHz": 2.5,
+     "zRe": -0.00404,
+     "zIm": 29.01,
+     "idealRe": 0,
+     "idealIm": 31.42
+    },
+    {
+     "fGHz": 3,
+     "zRe": 0.01734,
+     "zIm": 32.94,
+     "idealRe": 0,
+     "idealIm": 37.7
+    }
+   ]
+  },
+  {
+   "part": {
+    "c_pf": 1
+   },
+   "rows": [
+    {
+     "fGHz": 0.5,
+     "zRe": 3.226,
+     "zIm": -316.5,
+     "idealRe": 0,
+     "idealIm": -318.3
+    },
+    {
+     "fGHz": 1,
+     "zRe": -0.5668,
+     "zIm": -155.8,
+     "idealRe": 0,
+     "idealIm": -159.2
+    },
+    {
+     "fGHz": 1.5,
+     "zRe": 0.1108,
+     "zIm": -102,
+     "idealRe": 0,
+     "idealIm": -106.1
+    },
+    {
+     "fGHz": 2,
+     "zRe": 0.01528,
+     "zIm": -74.89,
+     "idealRe": 0,
+     "idealIm": -79.58
+    },
+    {
+     "fGHz": 2.5,
+     "zRe": -0.04464,
+     "zIm": -57.61,
+     "idealRe": 0,
+     "idealIm": -63.66
+    },
+    {
+     "fGHz": 3,
+     "zRe": 0.04355,
+     "zIm": -45.37,
+     "idealRe": 0,
+     "idealIm": -53.05
+    }
+   ]
+  }
+ ],
+ "notch": {
+  "lNh": 3,
+  "cPf": 0.5,
+  "idealGHz": 4.109,
+  "notchGHz": 3.918,
+  "depthDb": -33.2,
+  "impliedPostInductanceNh": 0.3
+ },
+ "lSection": {
+  "fGHz": 2.4,
+  "lNh": 3.316,
+  "cPf": 0.6631,
+  "unmatchedAtF": {
+   "fGHz": 2.4,
+   "s11Db": -5.763,
+   "predictedDb": -5.764,
+   "boardWithPortsS11Db": -13.18
+  },
+  "matchedAtF": {
+   "fGHz": 2.4,
+   "s11Db": -12.23,
+   "predictedDb": -12.23,
+   "boardWithPortsS11Db": -7.4
+  },
+  "deepestMatched": {
+   "fGHz": 2.05,
+   "s11Db": -19,
+   "predictedDb": -19,
+   "boardWithPortsS11Db": -9.266
+  },
+  "unmatched": [
+   {
+    "fGHz": 1,
+    "s11Db": -7.995,
+    "predictedDb": -7.996,
+    "boardWithPortsS11Db": -19.49
+   },
+   {
+    "fGHz": 1.05,
+    "s11Db": -7.883,
+    "predictedDb": -7.883,
+    "boardWithPortsS11Db": -19.1
+   },
+   {
+    "fGHz": 1.1,
+    "s11Db": -7.771,
+    "predictedDb": -7.772,
+    "boardWithPortsS11Db": -18.72
+   },
+   {
+    "fGHz": 1.15,
+    "s11Db": -7.661,
+    "predictedDb": -7.661,
+    "boardWithPortsS11Db": -18.36
+   },
+   {
+    "fGHz": 1.2,
+    "s11Db": -7.552,
+    "predictedDb": -7.553,
+    "boardWithPortsS11Db": -18.02
+   },
+   {
+    "fGHz": 1.25,
+    "s11Db": -7.445,
+    "predictedDb": -7.445,
+    "boardWithPortsS11Db": -17.7
+   },
+   {
+    "fGHz": 1.3,
+    "s11Db": -7.34,
+    "predictedDb": -7.34,
+    "boardWithPortsS11Db": -17.39
+   },
+   {
+    "fGHz": 1.35,
+    "s11Db": -7.237,
+    "predictedDb": -7.237,
+    "boardWithPortsS11Db": -17.1
+   },
+   {
+    "fGHz": 1.4,
+    "s11Db": -7.137,
+    "predictedDb": -7.137,
+    "boardWithPortsS11Db": -16.82
+   },
+   {
+    "fGHz": 1.45,
+    "s11Db": -7.039,
+    "predictedDb": -7.039,
+    "boardWithPortsS11Db": -16.55
+   },
+   {
+    "fGHz": 1.5,
+    "s11Db": -6.944,
+    "predictedDb": -6.944,
+    "boardWithPortsS11Db": -16.3
+   },
+   {
+    "fGHz": 1.55,
+    "s11Db": -6.851,
+    "predictedDb": -6.852,
+    "boardWithPortsS11Db": -16.05
+   },
+   {
+    "fGHz": 1.6,
+    "s11Db": -6.762,
+    "predictedDb": -6.762,
+    "boardWithPortsS11Db": -15.82
+   },
+   {
+    "fGHz": 1.65,
+    "s11Db": -6.676,
+    "predictedDb": -6.676,
+    "boardWithPortsS11Db": -15.6
+   },
+   {
+    "fGHz": 1.7,
+    "s11Db": -6.593,
+    "predictedDb": -6.593,
+    "boardWithPortsS11Db": -15.38
+   },
+   {
+    "fGHz": 1.75,
+    "s11Db": -6.512,
+    "predictedDb": -6.513,
+    "boardWithPortsS11Db": -15.18
+   },
+   {
+    "fGHz": 1.8,
+    "s11Db": -6.435,
+    "predictedDb": -6.436,
+    "boardWithPortsS11Db": -14.98
+   },
+   {
+    "fGHz": 1.85,
+    "s11Db": -6.362,
+    "predictedDb": -6.362,
+    "boardWithPortsS11Db": -14.79
+   },
+   {
+    "fGHz": 1.9,
+    "s11Db": -6.291,
+    "predictedDb": -6.291,
+    "boardWithPortsS11Db": -14.61
+   },
+   {
+    "fGHz": 1.95,
+    "s11Db": -6.224,
+    "predictedDb": -6.224,
+    "boardWithPortsS11Db": -14.44
+   },
+   {
+    "fGHz": 2,
+    "s11Db": -6.16,
+    "predictedDb": -6.16,
+    "boardWithPortsS11Db": -14.27
+   },
+   {
+    "fGHz": 2.05,
+    "s11Db": -6.099,
+    "predictedDb": -6.099,
+    "boardWithPortsS11Db": -14.11
+   },
+   {
+    "fGHz": 2.1,
+    "s11Db": -6.041,
+    "predictedDb": -6.042,
+    "boardWithPortsS11Db": -13.96
+   },
+   {
+    "fGHz": 2.15,
+    "s11Db": -5.987,
+    "predictedDb": -5.987,
+    "boardWithPortsS11Db": -13.82
+   },
+   {
+    "fGHz": 2.2,
+    "s11Db": -5.936,
+    "predictedDb": -5.936,
+    "boardWithPortsS11Db": -13.68
+   },
+   {
+    "fGHz": 2.25,
+    "s11Db": -5.888,
+    "predictedDb": -5.888,
+    "boardWithPortsS11Db": -13.54
+   },
+   {
+    "fGHz": 2.3,
+    "s11Db": -5.843,
+    "predictedDb": -5.844,
+    "boardWithPortsS11Db": -13.42
+   },
+   {
+    "fGHz": 2.35,
+    "s11Db": -5.802,
+    "predictedDb": -5.802,
+    "boardWithPortsS11Db": -13.3
+   },
+   {
+    "fGHz": 2.4,
+    "s11Db": -5.763,
+    "predictedDb": -5.764,
+    "boardWithPortsS11Db": -13.18
+   },
+   {
+    "fGHz": 2.45,
+    "s11Db": -5.728,
+    "predictedDb": -5.729,
+    "boardWithPortsS11Db": -13.07
+   },
+   {
+    "fGHz": 2.5,
+    "s11Db": -5.696,
+    "predictedDb": -5.697,
+    "boardWithPortsS11Db": -12.97
+   },
+   {
+    "fGHz": 2.55,
+    "s11Db": -5.667,
+    "predictedDb": -5.668,
+    "boardWithPortsS11Db": -12.87
+   },
+   {
+    "fGHz": 2.6,
+    "s11Db": -5.642,
+    "predictedDb": -5.643,
+    "boardWithPortsS11Db": -12.78
+   },
+   {
+    "fGHz": 2.65,
+    "s11Db": -5.619,
+    "predictedDb": -5.62,
+    "boardWithPortsS11Db": -12.69
+   },
+   {
+    "fGHz": 2.7,
+    "s11Db": -5.6,
+    "predictedDb": -5.601,
+    "boardWithPortsS11Db": -12.6
+   },
+   {
+    "fGHz": 2.75,
+    "s11Db": -5.584,
+    "predictedDb": -5.585,
+    "boardWithPortsS11Db": -12.53
+   },
+   {
+    "fGHz": 2.8,
+    "s11Db": -5.571,
+    "predictedDb": -5.572,
+    "boardWithPortsS11Db": -12.45
+   },
+   {
+    "fGHz": 2.85,
+    "s11Db": -5.562,
+    "predictedDb": -5.563,
+    "boardWithPortsS11Db": -12.39
+   },
+   {
+    "fGHz": 2.9,
+    "s11Db": -5.555,
+    "predictedDb": -5.556,
+    "boardWithPortsS11Db": -12.32
+   },
+   {
+    "fGHz": 2.95,
+    "s11Db": -5.552,
+    "predictedDb": -5.553,
+    "boardWithPortsS11Db": -12.26
+   },
+   {
+    "fGHz": 3,
+    "s11Db": -5.552,
+    "predictedDb": -5.553,
+    "boardWithPortsS11Db": -12.21
+   },
+   {
+    "fGHz": 3.05,
+    "s11Db": -5.556,
+    "predictedDb": -5.557,
+    "boardWithPortsS11Db": -12.16
+   },
+   {
+    "fGHz": 3.1,
+    "s11Db": -5.562,
+    "predictedDb": -5.563,
+    "boardWithPortsS11Db": -12.12
+   },
+   {
+    "fGHz": 3.15,
+    "s11Db": -5.572,
+    "predictedDb": -5.573,
+    "boardWithPortsS11Db": -12.08
+   },
+   {
+    "fGHz": 3.2,
+    "s11Db": -5.586,
+    "predictedDb": -5.587,
+    "boardWithPortsS11Db": -12.04
+   },
+   {
+    "fGHz": 3.25,
+    "s11Db": -5.602,
+    "predictedDb": -5.604,
+    "boardWithPortsS11Db": -12.01
+   },
+   {
+    "fGHz": 3.3,
+    "s11Db": -5.623,
+    "predictedDb": -5.624,
+    "boardWithPortsS11Db": -11.99
+   },
+   {
+    "fGHz": 3.35,
+    "s11Db": -5.646,
+    "predictedDb": -5.648,
+    "boardWithPortsS11Db": -11.97
+   },
+   {
+    "fGHz": 3.4,
+    "s11Db": -5.674,
+    "predictedDb": -5.675,
+    "boardWithPortsS11Db": -11.95
+   },
+   {
+    "fGHz": 3.45,
+    "s11Db": -5.705,
+    "predictedDb": -5.706,
+    "boardWithPortsS11Db": -11.94
+   },
+   {
+    "fGHz": 3.5,
+    "s11Db": -5.739,
+    "predictedDb": -5.74,
+    "boardWithPortsS11Db": -11.93
+   },
+   {
+    "fGHz": 3.55,
+    "s11Db": -5.777,
+    "predictedDb": -5.779,
+    "boardWithPortsS11Db": -11.93
+   },
+   {
+    "fGHz": 3.6,
+    "s11Db": -5.82,
+    "predictedDb": -5.821,
+    "boardWithPortsS11Db": -11.94
+   },
+   {
+    "fGHz": 3.65,
+    "s11Db": -5.866,
+    "predictedDb": -5.867,
+    "boardWithPortsS11Db": -11.94
+   },
+   {
+    "fGHz": 3.7,
+    "s11Db": -5.916,
+    "predictedDb": -5.917,
+    "boardWithPortsS11Db": -11.96
+   },
+   {
+    "fGHz": 3.75,
+    "s11Db": -5.97,
+    "predictedDb": -5.971,
+    "boardWithPortsS11Db": -11.98
+   },
+   {
+    "fGHz": 3.8,
+    "s11Db": -6.028,
+    "predictedDb": -6.029,
+    "boardWithPortsS11Db": -12
+   },
+   {
+    "fGHz": 3.85,
+    "s11Db": -6.09,
+    "predictedDb": -6.092,
+    "boardWithPortsS11Db": -12.03
+   },
+   {
+    "fGHz": 3.9,
+    "s11Db": -6.157,
+    "predictedDb": -6.158,
+    "boardWithPortsS11Db": -12.06
+   },
+   {
+    "fGHz": 3.95,
+    "s11Db": -6.228,
+    "predictedDb": -6.23,
+    "boardWithPortsS11Db": -12.1
+   },
+   {
+    "fGHz": 4,
+    "s11Db": -6.303,
+    "predictedDb": -6.305,
+    "boardWithPortsS11Db": -12.15
+   }
+  ],
+  "matched": [
+   {
+    "fGHz": 1,
+    "s11Db": -10.3,
+    "predictedDb": -10.3,
+    "boardWithPortsS11Db": -18.11
+   },
+   {
+    "fGHz": 1.05,
+    "s11Db": -10.43,
+    "predictedDb": -10.43,
+    "boardWithPortsS11Db": -17.54
+   },
+   {
+    "fGHz": 1.1,
+    "s11Db": -10.59,
+    "predictedDb": -10.59,
+    "boardWithPortsS11Db": -16.99
+   },
+   {
+    "fGHz": 1.15,
+    "s11Db": -10.76,
+    "predictedDb": -10.76,
+    "boardWithPortsS11Db": -16.46
+   },
+   {
+    "fGHz": 1.2,
+    "s11Db": -10.96,
+    "predictedDb": -10.96,
+    "boardWithPortsS11Db": -15.94
+   },
+   {
+    "fGHz": 1.25,
+    "s11Db": -11.19,
+    "predictedDb": -11.19,
+    "boardWithPortsS11Db": -15.44
+   },
+   {
+    "fGHz": 1.3,
+    "s11Db": -11.44,
+    "predictedDb": -11.44,
+    "boardWithPortsS11Db": -14.96
+   },
+   {
+    "fGHz": 1.35,
+    "s11Db": -11.72,
+    "predictedDb": -11.72,
+    "boardWithPortsS11Db": -14.49
+   },
+   {
+    "fGHz": 1.4,
+    "s11Db": -12.04,
+    "predictedDb": -12.04,
+    "boardWithPortsS11Db": -14.04
+   },
+   {
+    "fGHz": 1.45,
+    "s11Db": -12.4,
+    "predictedDb": -12.4,
+    "boardWithPortsS11Db": -13.6
+   },
+   {
+    "fGHz": 1.5,
+    "s11Db": -12.8,
+    "predictedDb": -12.8,
+    "boardWithPortsS11Db": -13.18
+   },
+   {
+    "fGHz": 1.55,
+    "s11Db": -13.25,
+    "predictedDb": -13.25,
+    "boardWithPortsS11Db": -12.76
+   },
+   {
+    "fGHz": 1.6,
+    "s11Db": -13.75,
+    "predictedDb": -13.75,
+    "boardWithPortsS11Db": -12.36
+   },
+   {
+    "fGHz": 1.65,
+    "s11Db": -14.31,
+    "predictedDb": -14.32,
+    "boardWithPortsS11Db": -11.98
+   },
+   {
+    "fGHz": 1.7,
+    "s11Db": -14.94,
+    "predictedDb": -14.94,
+    "boardWithPortsS11Db": -11.6
+   },
+   {
+    "fGHz": 1.75,
+    "s11Db": -15.63,
+    "predictedDb": -15.63,
+    "boardWithPortsS11Db": -11.23
+   },
+   {
+    "fGHz": 1.8,
+    "s11Db": -16.37,
+    "predictedDb": -16.37,
+    "boardWithPortsS11Db": -10.88
+   },
+   {
+    "fGHz": 1.85,
+    "s11Db": -17.15,
+    "predictedDb": -17.15,
+    "boardWithPortsS11Db": -10.54
+   },
+   {
+    "fGHz": 1.9,
+    "s11Db": -17.91,
+    "predictedDb": -17.91,
+    "boardWithPortsS11Db": -10.2
+   },
+   {
+    "fGHz": 1.95,
+    "s11Db": -18.57,
+    "predictedDb": -18.57,
+    "boardWithPortsS11Db": -9.881
+   },
+   {
+    "fGHz": 2,
+    "s11Db": -18.98,
+    "predictedDb": -18.98,
+    "boardWithPortsS11Db": -9.568
+   },
+   {
+    "fGHz": 2.05,
+    "s11Db": -19,
+    "predictedDb": -19,
+    "boardWithPortsS11Db": -9.266
+   },
+   {
+    "fGHz": 2.1,
+    "s11Db": -18.57,
+    "predictedDb": -18.57,
+    "boardWithPortsS11Db": -8.972
+   },
+   {
+    "fGHz": 2.15,
+    "s11Db": -17.76,
+    "predictedDb": -17.76,
+    "boardWithPortsS11Db": -8.688
+   },
+   {
+    "fGHz": 2.2,
+    "s11Db": -16.71,
+    "predictedDb": -16.71,
+    "boardWithPortsS11Db": -8.413
+   },
+   {
+    "fGHz": 2.25,
+    "s11Db": -15.56,
+    "predictedDb": -15.55,
+    "boardWithPortsS11Db": -8.147
+   },
+   {
+    "fGHz": 2.3,
+    "s11Db": -14.4,
+    "predictedDb": -14.4,
+    "boardWithPortsS11Db": -7.89
+   },
+   {
+    "fGHz": 2.35,
+    "s11Db": -13.28,
+    "predictedDb": -13.28,
+    "boardWithPortsS11Db": -7.641
+   },
+   {
+    "fGHz": 2.4,
+    "s11Db": -12.23,
+    "predictedDb": -12.23,
+    "boardWithPortsS11Db": -7.4
+   },
+   {
+    "fGHz": 2.45,
+    "s11Db": -11.25,
+    "predictedDb": -11.25,
+    "boardWithPortsS11Db": -7.167
+   },
+   {
+    "fGHz": 2.5,
+    "s11Db": -10.34,
+    "predictedDb": -10.34,
+    "boardWithPortsS11Db": -6.942
+   },
+   {
+    "fGHz": 2.55,
+    "s11Db": -9.51,
+    "predictedDb": -9.51,
+    "boardWithPortsS11Db": -6.725
+   },
+   {
+    "fGHz": 2.6,
+    "s11Db": -8.743,
+    "predictedDb": -8.743,
+    "boardWithPortsS11Db": -6.515
+   },
+   {
+    "fGHz": 2.65,
+    "s11Db": -8.039,
+    "predictedDb": -8.038,
+    "boardWithPortsS11Db": -6.312
+   },
+   {
+    "fGHz": 2.7,
+    "s11Db": -7.391,
+    "predictedDb": -7.391,
+    "boardWithPortsS11Db": -6.117
+   },
+   {
+    "fGHz": 2.75,
+    "s11Db": -6.797,
+    "predictedDb": -6.797,
+    "boardWithPortsS11Db": -5.928
+   },
+   {
+    "fGHz": 2.8,
+    "s11Db": -6.252,
+    "predictedDb": -6.251,
+    "boardWithPortsS11Db": -5.746
+   },
+   {
+    "fGHz": 2.85,
+    "s11Db": -5.752,
+    "predictedDb": -5.752,
+    "boardWithPortsS11Db": -5.571
+   },
+   {
+    "fGHz": 2.9,
+    "s11Db": -5.294,
+    "predictedDb": -5.294,
+    "boardWithPortsS11Db": -5.402
+   },
+   {
+    "fGHz": 2.95,
+    "s11Db": -4.874,
+    "predictedDb": -4.874,
+    "boardWithPortsS11Db": -5.239
+   },
+   {
+    "fGHz": 3,
+    "s11Db": -4.491,
+    "predictedDb": -4.49,
+    "boardWithPortsS11Db": -5.082
+   },
+   {
+    "fGHz": 3.05,
+    "s11Db": -4.139,
+    "predictedDb": -4.139,
+    "boardWithPortsS11Db": -4.931
+   },
+   {
+    "fGHz": 3.1,
+    "s11Db": -3.818,
+    "predictedDb": -3.818,
+    "boardWithPortsS11Db": -4.785
+   },
+   {
+    "fGHz": 3.15,
+    "s11Db": -3.525,
+    "predictedDb": -3.525,
+    "boardWithPortsS11Db": -4.645
+   },
+   {
+    "fGHz": 3.2,
+    "s11Db": -3.257,
+    "predictedDb": -3.257,
+    "boardWithPortsS11Db": -4.51
+   },
+   {
+    "fGHz": 3.25,
+    "s11Db": -3.012,
+    "predictedDb": -3.012,
+    "boardWithPortsS11Db": -4.38
+   },
+   {
+    "fGHz": 3.3,
+    "s11Db": -2.788,
+    "predictedDb": -2.788,
+    "boardWithPortsS11Db": -4.256
+   },
+   {
+    "fGHz": 3.35,
+    "s11Db": -2.584,
+    "predictedDb": -2.584,
+    "boardWithPortsS11Db": -4.136
+   },
+   {
+    "fGHz": 3.4,
+    "s11Db": -2.398,
+    "predictedDb": -2.398,
+    "boardWithPortsS11Db": -4.021
+   },
+   {
+    "fGHz": 3.45,
+    "s11Db": -2.227,
+    "predictedDb": -2.227,
+    "boardWithPortsS11Db": -3.91
+   },
+   {
+    "fGHz": 3.5,
+    "s11Db": -2.072,
+    "predictedDb": -2.072,
+    "boardWithPortsS11Db": -3.803
+   },
+   {
+    "fGHz": 3.55,
+    "s11Db": -1.929,
+    "predictedDb": -1.929,
+    "boardWithPortsS11Db": -3.701
+   },
+   {
+    "fGHz": 3.6,
+    "s11Db": -1.799,
+    "predictedDb": -1.799,
+    "boardWithPortsS11Db": -3.603
+   },
+   {
+    "fGHz": 3.65,
+    "s11Db": -1.68,
+    "predictedDb": -1.68,
+    "boardWithPortsS11Db": -3.509
+   },
+   {
+    "fGHz": 3.7,
+    "s11Db": -1.571,
+    "predictedDb": -1.571,
+    "boardWithPortsS11Db": -3.418
+   },
+   {
+    "fGHz": 3.75,
+    "s11Db": -1.471,
+    "predictedDb": -1.471,
+    "boardWithPortsS11Db": -3.331
+   },
+   {
+    "fGHz": 3.8,
+    "s11Db": -1.38,
+    "predictedDb": -1.38,
+    "boardWithPortsS11Db": -3.248
+   },
+   {
+    "fGHz": 3.85,
+    "s11Db": -1.296,
+    "predictedDb": -1.296,
+    "boardWithPortsS11Db": -3.168
+   },
+   {
+    "fGHz": 3.9,
+    "s11Db": -1.219,
+    "predictedDb": -1.219,
+    "boardWithPortsS11Db": -3.091
+   },
+   {
+    "fGHz": 3.95,
+    "s11Db": -1.149,
+    "predictedDb": -1.149,
+    "boardWithPortsS11Db": -3.018
+   },
+   {
+    "fGHz": 4,
+    "s11Db": -1.084,
+    "predictedDb": -1.084,
+    "boardWithPortsS11Db": -2.948
+   }
+  ]
+ },
+ "runSeconds": 43.9
+}

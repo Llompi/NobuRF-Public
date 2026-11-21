@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NobuRF race replay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<!--
+  Plays two agent run logs on one clock and one chart, at 1920 x 1080, for the race shot in the video.
+  It is a recording tool, served locally; it is not part of the public site.
+
+    python3 -m http.server -d launch/race-replay 8000
+    open  http://localhost:8000/?left=sample-cerebras.json&right=sample-gpu-provider.json
+    press Space to start, or add &start=immediately
+
+  Each log is one JSON file. Times are milliseconds from the moment the agent starts.
+
+    {
+      "is_sample_data": false,                 // true makes the page say so on screen
+      "lane_label": "Kimi K3.1 Pro on Cerebras",
+      "match_threshold_db": -15,               // S11 at the target that counts as matched
+      "target_ghz": 5.8,                       // optional, default 5.8
+      "task": "Design a 5.8 GHz patch ...",    // optional: the task line, else the matching task
+      "events": [
+        { "time_ms": 0,    "type": "start",           "s11_db_at_target": -2.4 },
+        { "time_ms": 700,  "type": "model_turn_done", "output_tokens": 450 },
+        { "time_ms": 700,  "type": "edit",            "edit": "inset_depth_mm = 2.5", "reason": "..." },
+        { "time_ms": 1155, "type": "solve_done",      "s11_db_at_target": -4.1 },
+        ...
+        { "time_ms": 6200, "type": "done",            "s11_db_at_target": -19.9 }
+      ]
+    }
+
+  A solve_done or done event may carry "goal_met": true or false. When a log has it, the lane counts as
+  matched when the goal is met (frequency and S11 together), not when S11 at the target crosses the line.
+
+  Tokens per second for a turn = output_tokens / (time of model_turn_done - time of the previous start, model_turn_done or solve_done).
+  `npm run design -- race` and `npm run design -- replay <run folders>` write logs in this format
+  (replay-left.json, replay-right.json) and print the URL to open with the repo root served.
+-->
+<style>
+  :root {
+    --plate: #070b14;
+    --grid: #1b2230;
+    --ink: #e7e8eb;
+    --ink-muted: #8c94a3;
+    /* The Cerebras lane takes the app's interface accent (src/ui/style.css --accent). */
+    --left-lane: #62cde8;
+    --right-lane: #b9c0cc;
+    --threshold: #5fd39a;
+    --font-heading: "Source Serif 4", Georgia, serif;
+    --font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, monospace;
+    --font-number: "Inter", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #000; color: var(--ink); font-family: var(--font-body); overflow: hidden; }
+  #stage { position: absolute; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--plate); }
+
+  .stage-header { position: absolute; top: 56px; left: 120px; right: 120px; }
+  .stage-header h1 { margin: 0; font: 600 40px/1.2 var(--font-heading); }
+  .stage-header p { margin: 8px 0 0; font: 400 24px var(--font-body); color: var(--ink-muted); }
+
+  .lanes { position: absolute; top: 190px; left: 120px; right: 120px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+  .lane { color: var(--lane-colour); }
+  .lane-label { display: flex; align-items: center; gap: 14px; margin: 0; font: 600 28px var(--font-body); color: var(--ink); }
+  .lane-label::before { content: ""; width: 40px; height: 5px; border-radius: 3px; background: var(--lane-colour); }
+  .lane-clock { display: flex; align-items: baseline; gap: 28px; margin-top: 10px; }
+  .elapsed { font: 500 104px/1 var(--font-number); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .elapsed-unit { font-size: 40px; color: var(--ink-muted); margin-left: 6px; }
+  .lane-status { font: 500 24px/1.45 var(--font-data); white-space: nowrap; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+  .lane-status .result { color: var(--lane-colour); }
+  .latest-edit { margin-top: 8px; font: 400 22px var(--font-data); color: #c9ccd3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.5em; }
+
+  #race-chart { position: absolute; left: 0; top: 440px; width: 1920px; height: 600px; overflow: visible; }
+  #race-chart text { font: 500 20px var(--font-data); fill: var(--ink-muted); font-variant-numeric: tabular-nums; }
+  #race-chart .grid { stroke: var(--grid); stroke-width: 1; }
+  #race-chart .threshold { stroke: var(--threshold); stroke-width: 2; stroke-dasharray: 4 8; stroke-linecap: round; }
+  #race-chart .threshold-label { fill: var(--threshold); }
+  #race-chart .trace { fill: none; stroke-width: 5; stroke-linejoin: round; stroke-linecap: round; }
+  #race-chart .match-marker { stroke-width: 2; stroke-dasharray: 2 6; stroke-linecap: round; }
+  #race-chart .match-label { font-size: 24px; font-weight: 500; }
+  #race-chart .halo { paint-order: stroke; stroke: var(--plate); stroke-width: 8px; stroke-linejoin: round; }
+
+  .sample-data-notice { position: absolute; top: 64px; right: 120px; font: 500 22px var(--font-data); color: #ff8a80; }
+  .start-prompt { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(7, 11, 20, 0.82); font: 500 30px var(--font-body); color: var(--ink-muted); }
+  .load-error { position: absolute; inset: 200px 120px auto; font: 400 24px/1.5 var(--font-data); color: #ff8a80; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <header class="stage-header">
+    <h1 id="headline">Same model, same antenna, same solver</h1>
+    <p id="task-description"></p>
+  </header>
+  <div class="lanes" id="lanes"></div>
+  <svg id="race-chart" viewBox="0 0 1920 600" aria-hidden="true"></svg>
+</div>
+
+<template id="lane-template">
+  <section class="lane">
+    <h2 class="lane-label" data-field="label"></h2>
+    <div class="lane-clock">
+      <div class="elapsed"><span data-field="elapsed">0.0</span><span class="elapsed-unit">s</span></div>
+      <div class="lane-status"><div data-field="state">Ready</div><div class="result" data-field="result" aria-live="polite"></div></div>
+    </div>
+    <div class="latest-edit" data-field="latest-edit"></div>
+  </section>
+</template>
+
+<script>
+const STAGE_WIDTH = 1920;
+const STAGE_HEIGHT = 1080;
+const HOLD_AFTER_BOTH_FINISH_MS = 4000;
+const CHART = { left: 200, right: 1800, top: 20, bottom: 520, floorDb: -25 };
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+
+const pageParameters = new URLSearchParams(location.search);
+
+function fitStageToWindow() {
+  const scale = Math.min(innerWidth / STAGE_WIDTH, innerHeight / STAGE_HEIGHT);
+  const stage = document.getElementById('stage');
+  stage.style.transform = `scale(${scale})`;
+  stage.style.left = `${(innerWidth - STAGE_WIDTH * scale) / 2}px`;
+  stage.style.top = `${(innerHeight - STAGE_HEIGHT * scale) / 2}px`;
+}
+
+function requireField(runLog, fieldName, logUrl) {
+  if (runLog[fieldName] === undefined) throw new Error(`${logUrl} is missing "${fieldName}".`);
+  return runLog[fieldName];
+}
+
+async function loadRunLog(logUrl) {
+  const response = await fetch(logUrl);
+  if (!response.ok) throw new Error(`${logUrl}: HTTP ${response.status}`);
+  const runLog = await response.json();
+  requireField(runLog, 'lane_label', logUrl);
+  requireField(runLog, 'match_threshold_db', logUrl);
+  const events = requireField(runLog, 'events', logUrl);
+  if (events[0]?.type !== 'start') throw new Error(`${logUrl}: the first event must be "start".`);
+  if (!events.some((event) => event.type === 'done')) throw new Error(`${logUrl}: there is no "done" event.`);
+  runLog.events = [...events].sort((first, second) => first.time_ms - second.time_ms);
+  return runLog;
+}
+
+function formatSeconds(milliseconds) {
+  return (milliseconds / 1000).toFixed(1);
+}
+
+function formatDecibels(decibels) {
+  return decibels.toFixed(1).replace('-', '−');
+}
+
+function formatWholeDecibels(decibels) {
+  return String(decibels).replace('-', '\u2212');
+}
+
+function createSvgElement(tagName, attributes, textContent) {
+  const element = document.createElementNS(SVG_NAMESPACE, tagName);
+  for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value);
+  if (textContent !== undefined) element.textContent = textContent;
+  return element;
+}
+
+// A time step of 1, 2 or 5 times a power of ten that gives at most eight gridlines.
+function timeGridStepMs(axisEndMs) {
+  for (const stepMs of [500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]) {
+    if (axisEndMs / stepMs <= 8) return stepMs;
+  }
+  throw new Error(`A ${formatSeconds(axisEndMs)} s race is longer than the chart's time axis handles.`);
+}
+
+function createRaceChart(chartElement, axisEndMs, thresholdDb, targetGhz, thresholdText) {
+  const xForTime = (timeMs) => CHART.left + (CHART.right - CHART.left) * timeMs / axisEndMs;
+  const yForDecibels = (decibels) => CHART.top + (CHART.bottom - CHART.top) * Math.max(CHART.floorDb, Math.min(0, decibels)) / CHART.floorDb;
+
+  for (let decibels = 0; decibels >= CHART.floorDb; decibels -= 5) {
+    const y = yForDecibels(decibels);
+    chartElement.append(createSvgElement('line', { class: 'grid', x1: CHART.left, x2: CHART.right, y1: y, y2: y }));
+    chartElement.append(createSvgElement('text', { x: CHART.left - 20, y: y + 7, 'text-anchor': 'end' }, formatWholeDecibels(decibels)));
+  }
+  const gridStepMs = timeGridStepMs(axisEndMs);
+  for (let timeMs = 0; timeMs <= axisEndMs; timeMs += gridStepMs) {
+    chartElement.append(createSvgElement('text', { x: xForTime(timeMs), y: CHART.bottom + 40, 'text-anchor': 'middle' }, `${timeMs / 1000} s`));
+  }
+  chartElement.append(createSvgElement('text', { x: 120, y: (CHART.top + CHART.bottom) / 2, 'text-anchor': 'middle',
+    transform: `rotate(-90 120 ${(CHART.top + CHART.bottom) / 2})` }, `S11 at ${targetGhz} GHz (dB)`));
+  const thresholdY = yForDecibels(thresholdDb);
+  chartElement.append(createSvgElement('line', { class: 'threshold', x1: CHART.left, x2: CHART.right, y1: thresholdY, y2: thresholdY }));
+  chartElement.append(createSvgElement('text', { class: 'threshold-label halo', x: (CHART.left + CHART.right) / 2, y: thresholdY - 14, 'text-anchor': 'middle' },
+    thresholdText));
+
+  return { xForTime, yForDecibels };
+}
+
+function createLanePlayer(runLog, laneColour, chart, chartElement) {
+  const laneElement = document.getElementById('lane-template').content.firstElementChild.cloneNode(true);
+  laneElement.style.setProperty('--lane-colour', laneColour);
+  const field = (name) => laneElement.querySelector(`[data-field="${name}"]`);
+  field('label').textContent = runLog.lane_label;
+
+  const events = runLog.events;
+  const finishTimeMs = events.find((event) => event.type === 'done').time_ms;
+  const trace = createSvgElement('path', { class: 'trace', stroke: laneColour });
+  const head = createSvgElement('circle', { r: 9, fill: laneColour });
+  chartElement.append(trace, head);
+
+  // S11 is known only after a solve, so the trace holds each value until the next solve finishes.
+  const tracePoints = [[0, events[0].s11_db_at_target]];
+  let currentS11Db = events[0].s11_db_at_target;
+  let nextEventIndex = 0;
+  let editCount = 0;
+  let tokensPerSecondText = '';
+  let previousStepEndMs = 0;
+  let firstMatchMs = null;
+  // Design runs say whether the whole goal is met; matching runs only have S11.
+  const goalMode = events.some((event) => typeof event.goal_met === 'boolean');
+  const isMatch = (event) => (goalMode ? event.goal_met === true : event.s11_db_at_target <= runLog.match_threshold_db);
+
+  function showState(stateText) {
+    field('state').textContent = [stateText, editCount ? `${editCount} edit${editCount === 1 ? '' : 's'}` : '', tokensPerSecondText]
+      .filter(Boolean).join(' · ');
+  }
+
+  function markMatch(timeMs) {
+    const x = chart.xForTime(timeMs);
+    chartElement.append(createSvgElement('line', { class: 'match-marker', stroke: laneColour,
+      x1: x, x2: x, y1: chart.yForDecibels(currentS11Db) + 14, y2: CHART.bottom }));
+    chartElement.append(createSvgElement('text', { class: 'match-label halo', style: `fill: ${laneColour}`, x: x + 14, y: CHART.bottom - 14 },
+      `${formatSeconds(timeMs)} s`));
+  }
+
+  function applyEvent(event) {
+    if (event.type === 'start') {
+      showState('Model thinking');
+    } else if (event.type === 'model_turn_done') {
+      const turnDurationSeconds = (event.time_ms - previousStepEndMs) / 1000;
+      if (turnDurationSeconds <= 0) throw new Error(`model_turn_done at ${event.time_ms} ms has no duration.`);
+      // A turn with no reported tokens (a scripted lane) shows no rate rather than 0 tokens/s.
+      tokensPerSecondText = event.output_tokens > 0 ? `${Math.round(event.output_tokens / turnDurationSeconds).toLocaleString('en-US')} tokens/s` : '';
+      previousStepEndMs = event.time_ms;
+    } else if (event.type === 'edit') {
+      editCount += 1;
+      field('latest-edit').textContent = event.edit;
+      showState('Solving');
+    } else if (event.type === 'solve_done' && event.s11_db_at_target === null) {
+      // The harness writes null when a solve fails. Keep the last good value on the chart and say so.
+      previousStepEndMs = event.time_ms;
+      showState('Solve failed');
+    } else if (event.type === 'solve_done') {
+      if (!Number.isFinite(event.s11_db_at_target)) throw new Error(`solve_done at ${event.time_ms} ms has no S11 value.`);
+      previousStepEndMs = event.time_ms;
+      tracePoints.push([event.time_ms, currentS11Db], [event.time_ms, event.s11_db_at_target]);
+      currentS11Db = event.s11_db_at_target;
+      showState('Model thinking');
+      if (firstMatchMs === null && isMatch(event)) {
+        firstMatchMs = event.time_ms;
+        field('result').textContent = `${goalMode ? 'Goal met' : 'Matched'} at ${formatSeconds(firstMatchMs)} s, ${formatDecibels(currentS11Db)} dB`;
+        markMatch(firstMatchMs);
+      }
+    } else if (event.type === 'done') {
+      currentS11Db = event.s11_db_at_target;
+      showState('Finished');
+      if (firstMatchMs === null && goalMode && event.goal_met) {
+        firstMatchMs = event.time_ms;
+        field('result').textContent = `Goal met at ${formatSeconds(firstMatchMs)} s, ${formatDecibels(currentS11Db)} dB on the fine mesh`;
+        markMatch(firstMatchMs);
+      }
+      if (firstMatchMs === null) field('result').textContent = `Stopped at ${formatSeconds(event.time_ms)} s without ${goalMode ? 'meeting the goal' : 'a match'}`;
+    } else {
+      throw new Error(`Unknown event type "${event.type}" at ${event.time_ms} ms.`);
+    }
+  }
+
+  function drawTraceUpTo(timeMs) {
+    const points = [...tracePoints, [timeMs, currentS11Db]];
+    trace.setAttribute('d', 'M' + points.map(([pointMs, s11Db]) => `${chart.xForTime(pointMs).toFixed(1)},${chart.yForDecibels(s11Db).toFixed(1)}`).join(' L'));
+    head.setAttribute('cx', chart.xForTime(timeMs));
+    head.setAttribute('cy', chart.yForDecibels(currentS11Db));
+  }
+
+  drawTraceUpTo(0);
+
+  return {
+    laneElement,
+    finishTimeMs,
+    advanceTo(elapsedMs) {
+      const laneTimeMs = Math.min(elapsedMs, finishTimeMs);
+      field('elapsed').textContent = formatSeconds(laneTimeMs);
+      while (nextEventIndex < events.length && events[nextEventIndex].time_ms <= elapsedMs) {
+        applyEvent(events[nextEventIndex]);
+        nextEventIndex += 1;
+      }
+      drawTraceUpTo(laneTimeMs);
+    },
+  };
+}
+
+function showLoadError(error) {
+  const message = Object.assign(document.createElement('div'), {
+    className: 'load-error',
+    textContent: `Could not load the run logs.\n${error.message}\n\nUsage: ?left=<log.json>&right=<log.json>`,
+  });
+  document.getElementById('stage').append(message);
+}
+
+function waitForStartKey() {
+  return new Promise((resolve) => {
+    if (pageParameters.get('start') === 'immediately') return resolve();
+    const prompt = Object.assign(document.createElement('div'), { className: 'start-prompt', textContent: 'Press Space to start' });
+    document.getElementById('stage').append(prompt);
+    addEventListener('keydown', function startOnSpace(keyEvent) {
+      if (keyEvent.code !== 'Space') return;
+      removeEventListener('keydown', startOnSpace);
+      prompt.remove();
+      resolve();
+    });
+  });
+}
+
+async function main() {
+  addEventListener('resize', fitStageToWindow);
+  fitStageToWindow();
+
+  const leftLogUrl = pageParameters.get('left');
+  const rightLogUrl = pageParameters.get('right');
+  let runLogs;
+  try {
+    if (!leftLogUrl || !rightLogUrl) throw new Error('Both ?left= and ?right= are required.');
+    runLogs = await Promise.all([loadRunLog(leftLogUrl), loadRunLog(rightLogUrl)]);
+    const [leftThresholdDb, rightThresholdDb] = runLogs.map((runLog) => runLog.match_threshold_db);
+    if (leftThresholdDb !== rightThresholdDb) {
+      throw new Error(`The two logs use different match thresholds: ${leftThresholdDb} and ${rightThresholdDb} dB.`);
+    }
+  } catch (error) {
+    showLoadError(error);
+    throw error;
+  }
+  const thresholdDb = runLogs[0].match_threshold_db;
+  const targetGhz = runLogs[0].target_ghz ?? 5.8;
+  // The headline claims the same model only when both lanes name the same model on a host (a scripted lane has none).
+  const modelOf = (runLog) => (runLog.lane_label.includes(' on ') ? runLog.lane_label.split(' on ')[0] : null);
+  if (runLogs.length === 2 && (modelOf(runLogs[0]) === null || modelOf(runLogs[0]) !== modelOf(runLogs[1]))) {
+    document.getElementById('headline').textContent = 'Same antenna, same tools, same solver';
+  }
+  document.getElementById('task-description').textContent = runLogs[0].task
+    ? `Task: ${runLogs[0].task}`
+    : `Task: match a ${targetGhz} GHz patch antenna to 50 Ω, S11 at or below ${formatWholeDecibels(thresholdDb)} dB`;
+
+  const lastFinishMs = Math.max(...runLogs.map((runLog) => runLog.events.find((event) => event.type === 'done').time_ms));
+  const chartElement = document.getElementById('race-chart');
+  // In goal mode the line is the S11 limit, one part of the goal; reaching it is not a match on its own.
+  const goalMode = runLogs.some((runLog) => runLog.events.some((event) => typeof event.goal_met === 'boolean'));
+  const chart = createRaceChart(chartElement, lastFinishMs * 1.04, thresholdDb, targetGhz,
+    goalMode ? `S11 limit ${formatWholeDecibels(thresholdDb)} dB` : `matched at ${formatWholeDecibels(thresholdDb)} dB or below`);
+  const lanePlayers = [
+    createLanePlayer(runLogs[0], 'var(--left-lane)', chart, chartElement),
+    createLanePlayer(runLogs[1], 'var(--right-lane)', chart, chartElement),
+  ];
+  lanePlayers.forEach((player) => document.getElementById('lanes').append(player.laneElement));
+
+  if (runLogs.some((runLog) => runLog.is_sample_data)) {
+    document.getElementById('stage').append(Object.assign(document.createElement('div'), {
+      className: 'sample-data-notice',
+      textContent: 'Sample data, not a real run',
+    }));
+  }
+
+  await waitForStartKey();
+  let startTimestamp;
+  requestAnimationFrame(function drawFrame(frameTimestamp) {
+    startTimestamp ??= frameTimestamp;
+    const elapsedMs = frameTimestamp - startTimestamp;
+    lanePlayers.forEach((player) => player.advanceTo(elapsedMs));
+    if (elapsedMs < lastFinishMs + HOLD_AFTER_BOTH_FINISH_MS) requestAnimationFrame(drawFrame);
+  });
+}
+
+main();
+</script>
+</body>
+</html>

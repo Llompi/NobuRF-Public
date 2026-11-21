@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>NobuRF race</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/ui/style.css" />
+    <link rel="stylesheet" href="/src/ui/race.css" />
+  </head>
+  <body class="race">
+    <header id="race-header">
+      <h1 class="wordmark">NobuRF</h1>
+      <p id="race-task" role="status">Waiting for the agents to make their first model call. All lane clocks start together.</p>
+      <p id="race-connection" class="bad" role="status"></p>
+    </header>
+    <p id="race-banner" hidden></p>
+    <main id="lanes"></main>
+    <footer id="race-footer">
+      <p id="race-result" aria-live="polite"></p>
+      <p id="race-note">All lanes share one GPU solver. Each lane's clock leaves out time spent waiting for other lanes' solves. Coarse full-wave model, so S11 values are approximate. <span id="race-gpu"></span></p>
+    </footer>
+    <script type="module" src="/src/race.ts"></script>
+  </body>
+</html>

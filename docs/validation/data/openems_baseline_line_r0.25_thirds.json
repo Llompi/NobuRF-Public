@@ -1,0 +1,10 @@
+{
+ "case": "baseline",
+ "port": "line",
+ "res_mm": 0.25,
+ "edges": "thirds",
+ "cells": 589824,
+ "wall_s": 561.0,
+ "f0_ghz": 5.34,
+ "s11_min_db": -8.17
+}

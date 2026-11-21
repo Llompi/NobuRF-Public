@@ -1,0 +1,199 @@
+{
+  "generated_by": "scripts/validate/deembed.ts",
+  "solver": "GPU (WGSL)",
+  "alumina": {
+    "description": "Pozar Ex. 3.7 line (W/h = 1, 0.5 mm alumina eps_r 9.9, lossless), 20 mm between 10 mm feeds",
+    "kit": [
+      {
+        "port": "p1",
+        "z_line_ohm": 48.637,
+        "eps_eff_guess": 7.1164,
+        "extra_lines_mm": [
+          20,
+          3.2258
+        ],
+        "solves": 3,
+        "reused_from": null,
+        "half_thru_ghz": []
+      },
+      {
+        "port": "p2",
+        "z_line_ohm": 48.637,
+        "eps_eff_guess": 7.1164,
+        "extra_lines_mm": [
+          20,
+          3.2258
+        ],
+        "solves": 0,
+        "reused_from": "p1",
+        "half_thru_ghz": []
+      }
+    ],
+    "eps_eff_10ghz": {
+      "nobu": 6.9262,
+      "openems_msl_port": 6.88,
+      "kirschning_jansen": 6.88
+    },
+    "z_line_static_ohm": {
+      "nobu": 48.637,
+      "hammerstad_jensen": 49.05
+    },
+    "max_abs_s11": {
+      "raw": 0.37543,
+      "deembedded": 0.029925
+    },
+    "warnings": []
+  },
+  "planes": {
+    "description": "Pozar Ex. 5.5's 22.36 ohm quarter-wave section between 50 ohm (port 1) and 22.36 ohm (port 2) feeds of 10 mm and of 16 mm, each de-embedded to the section's ends",
+    "kits": {
+      "feeds_10mm": [
+        {
+          "port": "p1",
+          "z_line_ohm": 49.504,
+          "eps_eff_guess": 2.8574,
+          "extra_lines_mm": [
+            45.01,
+            7.2597
+          ],
+          "solves": 3,
+          "reused_from": null,
+          "half_thru_ghz": []
+        },
+        {
+          "port": "p2",
+          "z_line_ohm": 22.352,
+          "eps_eff_guess": 3.1261,
+          "extra_lines_mm": [
+            44.198,
+            7.1287
+          ],
+          "solves": 3,
+          "reused_from": null,
+          "half_thru_ghz": []
+        }
+      ],
+      "feeds_16mm": [
+        {
+          "port": "p1",
+          "z_line_ohm": 49.557,
+          "eps_eff_guess": 2.8538,
+          "extra_lines_mm": [
+            46.507,
+            7.5012
+          ],
+          "solves": 3,
+          "reused_from": null,
+          "half_thru_ghz": []
+        },
+        {
+          "port": "p2",
+          "z_line_ohm": 22.293,
+          "eps_eff_guess": 3.1359,
+          "extra_lines_mm": [
+            44.198,
+            7.1287
+          ],
+          "solves": 3,
+          "reused_from": null,
+          "half_thru_ghz": []
+        }
+      ]
+    },
+    "max_abs_difference": {
+      "raw": {
+        "value": 1.7531,
+        "atGhz": 5.9
+      },
+      "deembedded": {
+        "value": 0.035209,
+        "atGhz": 6.5
+      }
+    },
+    "warnings": {
+      "feeds_10mm": [],
+      "feeds_16mm": []
+    }
+  },
+  "quarter_wave": {
+    "description": "Pozar Ex. 5.5, the 10 mm structure terminated in 10 ohm at the section end: the matched band",
+    "bands": [
+      {
+        "gamma_max": 0.4,
+        "band_ghz": [
+          1.9783,
+          3.9023
+        ],
+        "centre_ghz": 2.9403
+      },
+      {
+        "gamma_max": 0.2,
+        "band_ghz": [
+          2.4925,
+          3.3768
+        ],
+        "centre_ghz": 2.9346
+      }
+    ],
+    "book": {
+      "centre_ghz": 3
+    },
+    "textbook_exam_external_calibration": [
+      {
+        "quantity": "Centre of the matched band (|Gamma| <= 0.4)",
+        "nobu": 2.942219167703878,
+        "book": 3
+      },
+      {
+        "quantity": "Centre, midway between the outermost |Gamma| minima",
+        "nobu": 2.95,
+        "book": 3
+      },
+      {
+        "quantity": "Worst |Gamma| over the book's band (29 %, 2.56 to 3.44 GHz)",
+        "nobu": 0.21059584025415176,
+        "book": 0.2
+      }
+    ]
+  },
+  "line": {
+    "description": "30 mm 50 ohm line on RO4003C (0.813 mm, eps_r 3.55, lossless) between 10 mm feeds, both de-embedded",
+    "kit": [
+      {
+        "port": "p1",
+        "z_line_ohm": 49.583,
+        "eps_eff_guess": 2.8611,
+        "extra_lines_mm": [
+          45.007,
+          7.2592
+        ],
+        "solves": 3,
+        "reused_from": null,
+        "half_thru_ghz": []
+      },
+      {
+        "port": "p2",
+        "z_line_ohm": 49.583,
+        "eps_eff_guess": 2.8611,
+        "extra_lines_mm": [
+          45.007,
+          7.2592
+        ],
+        "solves": 0,
+        "reused_from": "p1",
+        "half_thru_ghz": []
+      }
+    ],
+    "max_abs_s11": {
+      "raw": 0.2173,
+      "deembedded": 0.011337
+    },
+    "vs_ideal_line": {
+      "max_abs_difference": 0.011493,
+      "at_ghz": 6.5,
+      "frequencies_compared": 126
+    },
+    "passivity": "largest singular value of S 1.0042 at 0.300 GHz (warns above 1.005, fails above 1.02)",
+    "warnings": []
+  }
+}

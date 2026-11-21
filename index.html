@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>NobuRF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/ui/style.css" />
+  </head>
+  <body>
+    <main id="app">
+      <section id="viewport" aria-label="3D view of the antenna and its field">
+        <div class="overlay top-left">
+          <h1 class="wordmark">NobuRF</h1>
+          <p class="subtitle">Patch antenna, full-wave FDTD on your GPU</p>
+        </div>
+        <div class="overlay top-right" role="group" aria-label="Field view">
+          <div class="segmented">
+            <button type="button" data-field-mode="instantaneous" aria-pressed="true">Ez(t)</button>
+            <button type="button" data-field-mode="magnitude" aria-pressed="false">|Ez|</button>
+          </div>
+          <label class="toggle"><input type="checkbox" id="toggle-relief" /> Relief</label>
+          <label class="toggle"><input type="checkbox" id="toggle-far-field" /> Far field</label>
+        </div>
+        <div class="overlay bottom-left colorbar" id="legend" hidden>
+          <div class="colorbar-title" id="legend-title"></div>
+          <div class="colorbar-ramp" id="legend-ramp"></div>
+          <div class="colorbar-ticks"><span id="legend-top"></span><span id="legend-middle"></span><span id="legend-bottom"></span></div>
+        </div>
+        <div class="viewport-message" id="viewport-message" role="alert" hidden>
+          <h2 id="viewport-message-title"></h2>
+          <p id="viewport-message-body"></p>
+          <p class="viewport-message-detail" id="viewport-message-detail"></p>
+        </div>
+        <p class="overlay bottom-right" id="status" role="status">Starting the GPU solver…</p>
+      </section>
+
+      <aside id="panel" aria-label="Results">
+        <section>
+          <p class="readout-label">S11 at <span id="target-ghz">5.8</span> GHz</p>
+          <p class="readout-main"><span class="number" id="s11-at-target">—</span><span class="readout-status" id="match-status"></span></p>
+          <p class="readout-sub" id="deepest-dip"></p>
+        </section>
+
+        <section>
+          <div class="chart-head">
+            <h2 id="chart-title">S11 across the band</h2>
+            <div class="segmented" role="group" aria-label="Chart">
+              <button type="button" data-chart="s11" aria-pressed="true">S11</button>
+              <button type="button" data-chart="smith" aria-pressed="false">Smith</button>
+            </div>
+          </div>
+          <canvas id="chart" role="img" aria-labelledby="chart-title"></canvas>
+        </section>
+
+        <dl class="facts">
+          <dt>Input impedance</dt><dd id="fact-impedance">—</dd>
+          <dt>Resonance offset</dt><dd id="fact-offset">—</dd>
+          <dt>−10 dB bandwidth</dt><dd id="fact-bandwidth">—</dd>
+          <dt>Peak directivity</dt><dd id="fact-directivity">—</dd>
+          <dt>Solve time</dt><dd id="fact-solve">—</dd>
+        </dl>
+
+        <section>
+          <h2 id="log-title">Edits</h2>
+          <ol id="log" aria-labelledby="log-title"></ol>
+        </section>
+
+        <details class="dev-only">
+          <summary>Apply an edit by hand</summary>
+          <textarea id="edit-json" rows="2" spellcheck="false" aria-label="Edit as JSON" aria-describedby="edit-error">{"inset_depth_mm": 4}</textarea>
+          <p class="field-error" id="edit-error" role="alert" hidden></p>
+          <div class="actions">
+            <button type="button" id="apply-edit">Apply edit</button>
+            <button type="button" id="reset-geometry">Reset to baseline</button>
+          </div>
+        </details>
+
+        <p class="footnote">Coarse model: 0.5 mm cells, lossless FR-4, far field assumes an infinite ground plane. Treat the numbers as approximate.</p>
+      </aside>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

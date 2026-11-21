@@ -1,0 +1,9 @@
+{
+ "case": "baseline",
+ "port": "strip",
+ "res_mm": 0.5,
+ "cells": 167504,
+ "wall_s": 59.7,
+ "f0_ghz": 5.32,
+ "s11_min_db": -4.89
+}

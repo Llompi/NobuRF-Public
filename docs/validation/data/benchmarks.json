@@ -1,0 +1,399 @@
+{
+  "generated_by": "scripts/validate/benchmarks.ts",
+  "solver": "CPU reference via solveProjectText (the noburf solve path)",
+  "max_minutes_per_solve": 60,
+  "mesh": "uniform",
+  "refine": 1,
+  "benchmarks": [
+    {
+      "name": "balanis-ex14-edge-probe",
+      "source": "C. A. Balanis, Antenna Theory, 3rd/4th ed., Examples 14.1 and 14.2 (transmission-line and cavity models)",
+      "status": "run",
+      "solves": [
+        {
+          "project": "balanis-ex14-edge-probe",
+          "grid": [
+            98,
+            92,
+            49
+          ],
+          "cells": 441784,
+          "dx_mm": 0.397,
+          "steps": 2100,
+          "stopped_on_energy": true,
+          "energy_decay_db": 50.44049132168752,
+          "solve_s": 51,
+          "f_s11_min_ghz": 9.645256164560363,
+          "s11_min_db": -27.06760045627966,
+          "f_re_z_peak_ghz": 8.989295509705235,
+          "re_z_peak_ohm": 181.89574936167628,
+          "warnings": [
+            "port \"feed\" snapped from (0, -4.33) mm to the grid node at (0, -4.177999999999999) mm"
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "quantity": "f0 (Re(Z_in) peak) vs design frequency",
+          "unit": "GHz",
+          "reference": 10,
+          "reference_kind": "textbook model",
+          "noburf": 8.989295509705235,
+          "difference_percent": -10.107044902947653
+        },
+        {
+          "quantity": "R_in at resonance, probe on the first node inside the radiating edge (0.35 mm in)",
+          "unit": "ohm",
+          "reference": 228.35,
+          "reference_kind": "textbook model",
+          "noburf": 181.89574936167628,
+          "note": "Balanis R_in(edge) = 1 / (2 (G1 + G12)); the probe sits on the first grid node inside the edge (0.35 mm in), where cos^2 reduces the model value by about 1.5 %",
+          "difference_percent": -20.343442364056806
+        }
+      ]
+    },
+    {
+      "name": "balanis-ex14-inset-probe",
+      "source": "C. A. Balanis, Antenna Theory, 3rd/4th ed., Examples 14.1 and 14.2 (transmission-line and cavity models)",
+      "status": "run",
+      "solves": [
+        {
+          "project": "balanis-ex14-inset-probe",
+          "grid": [
+            98,
+            92,
+            49
+          ],
+          "cells": 441784,
+          "dx_mm": 0.397,
+          "steps": 2900,
+          "stopped_on_energy": true,
+          "energy_decay_db": 52.01395461254614,
+          "solve_s": 75,
+          "f_s11_min_ghz": 9.091135997036368,
+          "s11_min_db": -3.795802628247818,
+          "f_re_z_peak_ghz": 8.980913153570068,
+          "re_z_peak_ohm": 32.15897152355055,
+          "warnings": [
+            "port \"feed\" snapped from (0, -1.4040000000000004) mm to the grid node at (0, -1.3989999999999991) mm"
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "quantity": "f0 (Re(Z_in) peak) vs design frequency",
+          "unit": "GHz",
+          "reference": 10,
+          "reference_kind": "textbook model",
+          "noburf": 8.980913153570068,
+          "difference_percent": -10.19086846429932
+        },
+        {
+          "quantity": "R_in at resonance, probe at y0 = 3.126 mm",
+          "unit": "ohm",
+          "reference": 50,
+          "reference_kind": "textbook model",
+          "noburf": 32.15897152355055,
+          "difference_percent": -35.682056952898904
+        }
+      ]
+    },
+    {
+      "name": "chang1986-57x38",
+      "source": "E. Chang, S. A. Long, W. F. Richards, \"An experimental investigation of electrically thick rectangular microstrip antennas,\" IEEE Trans. AP-34(6), 1986, Table I (measured; f_r is the frequency of maximum input resistance, section III-B)",
+      "status": "run",
+      "solves": [
+        {
+          "project": "chang1986-57x38",
+          "grid": [
+            144,
+            144,
+            44
+          ],
+          "cells": 912384,
+          "dx_mm": 0.79375,
+          "steps": 5900,
+          "stopped_on_energy": true,
+          "energy_decay_db": 50.9041553898801,
+          "solve_s": 212,
+          "f_s11_min_ghz": 2.38848758584488,
+          "s11_min_db": -13.650354468101314,
+          "f_re_z_peak_ghz": 2.2972957075594715,
+          "re_z_peak_ohm": 171.52523020408492,
+          "warnings": [
+            "port \"feed\" snapped from (0, -17.5) mm to the grid node at (0.006250000000001421, -17.456249999999997) mm"
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "quantity": "f_r at the lowest Re(Z_in) peak (the paper's definition)",
+          "unit": "GHz",
+          "reference": 2.31,
+          "reference_kind": "measured",
+          "noburf": 2.2972957075594715,
+          "difference_percent": -0.5499693697198489
+        },
+        {
+          "quantity": "f at the S11 minimum",
+          "unit": "GHz",
+          "reference": 2.31,
+          "reference_kind": "measured",
+          "noburf": 2.38848758584488,
+          "note": "S11 minimum -13.7 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 3.39773098895585
+        }
+      ]
+    },
+    {
+      "name": "chang1986-45.5x30.5",
+      "source": "E. Chang, S. A. Long, W. F. Richards, \"An experimental investigation of electrically thick rectangular microstrip antennas,\" IEEE Trans. AP-34(6), 1986, Table I (measured; f_r is the frequency of maximum input resistance, section III-B)",
+      "status": "run",
+      "solves": [
+        {
+          "project": "chang1986-45.5x30.5",
+          "grid": [
+            144,
+            144,
+            44
+          ],
+          "cells": 912384,
+          "dx_mm": 0.79375,
+          "steps": 4300,
+          "stopped_on_energy": true,
+          "energy_decay_db": 52.28700871522429,
+          "solve_s": 152,
+          "f_s11_min_ghz": 2.950406433899532,
+          "s11_min_db": -19.078388834447217,
+          "f_re_z_peak_ghz": 2.8205182411291454,
+          "re_z_peak_ohm": 159.91181535397146,
+          "warnings": [
+            "port \"feed\" snapped from (0, -13.75) mm to the grid node at (0.006250000000001421, -13.487499999999997) mm"
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "quantity": "f_r at the lowest Re(Z_in) peak (the paper's definition)",
+          "unit": "GHz",
+          "reference": 2.89,
+          "reference_kind": "measured",
+          "noburf": 2.8205182411291454,
+          "difference_percent": -2.4042131097181567
+        },
+        {
+          "quantity": "f at the S11 minimum",
+          "unit": "GHz",
+          "reference": 2.89,
+          "reference_kind": "measured",
+          "noburf": 2.950406433899532,
+          "note": "S11 minimum -19.1 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 2.0901880242052533
+        }
+      ]
+    },
+    {
+      "name": "chang1986-29.5x19.5",
+      "source": "E. Chang, S. A. Long, W. F. Richards, \"An experimental investigation of electrically thick rectangular microstrip antennas,\" IEEE Trans. AP-34(6), 1986, Table I (measured; f_r is the frequency of maximum input resistance, section III-B)",
+      "status": "run",
+      "solves": [
+        {
+          "project": "chang1986-29.5x19.5",
+          "grid": [
+            144,
+            144,
+            44
+          ],
+          "cells": 912384,
+          "dx_mm": 0.79375,
+          "steps": 2600,
+          "stopped_on_energy": true,
+          "energy_decay_db": 51.77263936774224,
+          "solve_s": 93,
+          "f_s11_min_ghz": 4.395860775232412,
+          "s11_min_db": -15.184947287704263,
+          "f_re_z_peak_ghz": 4.1781249386855,
+          "re_z_peak_ohm": 133.05021875099183,
+          "warnings": [
+            "port \"feed\" snapped from (0, -8.25) mm to the grid node at (0.006250000000001421, -7.931249999999999) mm"
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "quantity": "f_r at the lowest Re(Z_in) peak (the paper's definition)",
+          "unit": "GHz",
+          "reference": 4.24,
+          "reference_kind": "measured",
+          "noburf": 4.1781249386855,
+          "difference_percent": -1.459317483832543
+        },
+        {
+          "quantity": "f at the S11 minimum",
+          "unit": "GHz",
+          "reference": 4.24,
+          "reference_kind": "measured",
+          "noburf": 4.395860775232412,
+          "note": "S11 minimum -15.2 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 3.6759616800097206
+        }
+      ]
+    },
+    {
+      "name": "sheen1990-patch",
+      "source": "D. M. Sheen, S. M. Ali, M. D. Abouzahra, J. A. Kong, IEEE Trans. MTT 38(7), 1990, pp. 849-857, rectangular patch return loss (measured and FDTD)",
+      "status": "run",
+      "solves": [
+        {
+          "project": "sheen1990-patch",
+          "grid": [
+            106,
+            129,
+            47
+          ],
+          "cells": 642678,
+          "dx_mm": 0.2647,
+          "steps": 6000,
+          "stopped_on_energy": true,
+          "energy_decay_db": 51.01294657046018,
+          "solve_s": 205,
+          "f_s11_min_ghz": 7.321920394275074,
+          "s11_min_db": -13.33568076847103,
+          "f_re_z_peak_ghz": 4.6022640275804125,
+          "re_z_peak_ohm": 4072.306814973892,
+          "warnings": [
+            "layer \"core\": 0.794 mm snapped to 3 cells (0.7941 mm)",
+            "port \"feed\" snapped from (-2.905, -16) mm to the grid node at (-2.7898999999999994, -16) mm"
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "quantity": "f at the S11 minimum (first resonance)",
+          "unit": "GHz",
+          "reference": 7.5,
+          "reference_kind": "read from a plot",
+          "noburf": 7.321920394275074,
+          "note": "NobuRF S11 minimum -13.3 dB. Reference is the approximate dip frequency of Sheen's measured and FDTD return-loss curves; not digitised",
+          "difference_percent": -2.3743947429990087
+        }
+      ]
+    },
+    {
+      "name": "pozar-ex3.7-z0",
+      "source": "D. M. Pozar, Microwave Engineering, 4th ed., 2012, Example 3.7 (pp. 149-150), with Hammerstad-Jensen 1980 and Kirschning-Jansen 1982",
+      "status": "run",
+      "solves": [
+        {
+          "project": "pozar-ex3.7-z0-lossy-line",
+          "grid": [
+            73,
+            268,
+            45
+          ],
+          "cells": 880380,
+          "dx_mm": 0.1,
+          "steps": 3300,
+          "stopped_on_energy": true,
+          "energy_decay_db": 43.742627153521525,
+          "solve_s": 169,
+          "f_s11_min_ghz": 7.051671098638683,
+          "s11_min_db": -13.498151512642623,
+          "f_re_z_peak_ghz": 13.83440580866776,
+          "re_z_peak_ohm": 48.05815826906275,
+          "warnings": [
+            "port \"feed\" snapped from (0, 0) mm to the grid node at (0.050000000000000266, 0) mm"
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "quantity": "Re(Z0), mean over 8-12 GHz, lossy line (tan d 0.3 at 10 GHz)",
+          "unit": "ohm",
+          "reference": 46.67488010364548,
+          "reference_kind": "closed-form",
+          "noburf": 46.27686888149972,
+          "note": "Hammerstad-Jensen at W/h = 1, dispersion by Kirschning-Jansen, loss by Pozar eq. 3.198. Lossless H-J Z0 at this width: 49.05 ohm (Pozar's 50 ohm width is 0.483 mm)",
+          "difference_percent": -0.8527311077434743
+        }
+      ]
+    },
+    {
+      "name": "pozar-ex3.7-eeff",
+      "source": "D. M. Pozar, Microwave Engineering, 4th ed., 2012, Example 3.7 (pp. 149-150), with Hammerstad-Jensen 1980 and Kirschning-Jansen 1982",
+      "status": "run",
+      "solves": [
+        {
+          "project": "pozar-ex3.7-eeff-line-a",
+          "grid": [
+            73,
+            86,
+            45
+          ],
+          "cells": 282510,
+          "dx_mm": 0.1,
+          "steps": 3600,
+          "stopped_on_energy": true,
+          "energy_decay_db": 70.88903545995477,
+          "solve_s": 53,
+          "f_s11_min_ghz": 11.087430318009254,
+          "s11_min_db": -2.2412041114578285,
+          "f_re_z_peak_ghz": 9.142327864780922,
+          "re_z_peak_ohm": 554.4254031862257,
+          "warnings": [
+            "port \"feed\" snapped from (0, 0) mm to the grid node at (-0.05, 0) mm"
+          ]
+        },
+        {
+          "project": "pozar-ex3.7-eeff-line-b",
+          "grid": [
+            73,
+            144,
+            45
+          ],
+          "cells": 473040,
+          "dx_mm": 0.1,
+          "steps": 5700,
+          "stopped_on_energy": true,
+          "energy_decay_db": 70.1174795401553,
+          "solve_s": 125,
+          "f_s11_min_ghz": 10.406923635301721,
+          "s11_min_db": -3.9548706254748645,
+          "f_re_z_peak_ghz": 9.447063486784188,
+          "re_z_peak_ohm": 293.4562887729309,
+          "warnings": [
+            "port \"feed\" snapped from (0, 0) mm to the grid node at (-0.05, 0) mm"
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "quantity": "eps_eff at 9.29 GHz, two-resonator method",
+          "unit": "",
+          "reference": 6.880014846539618,
+          "reference_kind": "closed-form",
+          "noburf": 6.993363379929734,
+          "note": "Resonances 9.142 GHz (n = 1, 5.8 mm) and 9.447 GHz (n = 2, 11.6 mm). Static H-J eps_eff at W/h = 1: 6.642; Pozar's quasi-static value at W = 0.483 mm: 6.665",
+          "difference_percent": 1.647504197569083
+        }
+      ]
+    }
+  ],
+  "not_built": [
+    {
+      "name": "half-wave-dipole",
+      "source": "Balanis, Antenna Theory, eq. 4-93: Z_in = 73 + j42.5 ohm for an infinitely thin lambda/2 dipole",
+      "needs": "a thin-wire or horizontal gap port in free space (ports are vertical columns between copper layers)"
+    },
+    {
+      "name": "quarter-wave-transformer",
+      "source": "Pozar, Microwave Engineering, 4th ed., section 2.5",
+      "needs": "a two-port project file"
+    },
+    {
+      "name": "microstrip-conductor-loss",
+      "source": "D. M. Pozar, Microwave Engineering, 4th ed., 2012, Example 3.7 (pp. 149-150), with Hammerstad-Jensen 1980 and Kirschning-Jansen 1982",
+      "needs": "a project file with copper strips (the copper material exists)"
+    }
+  ]
+}

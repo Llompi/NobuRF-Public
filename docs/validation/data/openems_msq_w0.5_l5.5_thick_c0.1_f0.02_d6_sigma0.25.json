@@ -1,0 +1,21 @@
+{
+ "case": "q",
+ "strip_mm": 0.5,
+ "length_mm": 5.5,
+ "strip_model": "thick",
+ "cell_mm": 0.1,
+ "fine_mm": 0.02,
+ "dielectric_cells": 6,
+ "sigma_scale": 0.25,
+ "box_width_mm": 5.7,
+ "box_height_mm": 3.0,
+ "copper_s_per_m": 58000000.0,
+ "thickness_m": 3.5e-05,
+ "f0_ghz": 10.03345904752061,
+ "q": 369.59099690060157,
+ "windows": 7,
+ "cells": 87535,
+ "probe_samples": 995,
+ "sample_s": 1.1031202390442656e-11,
+ "wall_s": 481.8
+}

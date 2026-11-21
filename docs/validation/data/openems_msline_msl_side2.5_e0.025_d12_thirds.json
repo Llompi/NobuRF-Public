@@ -1,0 +1,15 @@
+{
+ "case": "z0",
+ "port": "msl",
+ "side_mm": 2.5,
+ "edge_mm": 0.025,
+ "dielectric_cells": 12,
+ "edges": "thirds",
+ "tan_delta": 0.3,
+ "cells": 652960,
+ "wall_s": 338.3,
+ "re_z_mean_8_12_ohm": 48.767,
+ "im_z_mean_8_12_ohm": 6.434,
+ "re_z_at_10_ohm": 48.823,
+ "eps_eff_at_10": 6.8758
+}

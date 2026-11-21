@@ -1,0 +1,141 @@
+{
+  "project": "balanis-4.7-quarter-wave-monopole",
+  "f0_ghz": 2.725,
+  "s11_min_db": -16.38230069570421,
+  "zin": [
+    {
+      "f_ghz": 3,
+      "re_ohm": 57.951925935314385,
+      "im_ohm": 32.232457342939554
+    }
+  ],
+  "steps": 14200,
+  "energy_decay_db": 40.12912176979495,
+  "stopped_on_energy": true,
+  "solve_ms": 775367,
+  "ports": [
+    {
+      "id": "feed",
+      "z0_ohm": 50,
+      "node": {
+        "i": 92,
+        "j": 92
+      },
+      "excited": true
+    }
+  ],
+  "self_check": {
+    "mesh_convergence": {
+      "mode": "off",
+      "unavailable": "off"
+    },
+    "checks": [
+      {
+        "name": "passivity",
+        "passed": true,
+        "marginal": false,
+        "worst": 0.809986,
+        "at_ghz": 2,
+        "limit": 1.02,
+        "detail": "largest singular value of S 0.8100 at 2.000 GHz (warns above 1.005, fails above 1.02)"
+      },
+      {
+        "name": "energy_decay",
+        "passed": true,
+        "marginal": false,
+        "worst": 40.1291,
+        "at_ghz": null,
+        "limit": 40,
+        "detail": "least energy decay over 1 run(s): 40.1 dB (requested 40 dB)"
+      }
+    ],
+    "validated_envelope": [
+      {
+        "parameter": "substrate layers",
+        "value": "0",
+        "validated": "at most 1",
+        "inside": true,
+        "evidence": "every measured benchmark has one substrate: docs/validation.md section 7"
+      },
+      {
+        "parameter": "materials",
+        "value": "constant eps_r, mu_r 1",
+        "validated": "constant eps_r, mu_r 1",
+        "inside": true,
+        "evidence": "frequency-dependent and magnetic materials match the closed-form slab reflection and transmission coefficients within 6e-3, most within 2e-3 (docs/validation.md section 2.4), but no measured board or ferrite part has checked them yet"
+      },
+      {
+        "parameter": "band (GHz)",
+        "value": "2 to 4",
+        "validated": "2 to 8",
+        "inside": true,
+        "evidence": "the measured resonances that agree lie between 2.31 GHz (Chang 1986) and 7.5 GHz (Sheen 1990 patch): docs/validation.md section 7"
+      },
+      {
+        "parameter": "ports",
+        "value": "1 (coax_probe)",
+        "validated": "1 lumped",
+        "inside": false,
+        "evidence": "the measured benchmarks that agree are one-port patches with a lumped feed; the Sheen 1990 four-port branch-line coupler reads 7 to 9 % low, and the SMA edge launch and coax probe are checked against openEMS only (docs/validation.md sections 3.2, 7)"
+      },
+      {
+        "parameter": "copper model",
+        "value": "perfect conductor",
+        "validated": "perfect conductor",
+        "inside": true,
+        "evidence": "copper loss matches the Pozar 6.3 cavity wall Q within 0.3 %, but has no measured strip-loss benchmark yet (docs/validation.md sections 7.2, 7.3)"
+      },
+      {
+        "parameter": "copper edges",
+        "value": "axis-aligned",
+        "validated": "axis-aligned",
+        "inside": true,
+        "evidence": "every benchmark has axis-aligned copper; slanted or curved edges are staircased on the grid, which the mesh band measures but no benchmark has checked"
+      }
+    ]
+  },
+  "provenance": {
+    "noburf_project": 1,
+    "project_sha256": "0e43cc23e1aac0ed382890d154d910bef8735651b152ccad4873fdf317f5008f",
+    "mesh": {
+      "nx": 185,
+      "ny": 185,
+      "nz": 83,
+      "dx_mm": 0.125,
+      "max_cell_mm": 4.911970480155816,
+      "graded": true,
+      "courant": 0.5715767664977295,
+      "pml_cells": {
+        "xLow": 8,
+        "xHigh": 8,
+        "yLow": 8,
+        "yHigh": 8,
+        "zLow": 8,
+        "zHigh": 8
+      },
+      "signature": "537da12b8e24f4d8"
+    },
+    "excitation": {
+      "fMinGHz": 2,
+      "fMaxGHz": 4,
+      "nFreq": 81,
+      "z0": 50
+    },
+    "excited_ports": [
+      "feed"
+    ],
+    "components": [],
+    "run_control": {
+      "maxSteps": 80000,
+      "stopAtEnergyDecayDb": 40,
+      "energyCheckEverySteps": 100
+    },
+    "solver": "noburf 0.1.0 (WGSL on mesa software llvmpipe-llvm-20-1-2-256-bits- llvmpipe: Mesa 26.0.8-1ubuntu0.3 (LLVM 20.1.2), coax feeds (line ohm on this mesh: \"feed\" 46.2))",
+    "git_commit": "08585372c580ab9336fcd583bba4c7989403a99d",
+    "tracked_files_modified": true,
+    "warnings": [
+      "mesh: smallest cell 0.125 mm is below edge_cell (0.25 mm) and sets the time step; look for copper edges, the port or layer interfaces closer together than edge_cell. Copper edge lines sit about a third of edge_cell inside the drawn edge, so gaps between lines are rarely whole cells and the grading may shrink cells near them",
+      "outside the validated range: ports is 1 (coax_probe) (validated: 1 lumped), so the model is unproven against measurement here. the measured benchmarks that agree are one-port patches with a lumped feed; the Sheen 1990 four-port branch-line coupler reads 7 to 9 % low, and the SMA edge launch and coax probe are checked against openEMS only (docs/validation.md sections 3.2, 7)"
+    ]
+  }
+}

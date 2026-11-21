@@ -1,0 +1,392 @@
+{
+  "project": "pozar-7.5-branch-line-r2",
+  "ports": [
+    {
+      "id": "p1",
+      "z0_ohm": 50,
+      "node": {
+        "i": 27,
+        "j": 88
+      },
+      "excited": true
+    },
+    {
+      "id": "p2",
+      "z0_ohm": 50,
+      "node": {
+        "i": 108,
+        "j": 88
+      },
+      "excited": true
+    },
+    {
+      "id": "p3",
+      "z0_ohm": 50,
+      "node": {
+        "i": 108,
+        "j": 44
+      },
+      "excited": true
+    },
+    {
+      "id": "p4",
+      "z0_ohm": 50,
+      "node": {
+        "i": 27,
+        "j": 44
+      },
+      "excited": true
+    }
+  ],
+  "s_parameters": {
+    "file": "sparams.s4p",
+    "method": "full",
+    "max_passive_incident_ratio": 0.00009511479243768441,
+    "summary": [
+      {
+        "s": "S11",
+        "to": "p1",
+        "from": "p1",
+        "min_db": -24.23019588940981,
+        "min_at_ghz": 3.1,
+        "max_db": -3.7175990742115768,
+        "max_at_ghz": 1.8
+      },
+      {
+        "s": "S21",
+        "to": "p2",
+        "from": "p1",
+        "min_db": -8.989082776611179,
+        "min_at_ghz": 2.05,
+        "max_db": -3.00819786823679,
+        "max_at_ghz": 3.2
+      },
+      {
+        "s": "S31",
+        "to": "p3",
+        "from": "p1",
+        "min_db": -6.158819482999499,
+        "min_at_ghz": 5.85,
+        "max_db": -2.8024157784144252,
+        "max_at_ghz": 2.85
+      },
+      {
+        "s": "S41",
+        "to": "p4",
+        "from": "p1",
+        "min_db": -24.62188961880876,
+        "min_at_ghz": 3.1,
+        "max_db": -6.067343738362753,
+        "max_at_ghz": 0.25
+      },
+      {
+        "s": "S12",
+        "to": "p1",
+        "from": "p2",
+        "min_db": -8.989082975795032,
+        "min_at_ghz": 2.05,
+        "max_db": -3.0081978770663427,
+        "max_at_ghz": 3.2
+      },
+      {
+        "s": "S22",
+        "to": "p2",
+        "from": "p2",
+        "min_db": -24.230197262529213,
+        "min_at_ghz": 3.1,
+        "max_db": -3.7175993916304932,
+        "max_at_ghz": 1.8
+      },
+      {
+        "s": "S32",
+        "to": "p3",
+        "from": "p2",
+        "min_db": -24.621893174184354,
+        "min_at_ghz": 3.1,
+        "max_db": -6.067344082580829,
+        "max_at_ghz": 0.25
+      },
+      {
+        "s": "S42",
+        "to": "p4",
+        "from": "p2",
+        "min_db": -6.158819391968349,
+        "min_at_ghz": 5.85,
+        "max_db": -2.802415785590761,
+        "max_at_ghz": 2.85
+      },
+      {
+        "s": "S13",
+        "to": "p1",
+        "from": "p3",
+        "min_db": -6.158819270007873,
+        "min_at_ghz": 5.85,
+        "max_db": -2.8024155458740028,
+        "max_at_ghz": 2.85
+      },
+      {
+        "s": "S23",
+        "to": "p2",
+        "from": "p3",
+        "min_db": -24.621894502849237,
+        "min_at_ghz": 3.1,
+        "max_db": -6.067343323163669,
+        "max_at_ghz": 0.25
+      },
+      {
+        "s": "S33",
+        "to": "p3",
+        "from": "p3",
+        "min_db": -24.230232741026803,
+        "min_at_ghz": 3.1,
+        "max_db": -3.7176001312962943,
+        "max_at_ghz": 1.8
+      },
+      {
+        "s": "S43",
+        "to": "p4",
+        "from": "p3",
+        "min_db": -8.989089648637004,
+        "min_at_ghz": 2.05,
+        "max_db": -3.008196728287571,
+        "max_at_ghz": 3.2
+      },
+      {
+        "s": "S14",
+        "to": "p1",
+        "from": "p4",
+        "min_db": -24.621890310388906,
+        "min_at_ghz": 3.1,
+        "max_db": -6.0673446649346,
+        "max_at_ghz": 0.25
+      },
+      {
+        "s": "S24",
+        "to": "p2",
+        "from": "p4",
+        "min_db": -6.158819350899458,
+        "min_at_ghz": 5.85,
+        "max_db": -2.8024157064891817,
+        "max_at_ghz": 2.85
+      },
+      {
+        "s": "S34",
+        "to": "p3",
+        "from": "p4",
+        "min_db": -8.989089186956265,
+        "min_at_ghz": 2.05,
+        "max_db": -3.008196789988402,
+        "max_at_ghz": 3.2
+      },
+      {
+        "s": "S44",
+        "to": "p4",
+        "from": "p4",
+        "min_db": -24.230226934350245,
+        "min_at_ghz": 3.1,
+        "max_db": -3.7175993558609735,
+        "max_at_ghz": 1.8
+      }
+    ]
+  },
+  "runs": [
+    {
+      "excited_port": "p1",
+      "zin": [
+        {
+          "f_ghz": 3,
+          "re_ohm": 61.40783673956569,
+          "im_ohm": -2.7463750467970955
+        }
+      ],
+      "steps": 60000,
+      "energy_decay_db": 40.16557280686875,
+      "stopped_on_energy": false
+    },
+    {
+      "excited_port": "p2",
+      "zin": [
+        {
+          "f_ghz": 3,
+          "re_ohm": 61.40781371425495,
+          "im_ohm": -2.7463580268808867
+        }
+      ],
+      "steps": 60000,
+      "energy_decay_db": 40.16561216591762,
+      "stopped_on_energy": false
+    },
+    {
+      "excited_port": "p3",
+      "zin": [
+        {
+          "f_ghz": 3,
+          "re_ohm": 61.40778279764103,
+          "im_ohm": -2.7463703327027407
+        }
+      ],
+      "steps": 60000,
+      "energy_decay_db": 40.165568234419936,
+      "stopped_on_energy": false
+    },
+    {
+      "excited_port": "p4",
+      "zin": [
+        {
+          "f_ghz": 3,
+          "re_ohm": 61.407808957242935,
+          "im_ohm": -2.7463866667676053
+        }
+      ],
+      "steps": 60000,
+      "energy_decay_db": 40.165530398293754,
+      "stopped_on_energy": false
+    }
+  ],
+  "solve_ms": 4650924,
+  "self_check": {
+    "mesh_convergence": {
+      "mode": "off",
+      "unavailable": "off"
+    },
+    "checks": [
+      {
+        "name": "passivity",
+        "passed": true,
+        "marginal": false,
+        "worst": 1.00001,
+        "at_ghz": 0.3,
+        "limit": 1.02,
+        "detail": "largest singular value of S 1.0000 at 0.300 GHz (warns above 1.005, fails above 1.02)"
+      },
+      {
+        "name": "reciprocity",
+        "passed": true,
+        "marginal": false,
+        "worst": 1.29853e-7,
+        "at_ghz": 0.25,
+        "limit": 0.01,
+        "detail": "largest |S_ij - S_ji| 0.0000 (S12 vs S21 at 0.250 GHz) (warns above 0.005, fails above 0.01)"
+      },
+      {
+        "name": "energy_decay",
+        "passed": false,
+        "marginal": true,
+        "worst": 40.1655,
+        "at_ghz": null,
+        "limit": 50,
+        "detail": "least energy decay over 4 run(s): 40.2 dB (requested 50 dB)"
+      }
+    ],
+    "validated_envelope": [
+      {
+        "parameter": "substrate layers",
+        "value": "1",
+        "validated": "at most 1",
+        "inside": true,
+        "evidence": "every measured benchmark has one substrate: docs/validation.md section 7"
+      },
+      {
+        "parameter": "eps_r of \"core\"",
+        "value": "3.55",
+        "validated": "2.2 to 2.33",
+        "inside": false,
+        "evidence": "measured benchmarks that agree: eps_r 2.2 (Sheen 1990 patch, -1.0 %) and 2.33 (Chang 1986 patches, -1.2 to +1.4 %). The alumina line (9.9) reads eps_eff 1.1 to 1.7 % high, so it is not included: docs/validation.md section 7"
+      },
+      {
+        "parameter": "thickness of \"core\" in wavelengths at 6.5 GHz",
+        "value": "0.0332",
+        "validated": "up to 0.1",
+        "inside": true,
+        "evidence": "Chang 1986 measured patches: within 2.4 % up to h/lambda_d 0.11 (one row -3.2 %); above it NobuRF reads high, +5 % at 0.125 rising to +15 % at 0.23 with a lumped feed (docs/validation.md section 7.4)"
+      },
+      {
+        "parameter": "materials",
+        "value": "constant eps_r, mu_r 1",
+        "validated": "constant eps_r, mu_r 1",
+        "inside": true,
+        "evidence": "frequency-dependent and magnetic materials match the closed-form slab reflection and transmission coefficients within 6e-3, most within 2e-3 (docs/validation.md section 2.4), but no measured board or ferrite part has checked them yet"
+      },
+      {
+        "parameter": "band (GHz)",
+        "value": "0.25 to 6.5",
+        "validated": "2 to 8",
+        "inside": false,
+        "evidence": "the measured resonances that agree lie between 2.31 GHz (Chang 1986) and 7.5 GHz (Sheen 1990 patch): docs/validation.md section 7"
+      },
+      {
+        "parameter": "ports",
+        "value": "4 (lumped)",
+        "validated": "1 lumped",
+        "inside": false,
+        "evidence": "the measured benchmarks that agree are one-port patches with a lumped feed; the Sheen 1990 four-port branch-line coupler reads 7 to 9 % low, and the SMA edge launch and coax probe are checked against openEMS only (docs/validation.md sections 3.2, 7)"
+      },
+      {
+        "parameter": "copper model",
+        "value": "perfect conductor",
+        "validated": "perfect conductor",
+        "inside": true,
+        "evidence": "copper loss matches the Pozar 6.3 cavity wall Q within 0.3 %, but has no measured strip-loss benchmark yet (docs/validation.md sections 7.2, 7.3)"
+      },
+      {
+        "parameter": "copper edges",
+        "value": "axis-aligned",
+        "validated": "axis-aligned",
+        "inside": true,
+        "evidence": "every benchmark has axis-aligned copper; slanted or curved edges are staircased on the grid, which the mesh band measures but no benchmark has checked"
+      }
+    ]
+  },
+  "provenance": {
+    "noburf_project": 1,
+    "project_sha256": "b097180a556d0a8a4600c4748fd8a0e76625fc23a7942ac684baba5ae528c307",
+    "mesh": {
+      "nx": 136,
+      "ny": 133,
+      "nz": 51,
+      "dx_mm": 0.09033333333333327,
+      "max_cell_mm": 0.9989234565853602,
+      "graded": true,
+      "courant": 0.5715767664977295,
+      "pml_cells": {
+        "xLow": 8,
+        "xHigh": 8,
+        "yLow": 8,
+        "yHigh": 8,
+        "zLow": 8,
+        "zHigh": 8
+      },
+      "signature": "b292019342316105"
+    },
+    "excitation": {
+      "fMinGHz": 0.25,
+      "fMaxGHz": 6.5,
+      "nFreq": 126,
+      "z0": 50
+    },
+    "excited_ports": [
+      "p1",
+      "p2",
+      "p3",
+      "p4"
+    ],
+    "components": [],
+    "run_control": {
+      "maxSteps": 60000,
+      "stopAtEnergyDecayDb": 50,
+      "energyCheckEverySteps": 100
+    },
+    "solver": "noburf 0.1.0 (WGSL on mesa software llvmpipe-llvm-20-1-2-256-bits- llvmpipe: Mesa 26.0.8-1ubuntu0.3 (LLVM 20.1.2))",
+    "git_commit": "08585372c580ab9336fcd583bba4c7989403a99d",
+    "tracked_files_modified": true,
+    "warnings": [
+      "port \"p1\" run: energy fell only 40.2 dB of the requested 50 dB within 60000 steps; results are approximate",
+      "port \"p2\" run: energy fell only 40.2 dB of the requested 50 dB within 60000 steps; results are approximate",
+      "port \"p3\" run: energy fell only 40.2 dB of the requested 50 dB within 60000 steps; results are approximate",
+      "port \"p4\" run: energy fell only 40.2 dB of the requested 50 dB within 60000 steps; results are approximate",
+      "outside the validated range: eps_r of \"core\" is 3.55 (validated: 2.2 to 2.33), so the model is unproven against measurement here. measured benchmarks that agree: eps_r 2.2 (Sheen 1990 patch, -1.0 %) and 2.33 (Chang 1986 patches, -1.2 to +1.4 %). The alumina line (9.9) reads eps_eff 1.1 to 1.7 % high, so it is not included: docs/validation.md section 7",
+      "outside the validated range: band (GHz) is 0.25 to 6.5 (validated: 2 to 8), so the model is unproven against measurement here. the measured resonances that agree lie between 2.31 GHz (Chang 1986) and 7.5 GHz (Sheen 1990 patch): docs/validation.md section 7",
+      "outside the validated range: ports is 4 (lumped) (validated: 1 lumped), so the model is unproven against measurement here. the measured benchmarks that agree are one-port patches with a lumped feed; the Sheen 1990 four-port branch-line coupler reads 7 to 9 % low, and the SMA edge launch and coax probe are checked against openEMS only (docs/validation.md sections 3.2, 7)"
+    ]
+  }
+}

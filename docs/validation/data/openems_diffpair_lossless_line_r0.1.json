@@ -1,0 +1,8 @@
+{
+ "material": "lossless",
+ "port": "line",
+ "res_mm": 0.1,
+ "margin_mm": 10.0,
+ "cells": 396800,
+ "wall_s": 6222.3
+}

@@ -1,0 +1,852 @@
+{
+  "line": [
+    {
+      "case": "line",
+      "source": "Pozar Ex. 3.7",
+      "quantity": "eps_eff of the 50 ohm line (W = 3.91 mm)",
+      "book": 1.8712012933564859,
+      "nobu": 1.9016932738662624,
+      "unit": "",
+      "error_pct": 1.6295403716337347,
+      "verdict": "close",
+      "note": "Two-line method on 12 and 48 mm line pairs, mean over 1-4 GHz. Pozar eq. 3.195 is itself an approximation; Hammerstad-Jensen gives 1.881.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "line",
+      "source": "Pozar Ex. 3.7",
+      "quantity": "Phase of the 21.9 mm line at 2.5 GHz",
+      "book": 90,
+      "nobu": 90.77983008566655,
+      "unit": "deg",
+      "error_pct": 0.8664778729628293,
+      "verdict": "pass",
+      "note": "The book designs the length for exactly 90 degrees; beta measured at 2.5 GHz.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "line",
+      "source": "Pozar Ex. 3.7",
+      "quantity": "Characteristic impedance",
+      "book": 50,
+      "nobu": 50.11946446460975,
+      "unit": "ohm",
+      "error_pct": 0.23892892921949738,
+      "verdict": "pass",
+      "note": "Read from the de-embedded line in the low-frequency limit, where the lumped port parasitics vanish (fit Z0 + c f^2 below 1.5 GHz). Pozar eq. 3.196 at the drawn width gives 50.28 ohm.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "waveguide": [
+    {
+      "case": "waveguide",
+      "source": "Pozar \u00a73.3 (WR-90, TE10)",
+      "quantity": "TE10 cutoff frequency",
+      "book": 6.557140376202975,
+      "nobu": 6.927670448336216,
+      "unit": "GHz",
+      "error_pct": 5.650787551810856,
+      "verdict": "inconclusive",
+      "note": "Inconclusive: the two solves are not consistent (|eigenvalue| off 1 by up to 3.82; a lossless guide gives 1), and the energy fell only 23 dB in 150,000 steps. Probe ports reflect |S11| about 0.9 and the end PMLs absorb the guided mode poorly, so the field never rings down.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "waveguide",
+      "source": "Pozar \u00a73.3 (WR-90, TE10)",
+      "quantity": "Guide wavelength at 10 GHz",
+      "book": 39.7071192111121,
+      "nobu": 42.44562326868215,
+      "unit": "mm",
+      "error_pct": 6.896758344543086,
+      "verdict": "inconclusive",
+      "note": "Inconclusive: the two solves are not consistent (|eigenvalue| off 1 by up to 3.82; a lossless guide gives 1), and the energy fell only 23 dB in 150,000 steps. Probe ports reflect |S11| about 0.9 and the end PMLs absorb the guided mode poorly, so the field never rings down.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "stripline": [
+    {
+      "case": "stripline",
+      "source": "Pozar Ex. 3.5",
+      "quantity": "eps_eff (TEM: equals eps_r)",
+      "book": 2.2,
+      "nobu": 2.1754257348355166,
+      "unit": "",
+      "error_pct": -1.1170120529310716,
+      "verdict": "inconclusive",
+      "note": "Inconclusive: one solve's energy fell only 0 dB in 60,000 steps (the solver warns the result is approximate). The two ground sheets stop one cell short of the PEC box, so they are not tied together and the box rings. NobuRF needs vias (or ground sheets that reach the walls) to model stripline.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "stripline",
+      "source": "Pozar Ex. 3.5",
+      "quantity": "Characteristic impedance",
+      "book": 50,
+      "nobu": 53.19536266560741,
+      "unit": "ohm",
+      "error_pct": 6.390725331214823,
+      "verdict": "inconclusive",
+      "note": "Inconclusive: one solve's energy fell only 0 dB in 60,000 steps (the solver warns the result is approximate). The two ground sheets stop one cell short of the PEC box, so they are not tied together and the box rings. NobuRF needs vias (or ground sheets that reach the walls) to model stripline.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "dipole": [
+    {
+      "case": "dipole",
+      "source": "Balanis \u00a74.6, \u00a78.5",
+      "quantity": "R_in at L = lambda/2",
+      "book": 73.07901016237435,
+      "nobu": 89.27391026312351,
+      "unit": "ohm",
+      "error_pct": 22.160809327829835,
+      "verdict": "fail",
+      "note": "Strips 0.4 mm wide (equivalent radius w/4 = 0.1 mm, L/a = 500). Induced-EMF value; it assumes a sinusoidal current on an infinitely thin wire. Z changes fast with frequency here: NobuRF reads 71 ohm 6 % lower in frequency.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "dipole",
+      "source": "Balanis \u00a74.6, \u00a78.5",
+      "quantity": "X_in at L = lambda/2",
+      "book": 42.51511474502772,
+      "nobu": 49.31707114707847,
+      "unit": "ohm",
+      "error_pct": 15.998913428420812,
+      "verdict": "fail",
+      "note": "",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "dipole",
+      "source": "Balanis \u00a74.6, \u00a78.5",
+      "quantity": "Resonant length L/lambda (X = 0)",
+      "book": 0.475,
+      "nobu": 0.47325005099260303,
+      "unit": "",
+      "error_pct": -0.36841031734672525,
+      "verdict": "pass",
+      "note": "Balanis: 0.47 to 0.48 lambda depending on radius (midpoint taken). R_in at resonance 72.7 ohm.",
+      "absolute": false,
+      "extra": {
+        "r_at_resonance": 72.71147738531924
+      },
+      "post_hoc": false
+    },
+    {
+      "case": "dipole",
+      "source": "Balanis \u00a74.6, \u00a78.5",
+      "quantity": "Directivity",
+      "book": 2.1508803745492275,
+      "nobu": 2.23287,
+      "unit": "dBi",
+      "error_pct": 0.0819896254507726,
+      "verdict": "pass",
+      "note": "From the far-field transform.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "dipole",
+      "source": "Balanis \u00a74.6, \u00a78.5",
+      "quantity": "Half-power beamwidth (E-plane)",
+      "book": 78.07675029476533,
+      "nobu": 76.55477278434401,
+      "unit": "deg",
+      "error_pct": -1.9493351153517002,
+      "verdict": "pass",
+      "note": "In the plane holding the dipole (phi = 0 / 180), from the 5 degree pattern samples, interpolated.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "mesh-check": [
+    {
+      "case": "mesh-check",
+      "source": "Mesh refinement",
+      "quantity": "eps_eff, 50 ohm line (W = 1.82 mm): coarse vs refined",
+      "book": 2.813333909248601,
+      "nobu": 2.8156406058438854,
+      "unit": "",
+      "error_pct": 0.08199156835601393,
+      "verdict": "pass",
+      "note": "Book (Pozar eqs. 3.195/3.196 at the drawn width): 2.780 / 50. Refined mesh: 2.813.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "mesh-check",
+      "source": "Mesh refinement",
+      "quantity": "Z0, 50 ohm line (W = 1.82 mm): coarse vs refined",
+      "book": 49.83513267978058,
+      "nobu": 49.59922638441109,
+      "unit": "",
+      "error_pct": -0.47337346703844974,
+      "verdict": "pass",
+      "note": "Book (Pozar eqs. 3.195/3.196 at the drawn width): 2.780 / 50. Refined mesh: 49.835.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "mesh-check",
+      "source": "Mesh refinement",
+      "quantity": "eps_eff, 100 ohm line (W = 0.46 mm): coarse vs refined",
+      "book": 2.5616308438162614,
+      "nobu": 2.5580963690108147,
+      "unit": "",
+      "error_pct": -0.1379775237317599,
+      "verdict": "pass",
+      "note": "Book (Pozar eqs. 3.195/3.196 at the drawn width): 2.545 / 100. Refined mesh: 2.562.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "mesh-check",
+      "source": "Mesh refinement",
+      "quantity": "Z0, 100 ohm line (W = 0.46 mm): coarse vs refined",
+      "book": 99.09631166762675,
+      "nobu": 99.94922326532722,
+      "unit": "",
+      "error_pct": 0.860689548730301,
+      "verdict": "pass",
+      "note": "Book (Pozar eqs. 3.195/3.196 at the drawn width): 2.545 / 100. Refined mesh: 99.096.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "monopole": [
+    {
+      "case": "monopole",
+      "source": "Balanis \u00a74.7.4",
+      "quantity": "R_in at h = lambda/4",
+      "book": 36.53950508118717,
+      "nobu": 57.951925933494984,
+      "unit": "ohm",
+      "error_pct": 58.600741320199944,
+      "verdict": "fail",
+      "note": "Half the dipole value (image theory). A 3 lambda ground, not infinite, and a 1.27 mm pin.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "monopole",
+      "source": "Balanis \u00a74.7.4",
+      "quantity": "X_in at h = lambda/4",
+      "book": 21.257557372513865,
+      "nobu": 32.23245733649568,
+      "unit": "ohm",
+      "error_pct": 51.62822694846594,
+      "verdict": "fail",
+      "note": "",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "monopole",
+      "source": "Balanis \u00a74.7.4",
+      "quantity": "Resonant height h/lambda (X = 0)",
+      "book": 0.2375,
+      "nobu": 0.2210424233226146,
+      "unit": "",
+      "error_pct": -6.929505969425431,
+      "verdict": "fail",
+      "note": "Half the dipole's 0.47 to 0.48 lambda. R_in at resonance 34.6 ohm, half of the dipole's resonant value as image theory says. The SMA pin is thick (radius 0.006 lambda) and ends on a 2 x 2 mm pad, and the ground has the SMA's 4.1 mm bore cut at the base; the 0.2375 lambda reference is the thin-wire value, so this row grades the reference as much as NobuRF.",
+      "absolute": false,
+      "extra": {
+        "r_at_resonance": 34.6378241982234
+      },
+      "post_hoc": false
+    }
+  ],
+  "patch-directivity": [
+    {
+      "case": "patch-directivity",
+      "source": "Balanis Ex. 14.1, \u00a714.2.3",
+      "quantity": "Directivity, benchmark file's 31.8 x 29 mm ground",
+      "book": 7.07734644860391,
+      "nobu": 8.05866,
+      "unit": "dBi",
+      "error_pct": 0.9813135513960898,
+      "verdict": "close",
+      "note": "At NobuRF's resonance 9.43 GHz; model evaluated there. Model E/H beamwidths 96/78 deg; NobuRF 70/82 deg; front-to-back 19.0 dB.",
+      "absolute": true,
+      "extra": {
+        "e_bw": 69.847,
+        "h_bw": 82.2441
+      },
+      "post_hoc": false
+    },
+    {
+      "case": "patch-directivity",
+      "source": "Balanis Ex. 14.1, \u00a714.2.3",
+      "quantity": "Directivity, 120 mm ground",
+      "book": 7.07734644860391,
+      "nobu": 7.70395,
+      "unit": "dBi",
+      "error_pct": 0.6266035513960899,
+      "verdict": "close",
+      "note": "At NobuRF's resonance 9.43 GHz; model evaluated there. Model E/H beamwidths 96/78 deg; NobuRF 61/99 deg; front-to-back 18.2 dB.",
+      "absolute": true,
+      "extra": {
+        "e_bw": 60.8857,
+        "h_bw": 99.3304
+      },
+      "post_hoc": false
+    }
+  ],
+  "binomial-r2": [
+    {
+      "case": "binomial-r2",
+      "source": "Pozar Ex. 5.6",
+      "quantity": "Centre of the matched band (|Gamma| <= 0.1)",
+      "book": 3.0,
+      "nobu": 2.857987581537136,
+      "unit": "GHz",
+      "error_pct": -4.7337472820954725,
+      "verdict": "close",
+      "note": "Sections 54.5, 70.7, 91.7 ohm. Band 1.53 to 4.18 GHz.",
+      "absolute": false,
+      "extra": {
+        "gamma_at_f0": 0.0409820864896971
+      },
+      "post_hoc": false
+    },
+    {
+      "case": "binomial-r2",
+      "source": "Pozar Ex. 5.6",
+      "quantity": "Centre, midway between the outermost |Gamma| minima",
+      "book": 3.0,
+      "nobu": 3.4,
+      "unit": "GHz",
+      "error_pct": 13.33333333333333,
+      "verdict": "fail",
+      "note": "Minima at 3.40 and 3.40 GHz. Metric chosen after the first run; not counted. |Gamma| at 3.0 GHz: 0.041.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": true
+    },
+    {
+      "case": "binomial-r2",
+      "source": "Pozar Ex. 5.6",
+      "quantity": "Worst |Gamma| over the book's band (71 %, 1.93 to 4.07 GHz)",
+      "book": 0.05,
+      "nobu": 0.08489405347185552,
+      "unit": "",
+      "error_pct": 0.03489405347185552,
+      "verdict": "close",
+      "note": "Book: |Gamma| <= 0.05 across the band. |Gamma| at 3.0 GHz: 0.041.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "chebyshev-r2": [
+    {
+      "case": "chebyshev-r2",
+      "source": "Pozar Ex. 5.7",
+      "quantity": "Centre of the matched band (|Gamma| <= 0.1)",
+      "book": 3.0,
+      "nobu": 2.9482923773566347,
+      "unit": "GHz",
+      "error_pct": -1.7235874214455087,
+      "verdict": "pass",
+      "note": "Sections 57.5, 70.7, 87.0 ohm. Band 1.25 to 4.64 GHz.",
+      "absolute": false,
+      "extra": {
+        "gamma_at_f0": 0.01052591068599119
+      },
+      "post_hoc": false
+    },
+    {
+      "case": "chebyshev-r2",
+      "source": "Pozar Ex. 5.7",
+      "quantity": "Centre, midway between the outermost |Gamma| minima",
+      "book": 3.0,
+      "nobu": 2.95,
+      "unit": "GHz",
+      "error_pct": -1.6666666666666607,
+      "verdict": "pass",
+      "note": "Minima at 1.70 and 4.20 GHz. Metric chosen after the first run; not counted. |Gamma| at 3.0 GHz: 0.011.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": true
+    },
+    {
+      "case": "chebyshev-r2",
+      "source": "Pozar Ex. 5.7",
+      "quantity": "Worst |Gamma| over the book's band (101 %, 1.49 to 4.51 GHz)",
+      "book": 0.05,
+      "nobu": 0.0640322753726934,
+      "unit": "",
+      "error_pct": 0.0140322753726934,
+      "verdict": "close",
+      "note": "Book: |Gamma| <= 0.05 across the band. |Gamma| at 3.0 GHz: 0.011.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "branch-line-r2": [
+    {
+      "case": "branch-line-r2",
+      "source": "Pozar \u00a77.5",
+      "quantity": "Isolation (S41) null",
+      "book": 3.0,
+      "nobu": 3.23757595630755,
+      "unit": "GHz",
+      "error_pct": 7.919198543585004,
+      "verdict": "fail",
+      "note": "S41 at 3 GHz -17.3 dB.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "branch-line-r2",
+      "source": "Pozar \u00a77.5",
+      "quantity": "Input match (S11) null",
+      "book": 3.0,
+      "nobu": 3.2356669377019434,
+      "unit": "GHz",
+      "error_pct": 7.855564590064778,
+      "verdict": "fail",
+      "note": "S11 at 3 GHz -16.7 dB.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "branch-line-r2",
+      "source": "Pozar \u00a77.5",
+      "quantity": "Through |S21| at 3 GHz",
+      "book": -3.01,
+      "nobu": -3.5246122095373638,
+      "unit": "dB",
+      "error_pct": -0.514612209537364,
+      "verdict": "close",
+      "note": "",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "branch-line-r2",
+      "source": "Pozar \u00a77.5",
+      "quantity": "Coupled |S31| at 3 GHz",
+      "book": -3.01,
+      "nobu": -2.9046904245372267,
+      "unit": "dB",
+      "error_pct": 0.10530957546277309,
+      "verdict": "pass",
+      "note": "",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "branch-line-r2",
+      "source": "Pozar \u00a77.5",
+      "quantity": "Phase of S21 relative to S31 at 3 GHz",
+      "book": 90.0,
+      "nobu": 89.33647741714894,
+      "unit": "deg",
+      "error_pct": -0.6635225828510585,
+      "verdict": "pass",
+      "note": "Pozar: S21 = -j/sqrt2, S31 = -1/sqrt2.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "stepped-lpf-r2": [
+    {
+      "case": "stepped-lpf-r2",
+      "source": "Pozar Ex. 8.6",
+      "quantity": "-3 dB cutoff",
+      "book": 2.4193791256930925,
+      "nobu": 2.094383332795371,
+      "unit": "GHz",
+      "error_pct": -13.433024590745708,
+      "verdict": "fail",
+      "note": "Book design fc = 2.5 GHz; the ideal-line circuit of the same sections reaches -3 dB at 2.419 GHz. Lengths 2.09, 6.68, 7.80, 9.12, 5.71, 2.44 mm.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "stepped-lpf-r2",
+      "source": "Pozar Ex. 8.6",
+      "quantity": "Attenuation at 4 GHz (book: at least 20 dB)",
+      "book": 20.0,
+      "nobu": 27.768831674979538,
+      "unit": "dB",
+      "error_pct": 7.768831674979538,
+      "verdict": "pass",
+      "note": "The design requirement the example starts from. Ideal-line circuit 21.0 dB.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "stepped-lpf-r2",
+      "source": "Pozar Ex. 8.6",
+      "quantity": "-3 dB cutoff from the passband level",
+      "book": 2.4193791256930925,
+      "nobu": 2.150939290798528,
+      "unit": "GHz",
+      "error_pct": -11.095401793121741,
+      "verdict": "fail",
+      "note": "Removes the 0.5 dB dielectric loss the ideal reference lacks. Metric chosen after the first run; not counted.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": true
+    }
+  ],
+  "quarter-wave": [
+    {
+      "case": "quarter-wave",
+      "source": "Pozar Ex. 5.5",
+      "quantity": "Centre of the matched band (|Gamma| <= 0.4)",
+      "book": 3.0,
+      "nobu": 2.942219167703878,
+      "unit": "GHz",
+      "error_pct": -1.9260277432040656,
+      "verdict": "pass",
+      "note": "Section 22.36 ohm, 14.32 mm; the 10 ohm load sits at the end of the section, applied to the de-embedded 2-port. Band 1.98 to 3.90 GHz.",
+      "absolute": false,
+      "extra": {
+        "gamma_at_f0": 0.029113064513129235
+      },
+      "post_hoc": false
+    },
+    {
+      "case": "quarter-wave",
+      "source": "Pozar Ex. 5.5",
+      "quantity": "Centre, midway between the outermost |Gamma| minima",
+      "book": 3.0,
+      "nobu": 2.95,
+      "unit": "GHz",
+      "error_pct": -1.6666666666666607,
+      "verdict": "pass",
+      "note": "Minima at 2.95 and 2.95 GHz. Metric chosen after the first run; not counted. |Gamma| at 3.0 GHz: 0.029.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": true
+    },
+    {
+      "case": "quarter-wave",
+      "source": "Pozar Ex. 5.5",
+      "quantity": "Worst |Gamma| over the book's band (29 %, 2.56 to 3.44 GHz)",
+      "book": 0.2,
+      "nobu": 0.21059584025415176,
+      "unit": "",
+      "error_pct": 0.01059584025415175,
+      "verdict": "pass",
+      "note": "Book: |Gamma| <= 0.2 across the band. |Gamma| at 3.0 GHz: 0.029.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "binomial": [
+    {
+      "case": "binomial",
+      "source": "Pozar Ex. 5.6",
+      "quantity": "Centre of the matched band (|Gamma| <= 0.1)",
+      "book": 3.0,
+      "nobu": 2.8494596901544655,
+      "unit": "GHz",
+      "error_pct": -5.018010328184482,
+      "verdict": "fail",
+      "note": "Sections 54.5, 70.7, 91.7 ohm. Band 1.45 to 4.24 GHz.",
+      "absolute": false,
+      "extra": {
+        "gamma_at_f0": 0.022562153314253347
+      },
+      "post_hoc": false
+    },
+    {
+      "case": "binomial",
+      "source": "Pozar Ex. 5.6",
+      "quantity": "Centre, midway between the outermost |Gamma| minima",
+      "book": 3.0,
+      "nobu": 2.45,
+      "unit": "GHz",
+      "error_pct": -18.33333333333333,
+      "verdict": "fail",
+      "note": "Minima at 2.00 and 2.90 GHz. Metric chosen after the first run; not counted. |Gamma| at 3.0 GHz: 0.023.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": true
+    },
+    {
+      "case": "binomial",
+      "source": "Pozar Ex. 5.6",
+      "quantity": "Worst |Gamma| over the book's band (71 %, 1.93 to 4.07 GHz)",
+      "book": 0.05,
+      "nobu": 0.07788027108797432,
+      "unit": "",
+      "error_pct": 0.02788027108797432,
+      "verdict": "close",
+      "note": "Book: |Gamma| <= 0.05 across the band. |Gamma| at 3.0 GHz: 0.023.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "chebyshev": [
+    {
+      "case": "chebyshev",
+      "source": "Pozar Ex. 5.7",
+      "quantity": "Centre of the matched band (|Gamma| <= 0.1)",
+      "book": 3.0,
+      "nobu": 2.8909291242331867,
+      "unit": "GHz",
+      "error_pct": -3.6356958588937762,
+      "verdict": "close",
+      "note": "Sections 57.5, 70.7, 87.0 ohm. Band 1.19 to 4.59 GHz.",
+      "absolute": false,
+      "extra": {
+        "gamma_at_f0": 0.024211787363482857
+      },
+      "post_hoc": false
+    },
+    {
+      "case": "chebyshev",
+      "source": "Pozar Ex. 5.7",
+      "quantity": "Centre, midway between the outermost |Gamma| minima",
+      "book": 3.0,
+      "nobu": 2.875,
+      "unit": "GHz",
+      "error_pct": -4.166666666666667,
+      "verdict": "close",
+      "note": "Minima at 1.65 and 4.10 GHz. Metric chosen after the first run; not counted. |Gamma| at 3.0 GHz: 0.024.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": true
+    },
+    {
+      "case": "chebyshev",
+      "source": "Pozar Ex. 5.7",
+      "quantity": "Worst |Gamma| over the book's band (101 %, 1.49 to 4.51 GHz)",
+      "book": 0.05,
+      "nobu": 0.07991372387855263,
+      "unit": "",
+      "error_pct": 0.029913723878552623,
+      "verdict": "close",
+      "note": "Book: |Gamma| <= 0.05 across the band. |Gamma| at 3.0 GHz: 0.024.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "stub-tuner": [
+    {
+      "case": "stub-tuner",
+      "source": "Pozar Ex. 5.2",
+      "quantity": "Frequency of best match",
+      "book": 2.0,
+      "nobu": 2.0008003288874416,
+      "unit": "GHz",
+      "error_pct": 0.04001644437208185,
+      "verdict": "pass",
+      "note": "d = 23.32 mm, stub 13.94 mm. |Gamma| at 2 GHz 0.013 (book: 0); best 0.013.",
+      "absolute": false,
+      "extra": {
+        "gamma_at_f0": 0.01258463200840446
+      },
+      "post_hoc": false
+    },
+    {
+      "case": "stub-tuner",
+      "source": "Pozar Ex. 5.2",
+      "quantity": "|Gamma| at 2 GHz",
+      "book": 0.0,
+      "nobu": 0.01258463200840446,
+      "unit": "",
+      "error_pct": 0.01258463200840446,
+      "verdict": "pass",
+      "note": "Ideal circuit with the same lines gives |Gamma| < 0.2 from 1.89 to 2.09 GHz; NobuRF 1.90 to 2.09 GHz.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "stub-notch": [
+    {
+      "case": "stub-notch",
+      "source": "Pozar \u00a73.8, \u00a78.5",
+      "quantity": "S21 null of a lambda/4 open stub",
+      "book": 2.5,
+      "nobu": 2.4825615397150402,
+      "unit": "GHz",
+      "error_pct": -0.6975384113983907,
+      "verdict": "pass",
+      "note": "Stub 17.98 mm. The ideal stub ignores the open end; with Hammerstad's open-end extension (0.34 mm) the null is expected at 2.454 GHz, +1.2 % from NobuRF.",
+      "absolute": false,
+      "extra": {
+        "null_db": -31.44641458911005,
+        "corrected_ghz": 2.4540209749982425
+      },
+      "post_hoc": false
+    }
+  ],
+  "resonator": [
+    {
+      "case": "resonator",
+      "source": "Pozar Ex. 6.2",
+      "quantity": "Resonant frequency",
+      "book": 5.0,
+      "nobu": 4.55841322544523,
+      "unit": "GHz",
+      "error_pct": -8.831735491095394,
+      "verdict": "fail",
+      "note": "Line 22.42 mm, W 5.08 mm, 1.0 mm coupling gaps. With Hammerstad's open-end extension (0.77 mm per end) the resonance is expected at 4.677 GHz (-2.5 % from NobuRF); the gaps pull it a little lower still. Peak |S21| -11.7 dB.",
+      "absolute": false,
+      "extra": {
+        "corrected_ghz": 4.6770997740005065,
+        "steps": 38400
+      },
+      "post_hoc": false
+    }
+  ],
+  "stepped-lpf": [
+    {
+      "case": "stepped-lpf",
+      "source": "Pozar Ex. 8.6",
+      "quantity": "-3 dB cutoff",
+      "book": 2.4193791256930925,
+      "nobu": 2.1766233150450067,
+      "unit": "GHz",
+      "error_pct": -10.033806114556034,
+      "verdict": "fail",
+      "note": "Book design fc = 2.5 GHz; the ideal-line circuit of the same sections reaches -3 dB at 2.419 GHz. Lengths 2.09, 6.68, 7.80, 9.12, 5.71, 2.44 mm.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "stepped-lpf",
+      "source": "Pozar Ex. 8.6",
+      "quantity": "Attenuation at 4 GHz (book: at least 20 dB)",
+      "book": 20.0,
+      "nobu": 25.860077659841405,
+      "unit": "dB",
+      "error_pct": 5.860077659841405,
+      "verdict": "pass",
+      "note": "The design requirement the example starts from. Ideal-line circuit 21.0 dB.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "stepped-lpf",
+      "source": "Pozar Ex. 8.6",
+      "quantity": "-3 dB cutoff from the passband level",
+      "book": 2.4193791256930925,
+      "nobu": 2.237021964135263,
+      "unit": "GHz",
+      "error_pct": -7.537353679762307,
+      "verdict": "fail",
+      "note": "Removes the 0.5 dB dielectric loss the ideal reference lacks. Metric chosen after the first run; not counted.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": true
+    }
+  ],
+  "branch-line": [
+    {
+      "case": "branch-line",
+      "source": "Pozar \u00a77.5",
+      "quantity": "Isolation (S41) null",
+      "book": 3.0,
+      "nobu": 3.2356850423539094,
+      "unit": "GHz",
+      "error_pct": 7.8561680784636465,
+      "verdict": "fail",
+      "note": "S41 at 3 GHz -17.2 dB.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "branch-line",
+      "source": "Pozar \u00a77.5",
+      "quantity": "Input match (S11) null",
+      "book": 3.0,
+      "nobu": 3.233695439974483,
+      "unit": "GHz",
+      "error_pct": 7.789847999149434,
+      "verdict": "fail",
+      "note": "S11 at 3 GHz -16.6 dB.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "branch-line",
+      "source": "Pozar \u00a77.5",
+      "quantity": "Through |S21| at 3 GHz",
+      "book": -3.01,
+      "nobu": -3.541423004079837,
+      "unit": "dB",
+      "error_pct": -0.5314230040798371,
+      "verdict": "close",
+      "note": "",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "branch-line",
+      "source": "Pozar \u00a77.5",
+      "quantity": "Coupled |S31| at 3 GHz",
+      "book": -3.01,
+      "nobu": -2.8946790846595687,
+      "unit": "dB",
+      "error_pct": 0.1153209153404311,
+      "verdict": "pass",
+      "note": "",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "branch-line",
+      "source": "Pozar \u00a77.5",
+      "quantity": "Phase of S21 relative to S31 at 3 GHz",
+      "book": 90.0,
+      "nobu": 89.4489763439789,
+      "unit": "deg",
+      "error_pct": -0.5510236560211013,
+      "verdict": "pass",
+      "note": "Pozar: S21 = -j/sqrt2, S31 = -1/sqrt2.",
+      "absolute": true,
+      "extra": {},
+      "post_hoc": false
+    }
+  ]
+}

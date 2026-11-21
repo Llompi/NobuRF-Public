@@ -1,0 +1,97 @@
+{
+ "is_sample_data": true,
+ "lane_label": "Kimi K3.1 Pro on Cerebras",
+ "match_threshold_db": -15,
+ "events": [
+  {
+   "time_ms": 0,
+   "type": "start",
+   "s11_db_at_target": -2.4
+  },
+  {
+   "time_ms": 700,
+   "type": "model_turn_done",
+   "output_tokens": 450
+  },
+  {
+   "time_ms": 700,
+   "type": "edit",
+   "edit": "inset_depth_mm = 2.5",
+   "reason": "edge feed is about 200 ohm, move the feed in"
+  },
+  {
+   "time_ms": 1155,
+   "type": "solve_done",
+   "s11_db_at_target": -4.1
+  },
+  {
+   "time_ms": 1855,
+   "type": "model_turn_done",
+   "output_tokens": 450
+  },
+  {
+   "time_ms": 1855,
+   "type": "edit",
+   "edit": "inset_depth_mm = 3.5",
+   "reason": "still resistive, deepen the inset"
+  },
+  {
+   "time_ms": 2310,
+   "type": "solve_done",
+   "s11_db_at_target": -4.3
+  },
+  {
+   "time_ms": 3010,
+   "type": "model_turn_done",
+   "output_tokens": 450
+  },
+  {
+   "time_ms": 3010,
+   "type": "edit",
+   "edit": "patch_length_mm = 11.6",
+   "reason": "dip sits 250 MHz low, shorten the patch"
+  },
+  {
+   "time_ms": 3465,
+   "type": "solve_done",
+   "s11_db_at_target": -2.5
+  },
+  {
+   "time_ms": 4165,
+   "type": "model_turn_done",
+   "output_tokens": 450
+  },
+  {
+   "time_ms": 4165,
+   "type": "edit",
+   "edit": "inset_depth_mm = 3",
+   "reason": "re-centre the match after the length change"
+  },
+  {
+   "time_ms": 4620,
+   "type": "solve_done",
+   "s11_db_at_target": -4.1
+  },
+  {
+   "time_ms": 5320,
+   "type": "model_turn_done",
+   "output_tokens": 450
+  },
+  {
+   "time_ms": 5320,
+   "type": "edit",
+   "edit": "add slot \"trim\" 16 x 0.3 mm",
+   "reason": "fine-tune f0 with a 0.3 mm edge trim"
+  },
+  {
+   "time_ms": 5775,
+   "type": "solve_done",
+   "s11_db_at_target": -19.9
+  },
+  {
+   "time_ms": 6195,
+   "type": "done",
+   "s11_db_at_target": -19.9
+  }
+ ]
+}

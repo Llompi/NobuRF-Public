@@ -1,0 +1,482 @@
+[
+ {
+  "kind": "circle",
+  "mode": "conformal",
+  "cell": 0.75,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 74008,
+  "steps": 7700,
+  "stopped": true,
+  "conformalFaces": 84,
+  "fGHz": 6.568178314953829,
+  "reZ": 83.70362618726891,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 25.429888629
+ },
+ {
+  "kind": "circle",
+  "mode": "conformal",
+  "cell": 0.75,
+  "arg": [
+   0.21,
+   0.37
+  ],
+  "cells": 74008,
+  "steps": 7700,
+  "stopped": true,
+  "conformalFaces": 86,
+  "fGHz": 6.561710266520185,
+  "reZ": 74.69992809526886,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 25.134959144
+ },
+ {
+  "kind": "circle",
+  "mode": "staircase",
+  "cell": 0.75,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 74008,
+  "steps": 7000,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 6.4057869207898035,
+  "reZ": 85.93142425885893,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 23.18073454
+ },
+ {
+  "kind": "circle",
+  "mode": "staircase",
+  "cell": 0.75,
+  "arg": [
+   0.21,
+   0.37
+  ],
+  "cells": 74008,
+  "steps": 7100,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 6.414767241083909,
+  "reZ": 72.09309276668517,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 23.895250174999997
+ },
+ {
+  "kind": "circle",
+  "mode": "conformal",
+  "cell": 0.5,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 179200,
+  "steps": 16200,
+  "stopped": true,
+  "conformalFaces": 124,
+  "fGHz": 6.599242557833418,
+  "reZ": 86.9759669722654,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 115.91430466599999
+ },
+ {
+  "kind": "circle",
+  "mode": "conformal",
+  "cell": 0.5,
+  "arg": [
+   0.21,
+   0.37
+  ],
+  "cells": 179200,
+  "steps": 16200,
+  "stopped": true,
+  "conformalFaces": 128,
+  "fGHz": 6.606603889597336,
+  "reZ": 77.08685739287542,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 115.436336945
+ },
+ {
+  "kind": "circle",
+  "mode": "staircase",
+  "cell": 0.5,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 179200,
+  "steps": 14800,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 6.4928722035470345,
+  "reZ": 88.94204462399138,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 105.63341200100001
+ },
+ {
+  "kind": "circle",
+  "mode": "staircase",
+  "cell": 0.5,
+  "arg": [
+   0.21,
+   0.37
+  ],
+  "cells": 179200,
+  "steps": 14900,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 6.492449730396996,
+  "reZ": 79.96044471981936,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 105.53498147900001
+ },
+ {
+  "kind": "circle",
+  "mode": "conformal",
+  "cell": 0.375,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 353736,
+  "steps": 27500,
+  "stopped": true,
+  "conformalFaces": 172,
+  "fGHz": 6.624614809992217,
+  "reZ": 88.19792201998347,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 377.405743008
+ },
+ {
+  "kind": "circle",
+  "mode": "conformal",
+  "cell": 0.375,
+  "arg": [
+   0.21,
+   0.37
+  ],
+  "cells": 353736,
+  "steps": 27400,
+  "stopped": true,
+  "conformalFaces": 170,
+  "fGHz": 6.633481534329012,
+  "reZ": 78.58301220183135,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 373.66192520100003
+ },
+ {
+  "kind": "circle",
+  "mode": "staircase",
+  "cell": 0.375,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 353736,
+  "steps": 24400,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 6.560514801697352,
+  "reZ": 89.72823754263241,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 335.16256683800003
+ },
+ {
+  "kind": "circle",
+  "mode": "staircase",
+  "cell": 0.375,
+  "arg": [
+   0.21,
+   0.37
+  ],
+  "cells": 353736,
+  "steps": 24900,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 6.506808896547057,
+  "reZ": 80.03256493881035,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 343.222141216
+ },
+ {
+  "kind": "circle",
+  "mode": "conformal",
+  "cell": 0.25,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 974592,
+  "steps": 58300,
+  "stopped": true,
+  "conformalFaces": 252,
+  "fGHz": 6.644792868508457,
+  "reZ": 90.08398355555452,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 3682.4238869620003
+ },
+ {
+  "kind": "circle",
+  "mode": "conformal",
+  "cell": 0.25,
+  "arg": [
+   0.21,
+   0.37
+  ],
+  "cells": 974592,
+  "steps": 58300,
+  "stopped": true,
+  "conformalFaces": 256,
+  "fGHz": 6.649982351831124,
+  "reZ": 80.38358811084774,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 3694.782870352
+ },
+ {
+  "kind": "circle",
+  "mode": "staircase",
+  "cell": 0.25,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 974592,
+  "steps": 53600,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 6.584395808966103,
+  "reZ": 91.2657849711506,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 3508.919326555
+ },
+ {
+  "kind": "circle",
+  "mode": "staircase",
+  "cell": 0.25,
+  "arg": [
+   0.21,
+   0.37
+  ],
+  "cells": 974592,
+  "steps": 54300,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 6.578719060140258,
+  "reZ": 80.85236815521274,
+  "closedFormGHz": 6.726328505970179,
+  "solveSeconds": 3532.386910439
+ },
+ {
+  "kind": "rect",
+  "mode": "conformal",
+  "cell": 0.5,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 179200,
+  "steps": 7300,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 9.239353016802266,
+  "reZ": 81.50600676816218,
+  "solveSeconds": 51.689241611
+ },
+ {
+  "kind": "rect",
+  "mode": "conformal",
+  "cell": 0.5,
+  "arg": [
+   15,
+   0
+  ],
+  "cells": 179200,
+  "steps": 7400,
+  "stopped": true,
+  "conformalFaces": 100,
+  "fGHz": 9.403163338695224,
+  "reZ": 86.06725047475976,
+  "solveSeconds": 53.202603479000004
+ },
+ {
+  "kind": "rect",
+  "mode": "conformal",
+  "cell": 0.5,
+  "arg": [
+   30,
+   0
+  ],
+  "cells": 179200,
+  "steps": 8100,
+  "stopped": true,
+  "conformalFaces": 112,
+  "fGHz": 9.392751831192125,
+  "reZ": 82.89005513085895,
+  "solveSeconds": 57.735234999
+ },
+ {
+  "kind": "rect",
+  "mode": "conformal",
+  "cell": 0.5,
+  "arg": [
+   45,
+   0
+  ],
+  "cells": 179200,
+  "steps": 8200,
+  "stopped": true,
+  "conformalFaces": 116,
+  "fGHz": 9.3890940288909,
+  "reZ": 101.50214003556458,
+  "solveSeconds": 58.196215719
+ },
+ {
+  "kind": "rect",
+  "mode": "graded",
+  "cell": 0.5,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 273273,
+  "steps": 14200,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 9.374631713975788,
+  "reZ": 84.34449246069452,
+  "solveSeconds": 302.972491799
+ },
+ {
+  "kind": "rect",
+  "mode": "staircase",
+  "cell": 0.5,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 179200,
+  "steps": 6400,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 9.239627580727591,
+  "reZ": 81.50659804540587,
+  "solveSeconds": 46.142277097
+ },
+ {
+  "kind": "rect",
+  "mode": "staircase",
+  "cell": 0.5,
+  "arg": [
+   15,
+   0
+  ],
+  "cells": 179200,
+  "steps": 6500,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 9.086717822132774,
+  "reZ": 88.09131657911252,
+  "solveSeconds": 46.58763353
+ },
+ {
+  "kind": "rect",
+  "mode": "staircase",
+  "cell": 0.5,
+  "arg": [
+   30,
+   0
+  ],
+  "cells": 179200,
+  "steps": 7100,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 9.043137363167231,
+  "reZ": 84.85484462912677,
+  "solveSeconds": 50.574577672
+ },
+ {
+  "kind": "rect",
+  "mode": "staircase",
+  "cell": 0.5,
+  "arg": [
+   45,
+   0
+  ],
+  "cells": 179200,
+  "steps": 7200,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 9.032289019108008,
+  "reZ": 102.66941446022894,
+  "solveSeconds": 51.514668652999994
+ },
+ {
+  "kind": "rect",
+  "mode": "conformal",
+  "cell": 0.25,
+  "arg": [
+   30,
+   0
+  ],
+  "cells": 974592,
+  "steps": 25700,
+  "stopped": true,
+  "conformalFaces": 228,
+  "fGHz": 9.472900348611251,
+  "reZ": 90.32680314997437,
+  "solveSeconds": 1903.183228169
+ },
+ {
+  "kind": "rect",
+  "mode": "graded",
+  "cell": 0.25,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 1249300,
+  "steps": 44700,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 9.467840553686038,
+  "reZ": 86.10579845702188,
+  "solveSeconds": 3423.217713847
+ },
+ {
+  "kind": "rect",
+  "mode": "staircase",
+  "cell": 0.25,
+  "arg": [
+   0,
+   0
+  ],
+  "cells": 974592,
+  "steps": 21100,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 9.405748667338626,
+  "reZ": 85.00855158316766,
+  "solveSeconds": 1617.4686904209998
+ },
+ {
+  "kind": "rect",
+  "mode": "staircase",
+  "cell": 0.25,
+  "arg": [
+   30,
+   0
+  ],
+  "cells": 974592,
+  "steps": 22900,
+  "stopped": true,
+  "conformalFaces": 0,
+  "fGHz": 9.34225774691233,
+  "reZ": 91.31496830712055,
+  "solveSeconds": 1666.484643561
+ }
+]

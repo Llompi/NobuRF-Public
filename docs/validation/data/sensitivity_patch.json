@@ -1,0 +1,404 @@
+{
+  "source": "examples/benchmarks/graded/chang1986-45.5x30.5.json",
+  "solver": "CPU reference",
+  "wall_s": 817,
+  "solver_f0_mhz": 3006.2624727066877,
+  "cavity_model": {
+    "f_mhz": 3023.6588744603096,
+    "l_eff_mm": 33.765579427858334,
+    "df_dl_mhz_per_mm": -89.54855582832266,
+    "df_dl_at_solver_f0": -89.03334471513222,
+    "df_dw_mhz_per_mm": -1.8607215190868942
+  },
+  "six_point_line": {
+    "slope": -83.97929340163631,
+    "points": [
+      [
+        28.5,
+        3183.511425638531
+      ],
+      [
+        29.3,
+        3111.95983922302
+      ],
+      [
+        30.1,
+        3040.5852060081356
+      ],
+      [
+        30.9,
+        2973.96187704653
+      ],
+      [
+        31.7,
+        2909.653117365681
+      ],
+      [
+        32.5,
+        2847.9360814960924
+      ]
+    ]
+  },
+  "step_dependence": {
+    "f0_mhz": {
+      "default_step": -83.27916120200712,
+      "double_step": -84.57926799640376,
+      "grade": [
+        "clean",
+        "clean"
+      ],
+      "off_pct": 1.5371459521876212
+    },
+    "s11_target_db": {
+      "default_step": -4.471552793865184,
+      "double_step": -4.983896037713219,
+      "grade": [
+        "clean",
+        "sign only"
+      ],
+      "off_pct": 10.27997454142553
+    },
+    "zin_target_ohm": {
+      "default_step": -77.25049575176804,
+      "double_step": -58.64212647675638,
+      "grade": [
+        "clean",
+        "sign only"
+      ],
+      "off_pct": -31.732084753760333
+    },
+    "s11_min_db": {
+      "default_step": 8.887984647779312,
+      "double_step": 11.349126394669913,
+      "grade": [
+        "sign only",
+        "sign only"
+      ],
+      "off_pct": -21.68573739778305
+    }
+  },
+  "checks": [
+    {
+      "check": "df/dL vs cavity model at the solver f0",
+      "solver": -83.27916120200712,
+      "reference": -89.03334471513222,
+      "off_pct": 6.4629533255613065,
+      "pass": true
+    },
+    {
+      "check": "df/dL, default step vs twice it, both clean",
+      "solver": -83.27916120200712,
+      "reference": -84.57926799640376,
+      "off_pct": 1.5371459521876212,
+      "pass": true
+    },
+    {
+      "check": "df/dL vs six-point line over +-5 steps",
+      "solver": -83.27916120200712,
+      "reference": -83.97929340163631,
+      "off_pct": 0.8336962259026974,
+      "pass": true
+    },
+    {
+      "check": "|df/dW| < |df/dL| / 3, sign as the model",
+      "solver": -5.086410366374139,
+      "reference": -1.8607215190868942,
+      "off_pct": -173.35688410107582,
+      "pass": true
+    }
+  ],
+  "study_default_step": {
+    "fidelity": "search",
+    "rankBy": "f0_mhz",
+    "metrics": [
+      {
+        "key": "f0_mhz",
+        "label": "Resonance",
+        "unit": "MHz"
+      },
+      {
+        "key": "s11_target_db",
+        "label": "S11 at 2.89 GHz",
+        "unit": "dB"
+      },
+      {
+        "key": "zin_target_ohm",
+        "label": "|Z_in| at 2.89 GHz",
+        "unit": "ohm"
+      },
+      {
+        "key": "s11_min_db",
+        "label": "Dip depth",
+        "unit": "dB"
+      }
+    ],
+    "base": {
+      "fidelity": "search",
+      "point": {
+        "enabled": [],
+        "values": {
+          "patch_w": 45.5,
+          "patch_l": 30.5
+        }
+      },
+      "metrics": {
+        "f0_ghz": 3.0062624727066876,
+        "s11_min_db": -25.659604951837125,
+        "s11_at_target_db": -5.6546606573910045,
+        "bandwidth_mhz": 0,
+        "bandwidth_open": false,
+        "zin_target_ohm": 156.36081491867057
+      },
+      "score": 13.414108135690736,
+      "cells": 504000
+    },
+    "rows": [
+      {
+        "variable": {
+          "name": "patch_l",
+          "value": 30.5,
+          "minSet": true,
+          "maxSet": true,
+          "rangeSet": true,
+          "unit": "mm",
+          "minStep": 0.4,
+          "min": 24.4,
+          "max": 36.6
+        },
+        "h": 0.4,
+        "scheme": "central",
+        "slopes": {
+          "f0_mhz": {
+            "perUnit": -83.27916120200712,
+            "spread": 2.527672051612626,
+            "acrossRange": -1016.005766664487,
+            "grade": "clean",
+            "curved": false
+          },
+          "s11_target_db": {
+            "perUnit": -4.471552793865184,
+            "spread": 0.8894116081877366,
+            "acrossRange": -54.55294408515526,
+            "grade": "clean",
+            "curved": true
+          },
+          "zin_target_ohm": {
+            "perUnit": -77.25049575176804,
+            "spread": 18.626276487358737,
+            "acrossRange": -942.4560481715704,
+            "grade": "clean",
+            "curved": true
+          },
+          "s11_min_db": {
+            "perUnit": 8.887984647779312,
+            "spread": 2.286985767715608,
+            "acrossRange": 108.43341270290763,
+            "grade": "sign only",
+            "curved": true
+          }
+        },
+        "notes": [
+          "the mesh changed with the step (504,000, 504,000, 509,040 cells)"
+        ]
+      },
+      {
+        "variable": {
+          "name": "patch_w",
+          "value": 45.5,
+          "minSet": true,
+          "maxSet": true,
+          "rangeSet": true,
+          "unit": "mm",
+          "minStep": 0.4,
+          "min": 36.4,
+          "max": 54.6
+        },
+        "h": 0.4,
+        "scheme": "central",
+        "slopes": {
+          "f0_mhz": {
+            "perUnit": -5.086410366374139,
+            "spread": 0.6336984528877565,
+            "acrossRange": -92.57266866800934,
+            "grade": "clean",
+            "curved": true
+          },
+          "s11_target_db": {
+            "perUnit": -0.2364544056296669,
+            "spread": 0.0042066831047082864,
+            "acrossRange": -4.303470182459939,
+            "grade": "clean",
+            "curved": false
+          },
+          "zin_target_ohm": {
+            "perUnit": -6.154065572816201,
+            "spread": 0.017056627719931328,
+            "acrossRange": -112.00399342525488,
+            "grade": "clean",
+            "curved": false
+          },
+          "s11_min_db": {
+            "perUnit": -3.7652865405260716,
+            "spread": 0.3067789303606805,
+            "acrossRange": -68.52821503757451,
+            "grade": "clean",
+            "curved": true
+          }
+        },
+        "notes": [
+          "the mesh changed with the step (504,000, 504,000, 494,400 cells)"
+        ]
+      }
+    ],
+    "skipped": [],
+    "solves": 5,
+    "stepChecked": false
+  },
+  "study_double_step": {
+    "fidelity": "search",
+    "rankBy": "f0_mhz",
+    "metrics": [
+      {
+        "key": "f0_mhz",
+        "label": "Resonance",
+        "unit": "MHz"
+      },
+      {
+        "key": "s11_target_db",
+        "label": "S11 at 2.89 GHz",
+        "unit": "dB"
+      },
+      {
+        "key": "zin_target_ohm",
+        "label": "|Z_in| at 2.89 GHz",
+        "unit": "ohm"
+      },
+      {
+        "key": "s11_min_db",
+        "label": "Dip depth",
+        "unit": "dB"
+      }
+    ],
+    "base": {
+      "fidelity": "search",
+      "point": {
+        "enabled": [],
+        "values": {
+          "patch_w": 45.5,
+          "patch_l": 30.5
+        }
+      },
+      "metrics": {
+        "f0_ghz": 3.0062624727066876,
+        "s11_min_db": -25.659604951837125,
+        "s11_at_target_db": -5.6546606573910045,
+        "bandwidth_mhz": 0,
+        "bandwidth_open": false,
+        "zin_target_ohm": 156.36081491867057
+      },
+      "score": 13.414108135690736,
+      "cells": 504000
+    },
+    "rows": [
+      {
+        "variable": {
+          "name": "patch_l",
+          "value": 30.5,
+          "minSet": true,
+          "maxSet": true,
+          "rangeSet": true,
+          "unit": "mm",
+          "minStep": 0.4,
+          "min": 24.4,
+          "max": 36.6
+        },
+        "h": 0.8,
+        "scheme": "central",
+        "slopes": {
+          "f0_mhz": {
+            "perUnit": -84.57926799640376,
+            "spread": 3.3670147021993557,
+            "acrossRange": -1031.8670695561261,
+            "grade": "clean",
+            "curved": false
+          },
+          "s11_target_db": {
+            "perUnit": -4.983896037713219,
+            "spread": 1.9729352701565925,
+            "acrossRange": -60.803531660101285,
+            "grade": "sign only",
+            "curved": true
+          },
+          "zin_target_ohm": {
+            "perUnit": -58.64212647675638,
+            "spread": 32.933148916589396,
+            "acrossRange": -715.433943016428,
+            "grade": "sign only",
+            "curved": true
+          },
+          "s11_min_db": {
+            "perUnit": 11.349126394669913,
+            "spread": 5.3532008854644175,
+            "acrossRange": 138.45934201497298,
+            "grade": "sign only",
+            "curved": true
+          }
+        },
+        "notes": [
+          "the mesh changed with the step (504,000, 514,080, 509,040 cells)"
+        ]
+      },
+      {
+        "variable": {
+          "name": "patch_w",
+          "value": 45.5,
+          "minSet": true,
+          "maxSet": true,
+          "rangeSet": true,
+          "unit": "mm",
+          "minStep": 0.4,
+          "min": 36.4,
+          "max": 54.6
+        },
+        "h": 1.1934426229508197,
+        "scheme": "central",
+        "slopes": {
+          "f0_mhz": {
+            "perUnit": -5.591354142517712,
+            "spread": 0.042759070104276375,
+            "acrossRange": -101.76264539382238,
+            "grade": "clean",
+            "curved": false
+          },
+          "s11_target_db": {
+            "perUnit": -0.2342487332200453,
+            "spread": 0.0017196901328750125,
+            "acrossRange": -4.263326944604825,
+            "grade": "clean",
+            "curved": false
+          },
+          "zin_target_ohm": {
+            "perUnit": -6.083837391371469,
+            "spread": 0.21740037476313923,
+            "acrossRange": -110.72584052296077,
+            "grade": "clean",
+            "curved": false
+          },
+          "s11_min_db": {
+            "perUnit": -3.800567526671743,
+            "spread": 0.9126718378020608,
+            "acrossRange": -69.17032898542574,
+            "grade": "clean",
+            "curved": true
+          }
+        },
+        "notes": [
+          "the mesh changed with the step (504,000, 504,000, 494,400 cells)"
+        ]
+      }
+    ],
+    "skipped": [],
+    "solves": 4,
+    "stepChecked": false
+  }
+}

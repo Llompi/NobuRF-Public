@@ -1,0 +1,248 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 500" width="720" height="500" role="img"
+  aria-label="Radiation pattern at 9.425 GHz: E-plane and H-plane cuts, co- and cross-polar directivity in dBi">
+<style>
+  svg { --surface: #ffffff; --text: #16191d; --muted: #5b6470; --grid: rgba(0, 0, 0, 0.12); --co: #b5650a; --cross: #3d63c7; }
+  @media (prefers-color-scheme: dark) {
+    svg { --surface: #0d0f12; --text: #e9ebef; --muted: #9ba3af; --grid: rgba(255, 255, 255, 0.12); --co: #cc7e1a; --cross: #6688e0; }
+  }
+  .bg { fill: var(--surface); }
+  text { font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif; fill: var(--muted); }
+  .title { font-size: 16px; font-weight: 600; fill: var(--text); }
+  .caption { font-size: 12px; }
+  .panel-title { font-size: 14px; font-weight: 600; fill: var(--text); }
+  .tick { font-family: 'Inter', system-ui, sans-serif; font-variant-numeric: tabular-nums; font-size: 11px; }
+  .ring-label { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+  .legend { font-size: 12px; fill: var(--text); }
+  .grid { fill: none; stroke: var(--grid); stroke-width: 1; }
+  .grid-outer { stroke-width: 1.5; }
+  .trace { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .co { stroke: var(--co); }
+  .cross { stroke: var(--cross); stroke-dasharray: 6 4; }
+  .hit { fill: transparent; stroke: none; }
+  .hit:hover { fill: var(--text); fill-opacity: 0.25; }
+</style>
+<rect class="bg" width="720" height="500"/>
+<text class="title" x="16" y="24">Radiation pattern, 9.425 GHz</text>
+<text class="caption" x="16" y="42">balanis-ex14.1-patch-far-field-book-ground-ff: peak directivity 8.06 dBi, gain 8.04 dBi, radiation efficiency 99.6 %</text>
+<text class="panel-title" x="180" y="80" text-anchor="middle">E-plane (φ = 90°)</text>
+<circle class="grid grid-outer" cx="180" cy="264" r="132.00"/>
+<circle class="grid" cx="180" cy="264" r="99.00"/>
+<circle class="grid" cx="180" cy="264" r="66.00"/>
+<circle class="grid" cx="180" cy="264" r="33.00"/>
+<line class="grid" x1="180" y1="264" x2="114.00" y2="378.32"/>
+<text class="tick" x="106.00" y="396.17" text-anchor="end">−150°</text>
+<line class="grid" x1="180" y1="264" x2="65.68" y2="330.00"/>
+<text class="tick" x="51.83" y="342.00" text-anchor="end">−120°</text>
+<line class="grid" x1="180" y1="264" x2="48.00" y2="264.00"/>
+<text class="tick" x="32.00" y="268.00" text-anchor="end">−90°</text>
+<line class="grid" x1="180" y1="264" x2="65.68" y2="198.00"/>
+<text class="tick" x="51.83" y="194.00" text-anchor="end">−60°</text>
+<line class="grid" x1="180" y1="264" x2="114.00" y2="149.68"/>
+<text class="tick" x="106.00" y="139.83" text-anchor="end">−30°</text>
+<line class="grid" x1="180" y1="264" x2="180.00" y2="132.00"/>
+<text class="tick" x="180.00" y="120.00" text-anchor="middle">0°</text>
+<line class="grid" x1="180" y1="264" x2="246.00" y2="149.68"/>
+<text class="tick" x="254.00" y="139.83" text-anchor="start">30°</text>
+<line class="grid" x1="180" y1="264" x2="294.32" y2="198.00"/>
+<text class="tick" x="308.17" y="194.00" text-anchor="start">60°</text>
+<line class="grid" x1="180" y1="264" x2="312.00" y2="264.00"/>
+<text class="tick" x="328.00" y="268.00" text-anchor="start">90°</text>
+<line class="grid" x1="180" y1="264" x2="294.32" y2="330.00"/>
+<text class="tick" x="308.17" y="342.00" text-anchor="start">120°</text>
+<line class="grid" x1="180" y1="264" x2="246.00" y2="378.32"/>
+<text class="tick" x="254.00" y="396.17" text-anchor="start">150°</text>
+<line class="grid" x1="180" y1="264" x2="180.00" y2="396.00"/>
+<text class="tick" x="180.00" y="416.00" text-anchor="middle">180°</text>
+<path class="trace co" d="M180.00 325.93 L174.28 329.38 L168.34 330.15 L162.67 328.66 L157.69 325.28 L153.63 320.56 L150.33 315.39 L146.98 311.16 L142.34 308.88 L136.10 307.90 L129.00 306.79 L121.85 304.72 L115.10 301.47 L108.94 297.13 L103.45 291.86 L98.62 285.81 L94.44 279.09 L90.90 271.80 L87.99 264.00 L85.73 255.75 L84.15 247.10 L83.33 238.10 L83.31 228.81 L84.18 219.32 L86.01 209.73 L88.84 200.17 L92.73 190.77 L97.70 181.70 L103.73 173.10 L110.78 165.15 L118.80 158.01 L127.69 151.82 L137.32 146.74 L147.54 142.87 L158.19 140.31 L169.08 139.13 L180.00 139.35 L190.76 140.96 L201.17 143.94 L211.03 148.20 L220.17 153.64 L228.44 160.12 L235.72 167.48 L241.93 175.56 L247.01 184.14 L250.95 193.05 L253.79 202.08 L255.60 211.06 L256.51 219.83 L256.67 228.25 L256.29 236.23 L255.57 243.75 L254.72 250.83 L253.88 257.54 L253.14 264.00 L252.48 270.34 L251.78 276.66 L250.87 282.99 L249.54 289.31 L247.59 295.52 L244.85 301.44 L241.20 306.85 L236.58 311.47 L230.96 314.96 L224.37 316.87 L216.87 316.65 L208.54 313.44 L199.53 305.88 L190.74 293.52 L187.93 293.59 L187.81 308.28 L184.83 319.22 L180.00 325.93"/>
+<path class="trace cross" d="M180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00 L180.00 264.00"/>
+<text class="tick ring-label" x="217.16" y="140.50">10</text>
+<text class="tick ring-label" x="208.62" y="172.37">0</text>
+<text class="tick ring-label" x="200.08" y="204.25">−10</text>
+<text class="tick ring-label" x="191.54" y="236.12">−20</text>
+<circle class="hit" cx="180.00" cy="325.93" r="6"><title>θ −180°: Co-polar −11.2 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="174.28" cy="329.38" r="6"><title>θ −175°: Co-polar −10.1 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="168.34" cy="330.15" r="6"><title>θ −170°: Co-polar −9.6 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="162.67" cy="328.66" r="6"><title>θ −165°: Co-polar −9.7 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="157.69" cy="325.28" r="6"><title>θ −160°: Co-polar −10.2 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="153.63" cy="320.56" r="6"><title>θ −155°: Co-polar −11.1 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="150.33" cy="315.39" r="6"><title>θ −150°: Co-polar −12.0 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="146.98" cy="311.16" r="6"><title>θ −145°: Co-polar −12.6 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="142.34" cy="308.88" r="6"><title>θ −140°: Co-polar −12.2 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="136.10" cy="307.90" r="6"><title>θ −135°: Co-polar −11.2 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="129.00" cy="306.79" r="6"><title>θ −130°: Co-polar −9.8 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="121.85" cy="304.72" r="6"><title>θ −125°: Co-polar −8.5 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="115.10" cy="301.47" r="6"><title>θ −120°: Co-polar −7.3 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="108.94" cy="297.13" r="6"><title>θ −115°: Co-polar −6.2 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="103.45" cy="291.86" r="6"><title>θ −110°: Co-polar −5.3 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="98.62" cy="285.81" r="6"><title>θ −105°: Co-polar −4.5 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="94.44" cy="279.09" r="6"><title>θ −100°: Co-polar −3.7 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="90.90" cy="271.80" r="6"><title>θ −95°: Co-polar −2.9 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="87.99" cy="264.00" r="6"><title>θ −90°: Co-polar −2.1 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="85.73" cy="255.75" r="6"><title>θ −85°: Co-polar −1.3 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="84.15" cy="247.10" r="6"><title>θ −80°: Co-polar −0.5 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="83.33" cy="238.10" r="6"><title>θ −75°: Co-polar 0.3 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="83.31" cy="228.81" r="6"><title>θ −70°: Co-polar 1.2 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="84.18" cy="219.32" r="6"><title>θ −65°: Co-polar 2.0 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="86.01" cy="209.73" r="6"><title>θ −60°: Co-polar 2.9 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="88.84" cy="200.17" r="6"><title>θ −55°: Co-polar 3.7 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="92.73" cy="190.77" r="6"><title>θ −50°: Co-polar 4.5 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="97.70" cy="181.70" r="6"><title>θ −45°: Co-polar 5.3 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="103.73" cy="173.10" r="6"><title>θ −40°: Co-polar 6.0 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="110.78" cy="165.15" r="6"><title>θ −35°: Co-polar 6.6 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="118.80" cy="158.01" r="6"><title>θ −30°: Co-polar 7.1 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="127.69" cy="151.82" r="6"><title>θ −25°: Co-polar 7.5 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="137.32" cy="146.74" r="6"><title>θ −20°: Co-polar 7.8 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="147.54" cy="142.87" r="6"><title>θ −15°: Co-polar 8.0 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="158.19" cy="140.31" r="6"><title>θ −10°: Co-polar 8.1 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="169.08" cy="139.13" r="6"><title>θ −5°: Co-polar 8.0 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="180.00" cy="139.35" r="6"><title>θ 0°: Co-polar 7.8 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="190.76" cy="140.96" r="6"><title>θ 5°: Co-polar 7.4 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="201.17" cy="143.94" r="6"><title>θ 10°: Co-polar 6.9 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="211.03" cy="148.20" r="6"><title>θ 15°: Co-polar 6.3 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="220.17" cy="153.64" r="6"><title>θ 20°: Co-polar 5.6 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="228.44" cy="160.12" r="6"><title>θ 25°: Co-polar 4.7 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="235.72" cy="167.48" r="6"><title>θ 30°: Co-polar 3.8 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="241.93" cy="175.56" r="6"><title>θ 35°: Co-polar 2.7 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="247.01" cy="184.14" r="6"><title>θ 40°: Co-polar 1.6 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="250.95" cy="193.05" r="6"><title>θ 45°: Co-polar 0.4 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="253.79" cy="202.08" r="6"><title>θ 50°: Co-polar −0.8 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="255.60" cy="211.06" r="6"><title>θ 55°: Co-polar −2.0 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="256.51" cy="219.83" r="6"><title>θ 60°: Co-polar −3.2 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="256.67" cy="228.25" r="6"><title>θ 65°: Co-polar −4.4 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="256.29" cy="236.23" r="6"><title>θ 70°: Co-polar −5.4 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="255.57" cy="243.75" r="6"><title>θ 75°: Co-polar −6.3 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="254.72" cy="250.83" r="6"><title>θ 80°: Co-polar −7.0 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="253.88" cy="257.54" r="6"><title>θ 85°: Co-polar −7.5 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="253.14" cy="264.00" r="6"><title>θ 90°: Co-polar −7.8 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="252.48" cy="270.34" r="6"><title>θ 95°: Co-polar −8.0 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="251.78" cy="276.66" r="6"><title>θ 100°: Co-polar −7.9 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="250.87" cy="282.99" r="6"><title>θ 105°: Co-polar −7.8 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="249.54" cy="289.31" r="6"><title>θ 110°: Co-polar −7.6 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="247.59" cy="295.52" r="6"><title>θ 115°: Co-polar −7.4 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="244.85" cy="301.44" r="6"><title>θ 120°: Co-polar −7.3 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="241.20" cy="306.85" r="6"><title>θ 125°: Co-polar −7.4 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="236.58" cy="311.47" r="6"><title>θ 130°: Co-polar −7.6 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="230.96" cy="314.96" r="6"><title>θ 135°: Co-polar −8.2 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="224.37" cy="316.87" r="6"><title>θ 140°: Co-polar −9.1 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="216.87" cy="316.65" r="6"><title>θ 145°: Co-polar −10.5 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="208.54" cy="313.44" r="6"><title>θ 150°: Co-polar −12.7 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="199.53" cy="305.88" r="6"><title>θ 155°: Co-polar −16.0 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="190.74" cy="293.52" r="6"><title>θ 160°: Co-polar −20.5 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="187.93" cy="293.59" r="6"><title>θ 165°: Co-polar −20.7 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="187.81" cy="308.28" r="6"><title>θ 170°: Co-polar −16.4 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="184.83" cy="319.22" r="6"><title>θ 175°: Co-polar −13.2 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="180.00" cy="325.93" r="6"><title>θ 180°: Co-polar −11.2 dBi, Cross-polar below −30 dBi</title></circle>
+<text class="panel-title" x="540" y="80" text-anchor="middle">H-plane (φ = 0°)</text>
+<circle class="grid grid-outer" cx="540" cy="264" r="132.00"/>
+<circle class="grid" cx="540" cy="264" r="99.00"/>
+<circle class="grid" cx="540" cy="264" r="66.00"/>
+<circle class="grid" cx="540" cy="264" r="33.00"/>
+<line class="grid" x1="540" y1="264" x2="474.00" y2="378.32"/>
+<text class="tick" x="466.00" y="396.17" text-anchor="end">−150°</text>
+<line class="grid" x1="540" y1="264" x2="425.68" y2="330.00"/>
+<text class="tick" x="411.83" y="342.00" text-anchor="end">−120°</text>
+<line class="grid" x1="540" y1="264" x2="408.00" y2="264.00"/>
+<text class="tick" x="392.00" y="268.00" text-anchor="end">−90°</text>
+<line class="grid" x1="540" y1="264" x2="425.68" y2="198.00"/>
+<text class="tick" x="411.83" y="194.00" text-anchor="end">−60°</text>
+<line class="grid" x1="540" y1="264" x2="474.00" y2="149.68"/>
+<text class="tick" x="466.00" y="139.83" text-anchor="end">−30°</text>
+<line class="grid" x1="540" y1="264" x2="540.00" y2="132.00"/>
+<text class="tick" x="540.00" y="120.00" text-anchor="middle">0°</text>
+<line class="grid" x1="540" y1="264" x2="606.00" y2="149.68"/>
+<text class="tick" x="614.00" y="139.83" text-anchor="start">30°</text>
+<line class="grid" x1="540" y1="264" x2="654.32" y2="198.00"/>
+<text class="tick" x="668.17" y="194.00" text-anchor="start">60°</text>
+<line class="grid" x1="540" y1="264" x2="672.00" y2="264.00"/>
+<text class="tick" x="688.00" y="268.00" text-anchor="start">90°</text>
+<line class="grid" x1="540" y1="264" x2="654.32" y2="330.00"/>
+<text class="tick" x="668.17" y="342.00" text-anchor="start">120°</text>
+<line class="grid" x1="540" y1="264" x2="606.00" y2="378.32"/>
+<text class="tick" x="614.00" y="396.17" text-anchor="start">150°</text>
+<line class="grid" x1="540" y1="264" x2="540.00" y2="396.00"/>
+<text class="tick" x="540.00" y="416.00" text-anchor="middle">180°</text>
+<path class="trace co" d="M540.00 325.93 L534.62 325.48 L529.39 324.16 L524.44 322.05 L519.88 319.28 L515.74 316.02 L512.02 312.46 L508.63 308.80 L505.38 305.26 L502.01 301.99 L498.26 299.02 L493.96 296.24 L489.10 293.39 L483.85 290.18 L478.44 286.41 L473.11 281.92 L468.04 276.69 L463.40 270.70 L459.30 264.00 L455.85 256.64 L453.15 248.69 L451.28 240.23 L450.32 231.36 L450.35 222.19 L451.41 212.85 L453.57 203.48 L456.84 194.22 L461.22 185.22 L466.69 176.63 L473.22 168.62 L480.73 161.34 L489.13 154.91 L498.31 149.46 L508.14 145.10 L518.48 141.93 L529.15 140.00 L540.00 139.35 L550.85 140.00 L561.52 141.93 L571.86 145.10 L581.69 149.46 L590.87 154.91 L599.27 161.34 L606.78 168.62 L613.31 176.63 L618.78 185.22 L623.16 194.22 L626.43 203.48 L628.59 212.86 L629.65 222.19 L629.68 231.36 L628.72 240.23 L626.85 248.69 L624.15 256.64 L620.70 264.00 L616.60 270.70 L611.96 276.69 L606.89 281.92 L601.56 286.41 L596.15 290.18 L590.90 293.39 L586.04 296.24 L581.74 299.02 L577.99 301.99 L574.62 305.26 L571.37 308.80 L567.98 312.46 L564.26 316.02 L560.12 319.28 L555.55 322.05 L550.61 324.16 L545.38 325.48 L540.00 325.93"/>
+<path class="trace cross" d="M540.00 264.00 L538.76 278.16 L534.30 296.31 L529.06 304.85 L523.76 308.63 L518.91 309.23 L514.94 307.41 L512.25 303.63 L511.28 298.23 L512.50 291.50 L516.33 283.86 L521.79 276.75 L522.41 274.16 L514.59 275.85 L505.08 276.71 L496.84 275.57 L490.08 272.80 L484.63 268.84 L480.32 264.00 L477.04 258.49 L474.72 252.49 L473.32 246.13 L472.83 239.55 L473.25 232.87 L474.60 226.24 L476.90 219.82 L480.13 213.77 L484.29 208.29 L489.34 203.62 L495.19 200.00 L501.74 197.73 L508.83 197.16 L516.26 198.77 L523.74 203.33 L530.91 212.42 L537.10 230.90 L540.00 264.00 L542.90 230.90 L549.09 212.42 L556.26 203.33 L563.74 198.77 L571.17 197.16 L578.26 197.73 L584.81 200.00 L590.66 203.62 L595.71 208.29 L599.87 213.77 L603.10 219.82 L605.40 226.24 L606.75 232.87 L607.17 239.55 L606.68 246.13 L605.28 252.49 L602.96 258.49 L599.68 264.00 L595.37 268.84 L589.92 272.80 L583.16 275.57 L574.92 276.71 L565.41 275.85 L557.59 274.16 L558.21 276.75 L563.67 283.86 L567.50 291.50 L568.72 298.23 L567.75 303.63 L565.06 307.41 L561.09 309.23 L556.24 308.63 L550.94 304.85 L545.70 296.31 L541.24 278.16 L540.00 264.00"/>
+<text class="tick ring-label" x="577.16" y="140.50">10</text>
+<text class="tick ring-label" x="568.62" y="172.37">0</text>
+<text class="tick ring-label" x="560.08" y="204.25">−10</text>
+<text class="tick ring-label" x="551.54" y="236.12">−20</text>
+<circle class="hit" cx="540.00" cy="325.93" r="6"><title>θ −180°: Co-polar −11.2 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="534.62" cy="325.48" r="6"><title>θ −175°: Co-polar −11.3 dBi, Cross-polar −25.7 dBi</title></circle>
+<circle class="hit" cx="529.39" cy="324.16" r="6"><title>θ −170°: Co-polar −11.5 dBi, Cross-polar −20.1 dBi</title></circle>
+<circle class="hit" cx="524.44" cy="322.05" r="6"><title>θ −165°: Co-polar −11.8 dBi, Cross-polar −17.2 dBi</title></circle>
+<circle class="hit" cx="519.88" cy="319.28" r="6"><title>θ −160°: Co-polar −12.2 dBi, Cross-polar −15.6 dBi</title></circle>
+<circle class="hit" cx="515.74" cy="316.02" r="6"><title>θ −155°: Co-polar −12.6 dBi, Cross-polar −14.9 dBi</title></circle>
+<circle class="hit" cx="512.02" cy="312.46" r="6"><title>θ −150°: Co-polar −13.0 dBi, Cross-polar −14.8 dBi</title></circle>
+<circle class="hit" cx="508.63" cy="308.80" r="6"><title>θ −145°: Co-polar −13.4 dBi, Cross-polar −15.3 dBi</title></circle>
+<circle class="hit" cx="505.38" cy="305.26" r="6"><title>θ −140°: Co-polar −13.7 dBi, Cross-polar −16.5 dBi</title></circle>
+<circle class="hit" cx="502.01" cy="301.99" r="6"><title>θ −135°: Co-polar −13.7 dBi, Cross-polar −18.2 dBi</title></circle>
+<circle class="hit" cx="498.26" cy="299.02" r="6"><title>θ −130°: Co-polar −13.5 dBi, Cross-polar −20.6 dBi</title></circle>
+<circle class="hit" cx="493.96" cy="296.24" r="6"><title>θ −125°: Co-polar −13.0 dBi, Cross-polar −23.3 dBi</title></circle>
+<circle class="hit" cx="489.10" cy="293.39" r="6"><title>θ −120°: Co-polar −12.2 dBi, Cross-polar −23.8 dBi</title></circle>
+<circle class="hit" cx="483.85" cy="290.18" r="6"><title>θ −115°: Co-polar −11.2 dBi, Cross-polar −21.5 dBi</title></circle>
+<circle class="hit" cx="478.44" cy="286.41" r="6"><title>θ −110°: Co-polar −10.1 dBi, Cross-polar −18.7 dBi</title></circle>
+<circle class="hit" cx="473.11" cy="281.92" r="6"><title>θ −105°: Co-polar −9.0 dBi, Cross-polar −16.5 dBi</title></circle>
+<circle class="hit" cx="468.04" cy="276.69" r="6"><title>θ −100°: Co-polar −7.9 dBi, Cross-polar −14.6 dBi</title></circle>
+<circle class="hit" cx="463.40" cy="270.70" r="6"><title>θ −95°: Co-polar −6.7 dBi, Cross-polar −13.2 dBi</title></circle>
+<circle class="hit" cx="459.30" cy="264.00" r="6"><title>θ −90°: Co-polar −5.5 dBi, Cross-polar −11.9 dBi</title></circle>
+<circle class="hit" cx="455.85" cy="256.64" r="6"><title>θ −85°: Co-polar −4.4 dBi, Cross-polar −10.8 dBi</title></circle>
+<circle class="hit" cx="453.15" cy="248.69" r="6"><title>θ −80°: Co-polar −3.3 dBi, Cross-polar −9.9 dBi</title></circle>
+<circle class="hit" cx="451.28" cy="240.23" r="6"><title>θ −75°: Co-polar −2.2 dBi, Cross-polar −9.1 dBi</title></circle>
+<circle class="hit" cx="450.32" cy="231.36" r="6"><title>θ −70°: Co-polar −1.1 dBi, Cross-polar −8.3 dBi</title></circle>
+<circle class="hit" cx="450.35" cy="222.19" r="6"><title>θ −65°: Co-polar −0.0 dBi, Cross-polar −7.7 dBi</title></circle>
+<circle class="hit" cx="451.41" cy="212.85" r="6"><title>θ −60°: Co-polar 1.0 dBi, Cross-polar −7.1 dBi</title></circle>
+<circle class="hit" cx="453.57" cy="203.48" r="6"><title>θ −55°: Co-polar 2.0 dBi, Cross-polar −6.7 dBi</title></circle>
+<circle class="hit" cx="456.84" cy="194.22" r="6"><title>θ −50°: Co-polar 2.9 dBi, Cross-polar −6.3 dBi</title></circle>
+<circle class="hit" cx="461.22" cy="185.22" r="6"><title>θ −45°: Co-polar 3.8 dBi, Cross-polar −6.1 dBi</title></circle>
+<circle class="hit" cx="466.69" cy="176.63" r="6"><title>θ −40°: Co-polar 4.6 dBi, Cross-polar −6.1 dBi</title></circle>
+<circle class="hit" cx="473.22" cy="168.62" r="6"><title>θ −35°: Co-polar 5.3 dBi, Cross-polar −6.3 dBi</title></circle>
+<circle class="hit" cx="480.73" cy="161.34" r="6"><title>θ −30°: Co-polar 5.9 dBi, Cross-polar −6.8 dBi</title></circle>
+<circle class="hit" cx="489.13" cy="154.91" r="6"><title>θ −25°: Co-polar 6.5 dBi, Cross-polar −7.7 dBi</title></circle>
+<circle class="hit" cx="498.31" cy="149.46" r="6"><title>θ −20°: Co-polar 6.9 dBi, Cross-polar −9.0 dBi</title></circle>
+<circle class="hit" cx="508.14" cy="145.10" r="6"><title>θ −15°: Co-polar 7.3 dBi, Cross-polar −11.0 dBi</title></circle>
+<circle class="hit" cx="518.48" cy="141.93" r="6"><title>θ −10°: Co-polar 7.6 dBi, Cross-polar −14.1 dBi</title></circle>
+<circle class="hit" cx="529.15" cy="140.00" r="6"><title>θ −5°: Co-polar 7.7 dBi, Cross-polar −19.9 dBi</title></circle>
+<circle class="hit" cx="540.00" cy="139.35" r="6"><title>θ 0°: Co-polar 7.8 dBi, Cross-polar below −30 dBi</title></circle>
+<circle class="hit" cx="550.85" cy="140.00" r="6"><title>θ 5°: Co-polar 7.7 dBi, Cross-polar −19.9 dBi</title></circle>
+<circle class="hit" cx="561.52" cy="141.93" r="6"><title>θ 10°: Co-polar 7.6 dBi, Cross-polar −14.1 dBi</title></circle>
+<circle class="hit" cx="571.86" cy="145.10" r="6"><title>θ 15°: Co-polar 7.3 dBi, Cross-polar −11.0 dBi</title></circle>
+<circle class="hit" cx="581.69" cy="149.46" r="6"><title>θ 20°: Co-polar 6.9 dBi, Cross-polar −9.0 dBi</title></circle>
+<circle class="hit" cx="590.87" cy="154.91" r="6"><title>θ 25°: Co-polar 6.5 dBi, Cross-polar −7.7 dBi</title></circle>
+<circle class="hit" cx="599.27" cy="161.34" r="6"><title>θ 30°: Co-polar 5.9 dBi, Cross-polar −6.8 dBi</title></circle>
+<circle class="hit" cx="606.78" cy="168.62" r="6"><title>θ 35°: Co-polar 5.3 dBi, Cross-polar −6.3 dBi</title></circle>
+<circle class="hit" cx="613.31" cy="176.63" r="6"><title>θ 40°: Co-polar 4.6 dBi, Cross-polar −6.1 dBi</title></circle>
+<circle class="hit" cx="618.78" cy="185.22" r="6"><title>θ 45°: Co-polar 3.8 dBi, Cross-polar −6.1 dBi</title></circle>
+<circle class="hit" cx="623.16" cy="194.22" r="6"><title>θ 50°: Co-polar 2.9 dBi, Cross-polar −6.3 dBi</title></circle>
+<circle class="hit" cx="626.43" cy="203.48" r="6"><title>θ 55°: Co-polar 2.0 dBi, Cross-polar −6.7 dBi</title></circle>
+<circle class="hit" cx="628.59" cy="212.86" r="6"><title>θ 60°: Co-polar 1.0 dBi, Cross-polar −7.1 dBi</title></circle>
+<circle class="hit" cx="629.65" cy="222.19" r="6"><title>θ 65°: Co-polar −0.0 dBi, Cross-polar −7.7 dBi</title></circle>
+<circle class="hit" cx="629.68" cy="231.36" r="6"><title>θ 70°: Co-polar −1.1 dBi, Cross-polar −8.3 dBi</title></circle>
+<circle class="hit" cx="628.72" cy="240.23" r="6"><title>θ 75°: Co-polar −2.2 dBi, Cross-polar −9.1 dBi</title></circle>
+<circle class="hit" cx="626.85" cy="248.69" r="6"><title>θ 80°: Co-polar −3.3 dBi, Cross-polar −9.9 dBi</title></circle>
+<circle class="hit" cx="624.15" cy="256.64" r="6"><title>θ 85°: Co-polar −4.4 dBi, Cross-polar −10.8 dBi</title></circle>
+<circle class="hit" cx="620.70" cy="264.00" r="6"><title>θ 90°: Co-polar −5.5 dBi, Cross-polar −11.9 dBi</title></circle>
+<circle class="hit" cx="616.60" cy="270.70" r="6"><title>θ 95°: Co-polar −6.7 dBi, Cross-polar −13.2 dBi</title></circle>
+<circle class="hit" cx="611.96" cy="276.69" r="6"><title>θ 100°: Co-polar −7.9 dBi, Cross-polar −14.6 dBi</title></circle>
+<circle class="hit" cx="606.89" cy="281.92" r="6"><title>θ 105°: Co-polar −9.0 dBi, Cross-polar −16.5 dBi</title></circle>
+<circle class="hit" cx="601.56" cy="286.41" r="6"><title>θ 110°: Co-polar −10.1 dBi, Cross-polar −18.7 dBi</title></circle>
+<circle class="hit" cx="596.15" cy="290.18" r="6"><title>θ 115°: Co-polar −11.2 dBi, Cross-polar −21.5 dBi</title></circle>
+<circle class="hit" cx="590.90" cy="293.39" r="6"><title>θ 120°: Co-polar −12.2 dBi, Cross-polar −23.8 dBi</title></circle>
+<circle class="hit" cx="586.04" cy="296.24" r="6"><title>θ 125°: Co-polar −13.0 dBi, Cross-polar −23.3 dBi</title></circle>
+<circle class="hit" cx="581.74" cy="299.02" r="6"><title>θ 130°: Co-polar −13.5 dBi, Cross-polar −20.6 dBi</title></circle>
+<circle class="hit" cx="577.99" cy="301.99" r="6"><title>θ 135°: Co-polar −13.7 dBi, Cross-polar −18.2 dBi</title></circle>
+<circle class="hit" cx="574.62" cy="305.26" r="6"><title>θ 140°: Co-polar −13.7 dBi, Cross-polar −16.5 dBi</title></circle>
+<circle class="hit" cx="571.37" cy="308.80" r="6"><title>θ 145°: Co-polar −13.4 dBi, Cross-polar −15.3 dBi</title></circle>
+<circle class="hit" cx="567.98" cy="312.46" r="6"><title>θ 150°: Co-polar −13.0 dBi, Cross-polar −14.8 dBi</title></circle>
+<circle class="hit" cx="564.26" cy="316.02" r="6"><title>θ 155°: Co-polar −12.6 dBi, Cross-polar −14.9 dBi</title></circle>
+<circle class="hit" cx="560.12" cy="319.28" r="6"><title>θ 160°: Co-polar −12.2 dBi, Cross-polar −15.6 dBi</title></circle>
+<circle class="hit" cx="555.55" cy="322.05" r="6"><title>θ 165°: Co-polar −11.8 dBi, Cross-polar −17.2 dBi</title></circle>
+<circle class="hit" cx="550.61" cy="324.16" r="6"><title>θ 170°: Co-polar −11.5 dBi, Cross-polar −20.1 dBi</title></circle>
+<circle class="hit" cx="545.38" cy="325.48" r="6"><title>θ 175°: Co-polar −11.3 dBi, Cross-polar −25.7 dBi</title></circle>
+<circle class="hit" cx="540.00" cy="325.93" r="6"><title>θ 180°: Co-polar −11.2 dBi, Cross-polar below −30 dBi</title></circle>
+<line class="trace co" x1="190" y1="464" x2="214" y2="464"/>
+<text class="legend" x="220" y="468">Co-polar (y), solid</text>
+<line class="trace cross" x1="380" y1="464" x2="404" y2="464"/>
+<text class="legend" x="410" y="468">Cross-polar, dashed</text>
+<text class="caption" x="16" y="488">Directivity in dBi, Ludwig-3 polarisation. θ from broadside (+z); negative θ is the half plane at φ + 180°.</text>
+</svg>
