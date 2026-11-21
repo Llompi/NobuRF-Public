@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NobuRF race replay</title>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
@@ -11,14 +13,15 @@
   Plays two agent run logs on one clock and one chart, at 1920 x 1080, for the race shot in the video.
   It is a recording tool, served locally; it is not part of the public site.
 
-    python3 -m http.server -d launch/race-replay 8000
-    open  http://localhost:8000/?left=sample-cerebras.json&right=sample-gpu-provider.json
+    npm run design -- serve      (from the repo root; any static server that sends .mjs as JavaScript works)
+    open  http://localhost:8000/launch/race-replay/?left=sample-cerebras.json&right=sample-gpu-provider.json
     press Space to start, or add &start=immediately
 
   Each log is one JSON file. Times are milliseconds from the moment the agent starts.
 
     {
       "is_sample_data": false,                 // true makes the page say so on screen
+      "harness": "OpenClaw",                   // optional: the agent harness, named in the task line
       "lane_label": "Kimi K3.1 Pro on Cerebras",
       "match_threshold_db": -15,               // S11 at the target that counts as matched
       "target_ghz": 5.8,                       // optional, default 5.8
@@ -33,8 +36,15 @@
       ]
     }
 
+  Sentence races (`npm run design -- agent-race "<request>"`) add "prompt" (the request, shown as the headline),
+  "task" per lane (the goal that lane's model read from it), "model_ms" on each model_turn_done (the call's own
+  time, for the thinking clock), and "lobe_glb" (the final design's 3D lobe, shown when both lanes finish).
+
   A solve_done or done event may carry "goal_met": true or false. When a log has it, the lane counts as
   matched when the goal is met (frequency and S11 together), not when S11 at the target crosses the line.
+  A "say" event ("text") is what the person wrote mid-run, at the time they wrote it.
+  When any solve_done carries "model_thinking", only those switch the lane to Model thinking; the others
+  are better designs found mid-search, and the lane reads Solving.
 
   Tokens per second for a turn = output_tokens / (time of model_turn_done - time of the previous start, model_turn_done or solve_done).
   `npm run design -- race` and `npm run design -- replay <run folders>` write logs in this format
@@ -63,18 +73,35 @@
   .stage-header h1 { margin: 0; font: 600 40px/1.2 var(--font-heading); }
   .stage-header p { margin: 8px 0 0; font: 400 24px var(--font-body); color: var(--ink-muted); }
 
-  .lanes { position: absolute; top: 190px; left: 120px; right: 120px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+  .lanes { position: absolute; top: 180px; left: 120px; right: 120px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 80px; }
   .lane { color: var(--lane-colour); }
   .lane-label { display: flex; align-items: center; gap: 14px; margin: 0; font: 600 28px var(--font-body); color: var(--ink); }
   .lane-label::before { content: ""; width: 40px; height: 5px; border-radius: 3px; background: var(--lane-colour); }
-  .lane-clock { display: flex; align-items: baseline; gap: 28px; margin-top: 10px; }
+  .lane-clock { display: flex; align-items: baseline; gap: 20px; margin-top: 10px; }
   .elapsed { font: 500 104px/1 var(--font-number); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
   .elapsed-unit { font-size: 40px; color: var(--ink-muted); margin-left: 6px; }
-  .lane-status { font: 500 24px/1.45 var(--font-data); white-space: nowrap; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
-  .lane-status .result { color: var(--lane-colour); }
+  .lane-status { min-width: 0; font: 500 22px/1.45 var(--font-data); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+  .lane-status > div { overflow: hidden; text-overflow: ellipsis; }
+  .lane-status .result { color: var(--lane-colour); min-height: 1.45em; }
+  .latest-edit .queued { color: var(--ink-muted); font-weight: 400; }
+  .lane-goal { margin-top: 6px; font: 400 20px/1.4 var(--font-body); color: var(--ink-muted); min-height: 1.4em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lane-split { margin-top: 4px; font: 500 22px var(--font-data); color: var(--ink-muted); font-variant-numeric: tabular-nums; min-height: 1.5em; }
+  .lane-split .thinking { color: var(--lane-colour); }
   .latest-edit { margin-top: 8px; font: 400 22px var(--font-data); color: #c9ccd3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.5em; }
+  .latest-edit.said { font-family: var(--font-body); font-weight: 500; color: var(--ink); }
+  #race-chart .say-marker { stroke: var(--ink-muted); stroke-width: 2; }
+  #race-chart .say-label { fill: var(--ink); font-size: 22px; }
 
-  #race-chart { position: absolute; left: 0; top: 440px; width: 1920px; height: 600px; overflow: visible; }
+  #race-chart { transition: opacity 600ms ease; }
+  #race-chart.faded { opacity: 0; }
+  .lobes { position: absolute; left: 120px; right: 120px; top: 500px; height: 540px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+    opacity: 0; transition: opacity 900ms ease; pointer-events: none; }
+  .lobes.shown { opacity: 1; }
+  .lobe { position: relative; }
+  .lobe canvas { width: 100%; height: 470px; display: block; }
+  .lobe p { margin: 0; font: 500 22px var(--font-data); color: var(--ink-muted); text-align: center; }
+  #race-chart { position: absolute; left: 0; top: 490px; width: 1920px; height: 570px; overflow: visible; }
   #race-chart text { font: 500 20px var(--font-data); fill: var(--ink-muted); font-variant-numeric: tabular-nums; }
   #race-chart .grid { stroke: var(--grid); stroke-width: 1; }
   #race-chart .threshold { stroke: var(--threshold); stroke-width: 2; stroke-dasharray: 4 8; stroke-linecap: round; }
@@ -97,6 +124,7 @@
   </header>
   <div class="lanes" id="lanes"></div>
   <svg id="race-chart" viewBox="0 0 1920 600" aria-hidden="true"></svg>
+  <div class="lobes" id="lobes"></div>
 </div>
 
 <template id="lane-template">
@@ -106,6 +134,8 @@
       <div class="elapsed"><span data-field="elapsed">0.0</span><span class="elapsed-unit">s</span></div>
       <div class="lane-status"><div data-field="state">Ready</div><div class="result" data-field="result" aria-live="polite"></div></div>
     </div>
+    <div class="lane-goal" data-field="goal"></div>
+    <div class="lane-split" data-field="split"></div>
     <div class="latest-edit" data-field="latest-edit"></div>
   </section>
 </template>
@@ -172,7 +202,8 @@ function timeGridStepMs(axisEndMs) {
   throw new Error(`A ${formatSeconds(axisEndMs)} s race is longer than the chart's time axis handles.`);
 }
 
-function createRaceChart(chartElement, axisEndMs, thresholdDb, targetGhz, thresholdText) {
+/** thresholds: one { db, text } per S11 line to draw (two when the lanes read different limits). */
+function createRaceChart(chartElement, axisEndMs, thresholds, targetGhz, targetChanges) {
   const xForTime = (timeMs) => CHART.left + (CHART.right - CHART.left) * timeMs / axisEndMs;
   const yForDecibels = (decibels) => CHART.top + (CHART.bottom - CHART.top) * Math.max(CHART.floorDb, Math.min(0, decibels)) / CHART.floorDb;
 
@@ -186,24 +217,51 @@ function createRaceChart(chartElement, axisEndMs, thresholdDb, targetGhz, thresh
     chartElement.append(createSvgElement('text', { x: xForTime(timeMs), y: CHART.bottom + 40, 'text-anchor': 'middle' }, `${timeMs / 1000} s`));
   }
   chartElement.append(createSvgElement('text', { x: 120, y: (CHART.top + CHART.bottom) / 2, 'text-anchor': 'middle',
-    transform: `rotate(-90 120 ${(CHART.top + CHART.bottom) / 2})` }, `S11 at ${targetGhz} GHz (dB)`));
-  const thresholdY = yForDecibels(thresholdDb);
-  chartElement.append(createSvgElement('line', { class: 'threshold', x1: CHART.left, x2: CHART.right, y1: thresholdY, y2: thresholdY }));
-  chartElement.append(createSvgElement('text', { class: 'threshold-label halo', x: (CHART.left + CHART.right) / 2, y: thresholdY - 14, 'text-anchor': 'middle' },
-    thresholdText));
+    transform: `rotate(-90 120 ${(CHART.top + CHART.bottom) / 2})` }, targetChanges ? 'S11 at the target (dB)' : `S11 at ${targetGhz} GHz (dB)`));
+  for (const threshold of thresholds) {
+    const thresholdY = yForDecibels(threshold.db);
+    chartElement.append(createSvgElement('line', { class: 'threshold', x1: CHART.left, x2: CHART.right, y1: thresholdY, y2: thresholdY }));
+    chartElement.append(createSvgElement('text', { class: 'threshold-label halo', x: (CHART.left + CHART.right) / 2, y: thresholdY - 14, 'text-anchor': 'middle' },
+      threshold.text));
+  }
 
   return { xForTime, yForDecibels };
 }
 
-function createLanePlayer(runLog, laneColour, chart, chartElement) {
+function createLanePlayer(runLog, laneColour, chart, chartElement, laneIndex) {
   const laneElement = document.getElementById('lane-template').content.firstElementChild.cloneNode(true);
   laneElement.style.setProperty('--lane-colour', laneColour);
   const field = (name) => laneElement.querySelector(`[data-field="${name}"]`);
   field('label').textContent = runLog.lane_label;
+  // A sentence race: each lane's model read the goal from the request itself, so show what it read.
+  // A sentence race: each lane's model read the goal from the request itself, so show what it read. Logs that say
+  // when the goal was set (and reset, after the person changed the request) show each goal from then on.
+  const setsGoals = runLog.events.some((event) => event.type === 'goal');
+  // The goal in short, so it fits one line: "5.8 GHz patch antenna, S11 at or below -10 dB, dip within 1 %".
+  const goalLine = (task) => `Goal: ${task.replace(/^design an? /, '').replace(' with the dip within', ', dip within')}`;
+  if (runLog.prompt && runLog.task && !setsGoals) field('goal').textContent = goalLine(runLog.task);
+  if (setsGoals) field('goal').textContent = 'Reading the request\u2026';
+  // Thinking time: each model call's own span, [end - model_ms, end], counted up to now. The rest of the clock is the
+  // solver and the harness, the same work on both lanes.
+  const turns = runLog.events.filter((event) => event.type === 'model_turn_done' && event.model_ms > 0);
+  const modelSpans = turns.map((event) => [event.time_ms - event.model_ms, event.time_ms]);
+  // A rate-limit wait sits just before the call that was finally answered.
+  const waitSpans = turns.filter((event) => event.wait_ms > 0).map((event) => [event.time_ms - event.model_ms - event.wait_ms, event.time_ms - event.model_ms]);
+  const spentIn = (spans, untilMs) => spans.reduce((sum, [from, to]) => sum + Math.max(0, Math.min(to, untilMs) - from), 0);
+  function showSplit(laneTimeMs) {
+    if (!modelSpans.length) return;
+    const thinkingMs = spentIn(modelSpans, laneTimeMs);
+    const waitingMs = spentIn(waitSpans, laneTimeMs);
+    const parts = [`<span class="thinking">Thinking ${formatSeconds(thinkingMs)} s</span>`];
+    if (waitSpans.length) parts.push(`Rate limit ${formatSeconds(waitingMs)} s`);
+    parts.push(`Solver and harness ${formatSeconds(Math.max(0, laneTimeMs - thinkingMs - waitingMs))} s`);
+    field('split').innerHTML = parts.join(' · ');
+  }
 
   const events = runLog.events;
   const finishTimeMs = events.find((event) => event.type === 'done').time_ms;
-  const trace = createSvgElement('path', { class: 'trace', stroke: laneColour });
+  // The right lane's trace is dashed, on top: where the two lanes hold the same value both colours show.
+  const trace = createSvgElement('path', { class: 'trace', stroke: laneColour, ...(laneIndex === 1 ? { style: 'stroke-width: 3; stroke-dasharray: 12 10; stroke-linecap: butt' } : {}) });
   const head = createSvgElement('circle', { r: 9, fill: laneColour });
   chartElement.append(trace, head);
 
@@ -217,6 +275,10 @@ function createLanePlayer(runLog, laneColour, chart, chartElement) {
   let firstMatchMs = null;
   // Design runs say whether the whole goal is met; matching runs only have S11.
   const goalMode = events.some((event) => typeof event.goal_met === 'boolean');
+  // Sentence-race logs mark the solve_done after which the model has the turn ("model_thinking": true); a better
+  // design found in the middle of a search or sweep is not one, so the lane still reads Solving there.
+  const marksModelTurns = events.some((event) => 'model_thinking' in event);
+  let finishing = false; // after the finish call, nothing but the harness closing
   const isMatch = (event) => (goalMode ? event.goal_met === true : event.s11_db_at_target <= runLog.match_threshold_db);
 
   function showState(stateText) {
@@ -224,11 +286,17 @@ function createLanePlayer(runLog, laneColour, chart, chartElement) {
       .filter(Boolean).join(' · ');
   }
 
+  function markOnChart(timeMs, text, colour, row) {
+    const x = chart.xForTime(timeMs);
+    chartElement.append(createSvgElement('line', { class: 'say-marker', style: `stroke: ${colour}`, x1: x, x2: x, y1: CHART.top + row * 30, y2: CHART.top + row * 30 + 24 }));
+    chartElement.append(createSvgElement('text', { class: 'say-label halo', style: `fill: ${colour}`, x: x + 10, y: CHART.top + row * 30 + 20 }, text));
+  }
+
   function markMatch(timeMs) {
     const x = chart.xForTime(timeMs);
     chartElement.append(createSvgElement('line', { class: 'match-marker', stroke: laneColour,
       x1: x, x2: x, y1: chart.yForDecibels(currentS11Db) + 14, y2: CHART.bottom }));
-    chartElement.append(createSvgElement('text', { class: 'match-label halo', style: `fill: ${laneColour}`, x: x + 14, y: CHART.bottom - 14 },
+    chartElement.append(createSvgElement('text', { class: 'match-label halo', style: `fill: ${laneColour}`, x: x + 14, y: CHART.bottom - 14 - laneIndex * 34 },
       `${formatSeconds(timeMs)} s`));
   }
 
@@ -244,7 +312,23 @@ function createLanePlayer(runLog, laneColour, chart, chartElement) {
     } else if (event.type === 'edit') {
       editCount += 1;
       field('latest-edit').textContent = event.edit;
-      showState('Solving');
+      field('latest-edit').classList.remove('said');
+      finishing = event.edit === 'finish';
+      showState(finishing ? 'Wrapping up' : /^(re)?start/.test(event.edit) ? 'Setting up' : 'Solving');
+    } else if (event.type === 'say') {
+      // The person's words mid-run, at the moment they wrote them; the model gets them when its running tool returns.
+      // It waits for the running step: the model gets it with that step's result (the heard event).
+      field('latest-edit').replaceChildren(`You: \u201c${event.text}\u201d `,
+        Object.assign(document.createElement('span'), { className: 'queued', textContent: '\u00b7 queued until this step ends' }));
+      field('latest-edit').classList.add('said');
+      if (laneIndex === 0) markOnChart(event.time_ms, 'You', 'var(--ink)', 0);
+    } else if (event.type === 'heard') {
+      field('latest-edit').textContent = `Heard you: \u201c${event.text}\u201d`;
+      field('latest-edit').classList.add('said');
+      showState('Model thinking');
+      markOnChart(event.time_ms, 'heard', laneColour, laneIndex + 1);
+    } else if (event.type === 'goal') {
+      field('goal').textContent = goalLine(event.task);
     } else if (event.type === 'solve_done' && event.s11_db_at_target === null) {
       // The harness writes null when a solve fails. Keep the last good value on the chart and say so.
       previousStepEndMs = event.time_ms;
@@ -254,7 +338,7 @@ function createLanePlayer(runLog, laneColour, chart, chartElement) {
       previousStepEndMs = event.time_ms;
       tracePoints.push([event.time_ms, currentS11Db], [event.time_ms, event.s11_db_at_target]);
       currentS11Db = event.s11_db_at_target;
-      showState('Model thinking');
+      showState(finishing ? 'Wrapping up' : !marksModelTurns || event.model_thinking ? 'Model thinking' : 'Solving');
       if (firstMatchMs === null && isMatch(event)) {
         firstMatchMs = event.time_ms;
         field('result').textContent = `${goalMode ? 'Goal met' : 'Matched'} at ${formatSeconds(firstMatchMs)} s, ${formatDecibels(currentS11Db)} dB`;
@@ -289,6 +373,7 @@ function createLanePlayer(runLog, laneColour, chart, chartElement) {
     advanceTo(elapsedMs) {
       const laneTimeMs = Math.min(elapsedMs, finishTimeMs);
       field('elapsed').textContent = formatSeconds(laneTimeMs);
+      showSplit(laneTimeMs);
       while (nextEventIndex < events.length && events[nextEventIndex].time_ms <= elapsedMs) {
         applyEvent(events[nextEventIndex]);
         nextEventIndex += 1;
@@ -330,8 +415,11 @@ async function main() {
   try {
     if (!leftLogUrl || !rightLogUrl) throw new Error('Both ?left= and ?right= are required.');
     runLogs = await Promise.all([loadRunLog(leftLogUrl), loadRunLog(rightLogUrl)]);
+    // Sentence races judge each lane by its own goal (goal_met), so each may read its own S11 limit from the words.
+    // Older logs are judged by the threshold alone, and the clocks only compare when it is the same.
     const [leftThresholdDb, rightThresholdDb] = runLogs.map((runLog) => runLog.match_threshold_db);
-    if (leftThresholdDb !== rightThresholdDb) {
+    const bothJudgedByGoal = runLogs.every((runLog) => runLog.events.some((event) => typeof event.goal_met === 'boolean'));
+    if (leftThresholdDb !== rightThresholdDb && !bothJudgedByGoal) {
       throw new Error(`The two logs use different match thresholds: ${leftThresholdDb} and ${rightThresholdDb} dB.`);
     }
   } catch (error) {
@@ -345,28 +433,56 @@ async function main() {
   if (runLogs.length === 2 && (modelOf(runLogs[0]) === null || modelOf(runLogs[0]) !== modelOf(runLogs[1]))) {
     document.getElementById('headline').textContent = 'Same antenna, same tools, same solver';
   }
-  document.getElementById('task-description').textContent = runLogs[0].task
-    ? `Task: ${runLogs[0].task}`
-    : `Task: match a ${targetGhz} GHz patch antenna to 50 Ω, S11 at or below ${formatWholeDecibels(thresholdDb)} dB`;
+  const prompt = runLogs[0].prompt;
+  if (prompt) {
+    // A sentence race: the person's words are the headline; each lane shows the goal its model read from them.
+    document.getElementById('headline').textContent = `\u201c${prompt}\u201d`;
+    // The harness is named when both lanes ran in the same one (the hackathon requires OpenClaw, and says to show it).
+    const harness = runLogs[0].harness && runLogs[0].harness === runLogs[1].harness ? runLogs[0].harness : null;
+    const inHarness = harness ? `, as an ${harness} agent,` : '';
+    document.getElementById('task-description').textContent = modelOf(runLogs[0]) && modelOf(runLogs[0]) === modelOf(runLogs[1])
+      ? `${modelOf(runLogs[0])}${inHarness} reads it, designs it and tests it on the solver. Same tools, same solver, two hosts.`
+      : `Each model${inHarness} reads it, designs it and tests it on the solver. Same ${harness ? `${harness} harness, same ` : ''}tools, same solver.`;
+    // Each lane's model sets its own goal from the words; when they differ, the clocks are not the same task.
+    if (runLogs[0].task !== runLogs[1].task) {
+      document.getElementById('task-description').textContent += ' The two lanes read the request differently: compare their goals.';
+    }
+  } else {
+    document.getElementById('task-description').textContent = runLogs[0].task
+      ? `Task: ${runLogs[0].task}`
+      : `Task: match a ${targetGhz} GHz patch antenna to 50 \u03a9, S11 at or below ${formatWholeDecibels(thresholdDb)} dB`;
+  }
 
   const lastFinishMs = Math.max(...runLogs.map((runLog) => runLog.events.find((event) => event.type === 'done').time_ms));
   const chartElement = document.getElementById('race-chart');
   // In goal mode the line is the S11 limit, one part of the goal; reaching it is not a match on its own.
   const goalMode = runLogs.some((runLog) => runLog.events.some((event) => typeof event.goal_met === 'boolean'));
-  const chart = createRaceChart(chartElement, lastFinishMs * 1.04, thresholdDb, targetGhz,
-    goalMode ? `S11 limit ${formatWholeDecibels(thresholdDb)} dB` : `matched at ${formatWholeDecibels(thresholdDb)} dB or below`);
+  const limits = [...new Set(runLogs.map((runLog) => runLog.match_threshold_db))];
+  const thresholds = limits.length === 1
+    ? [{ db: thresholdDb, text: goalMode ? `S11 limit ${formatWholeDecibels(thresholdDb)} dB` : `matched at ${formatWholeDecibels(thresholdDb)} dB or below` }]
+    : runLogs.map((runLog, side) => ({ db: runLog.match_threshold_db, text: `${side ? 'Right' : 'Left'} lane's S11 limit ${formatWholeDecibels(runLog.match_threshold_db)} dB` }));
+  const chart = createRaceChart(chartElement, lastFinishMs * 1.04, thresholds, targetGhz,
+    // After a restart on a new request the trace shows each design at its own goal's target.
+    runLogs.some((runLog) => runLog.events.filter((event) => event.type === 'goal').length > 1));
   const lanePlayers = [
-    createLanePlayer(runLogs[0], 'var(--left-lane)', chart, chartElement),
-    createLanePlayer(runLogs[1], 'var(--right-lane)', chart, chartElement),
+    createLanePlayer(runLogs[0], 'var(--left-lane)', chart, chartElement, 0),
+    createLanePlayer(runLogs[1], 'var(--right-lane)', chart, chartElement, 1),
   ];
   lanePlayers.forEach((player) => document.getElementById('lanes').append(player.laneElement));
 
   if (runLogs.some((runLog) => runLog.is_sample_data)) {
     document.getElementById('stage').append(Object.assign(document.createElement('div'), {
       className: 'sample-data-notice',
-      textContent: 'Sample data, not a real run',
+      textContent: 'Not a real run: stand-in data',
     }));
   }
+
+  // The ending: each lane's final design as a 3D radiation lobe, when both logs carry one.
+  const lobesReady = runLogs.every((runLog) => runLog.lobe_glb) ? import('./lobe.mjs').then((lobe) => lobe.prepareLobes(document.getElementById('lobes'), runLogs.map((runLog, n) => ({
+    url: runLog.lobe_glb,
+    colour: getComputedStyle(document.documentElement).getPropertyValue(n === 0 ? '--left-lane' : '--right-lane').trim(),
+    caption: `${runLog.result.met ? 'Met' : 'Best'}: ${runLog.result.f0_ghz} GHz, ${formatDecibels(runLog.result.s11_db_at_target)} dB on the ${runLog.result.mesh} mesh \u00b7 20 dB scale`,
+  })))).catch((error) => { console.error('lobes:', error); return null; }) : Promise.resolve(null);
 
   await waitForStartKey();
   let startTimestamp;
@@ -375,6 +491,11 @@ async function main() {
     const elapsedMs = frameTimestamp - startTimestamp;
     lanePlayers.forEach((player) => player.advanceTo(elapsedMs));
     if (elapsedMs < lastFinishMs + HOLD_AFTER_BOTH_FINISH_MS) requestAnimationFrame(drawFrame);
+    else lobesReady.then((lobes) => {
+      if (!lobes) return;
+      chartElement.classList.add('faded');
+      lobes.show();
+    });
   });
 }
 

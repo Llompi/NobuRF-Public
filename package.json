@@ -30,7 +30,7 @@
     "design": "node --import tsx --import ./src/node/register_raw_imports.mjs scripts/design.ts"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.3"
   },
   "dependencies": {
     "three": "^0.187.0",

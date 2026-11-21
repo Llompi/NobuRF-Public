@@ -14,7 +14,7 @@ npm run design -- new --target 5.8 --board 20x20 --out my.design.json
 npm run design -- run my.design.json --model scripted
 # You (or another agent) in the model's seat: type one tool call per line.
 npm run design -- run my.design.json --model manual
-npm run design -- run my.design.json --model cerebras --gpu     # CEREBRAS_API_KEY
+npm run design -- run my.design.json --model cerebras --gpu     # NOBURF_DIRECT_CEREBRAS=1 + a key of your own (see below)
 npm run design -- run my.design.json --model openrouter --gpu   # OPENROUTER_API_KEY
 # The same tools as an MCP server, for OpenClaw (see openclaw/design-agent.json5).
 node scripts/design-mcp.mjs mcp my.design.json --gpu
@@ -170,10 +170,16 @@ npm run design -- race my.design.json --lanes cerebras,openrouter --gpu
 npm run design -- replay <run folder> <run folder>     # from runs already made (left, right)
 ```
 
+`run` and `race` call the provider directly. The hackathon's Cerebras key may
+be used only inside OpenClaw, so a Cerebras lane there is refused unless you
+set `NOBURF_DIRECT_CEREBRAS=1` for a key of your own without that rule. With
+the hackathon key, race through OpenClaw with `agent-race` (below).
+
 `race` runs the two lanes on the same design, one after the other, each a
 normal `run` with its own spend guard and run cap, then writes two replay logs
 for the race view (`launch/race-replay/index.html`) and prints the URL to
-open with the repo root served. The lanes run one after the other so they get
+open with the repo root served (`npm run design -- serve` serves it on
+localhost:8000 with the right types on every platform). The lanes run one after the other so they get
 the same solver with no contention; each lane's clock starts at its own start.
 Same task, tools, solver, budget and reasoning effort: the difference between
 the lanes is where the model runs.
@@ -193,6 +199,114 @@ Until Kimi is live on Cerebras, the Cerebras lane runs `CEREBRAS_MODEL`
 (gpt-oss-120b) and its label says so; for a like-for-like race set
 `CEREBRAS_MODEL` to Kimi and pin the OpenRouter host with
 `OPENROUTER_PROVIDERS`.
+
+## From a sentence, through OpenClaw
+
+```bash
+npm run design -- agent "a 2.4 GHz patch under 30 mm on FR-4" --lane cerebras --gpu
+npm run design -- agent-race "a 2.4 GHz patch under 30 mm on FR-4" --lanes cerebras,openrouter --gpu
+```
+
+`agent` is one design session that starts from the person's own words. OpenClaw
+is the harness: it runs the model and calls the NobuRF tools through the MCP
+server, started with `--out` so that its first tool is `start_design`. The
+model reads the request, states it as a goal and a board, and designs from
+there. It never writes geometry: `start_design` builds the starting patch
+from textbook formulas, and its answer says when that patch does not fit the
+board.
+
+Between OpenClaw and the provider sits a local proxy (`src/design/model_proxy.ts`):
+
+- OpenClaw gets the proxy's URL and a random per-run key for the proxy. The
+  real key stays in the proxy: OpenClaw and everything it starts get only
+  the system variables a process needs (PATH, HOME, TEMP, library paths, proxy
+  and CA settings and the like), so no
+  key or token under any name reaches them. Every request is sent with the
+  lane's model, the lane's provider fields (OpenRouter host pinning and price
+  ceiling), one completion and the lane's reply budget, whatever the harness
+  asked for, and only the fields a chat turn needs (messages, tools,
+  tool_choice, stream, temperature, top_p, stop, parallel_tool_calls).
+- Every call reserves its worst case with the spend guard before it is
+  forwarded and is settled to the reported cost after (see "Models and spend").
+  A call that could pass a cap is answered 402 and never reaches the provider.
+  A call is released only when the provider refused it (400, 401, 403, 404,
+  413, 422, 429) or it never left the machine; a timeout, a reset or a server
+  error keeps its worst case. This puts OpenClaw runs under the same caps as
+  `design run`.
+- It times each call and reads the provider's token usage (thinking tokens
+  apart) and the tool calls from the reply, the same way for every lane.
+
+Options: `--effort low|medium|high|max` (default high: the reply budget is
+2048, 4096, 8192 or 16384 tokens, reserved in full before each call),
+`--solves N` (default 30), `--confirms N` (3), `--run-cap USD` (default
+1.00, the most allowed: each call reserves its whole request, one token per byte, plus the reply
+budget, and a high-effort history passes 100 KB), `--timeout s` (1800). `OPENCLAW_BIN` points at the `openclaw` executable (Node 24.16 or
+newer) when it is not on the PATH. `--upstream` points a lane at a local
+stand-in provider (loopback only), for offline runs. When OpenClaw has exited
+without a confirmed design that meets the goal, the runner confirms the best
+unconfirmed search design, as `design run` does (it cannot know an aimed
+optimise result, so it takes the best search score). That solve is on the
+lane's clock. The runner also stops OpenClaw, and the solver it started, a
+minute after `--timeout`, counted from the lane's first model request; a lane
+held for the other lane's run is not charged for the wait. In `agent-race`,
+the second lane does not start when the first fails or ends without a solved
+design, and the two lanes must be different providers.
+
+OpenClaw sees only the proxy's model: the lane config replaces OpenClaw's
+provider catalog and sets no fallbacks, and each lane keeps OpenClaw's state in
+its run folder (`OPENCLAW_STATE_DIR=<run>/openclaw-state`). A key onboarded into
+your own OpenClaw is never used, so a call the spend guard refuses ends the
+lane instead of failing over to a provider the guard cannot see.
+
+Each lane's clock starts at its first model request. OpenClaw's own start-up
+(loading and starting the MCP server) does not
+depend on the provider and is reported apart (`harness_startup_s`). It took
+about 11 s in a Linux cloud container and 81 to 514 s on a Windows laptop
+(OpenClaw 2026.11.5). `agent-race` therefore starts both harnesses at once
+and the proxy holds each one's first model request: the first lane's clock
+starts when both are up, the second's when the first lane ends, so the
+start-up happens before the race (and the second's during the first lane)
+instead of as a gap in it. The wait is reported as `held_s`. A
+rate-limited call's wait runs from its start to the next call, so the
+harness's backoff counts as waiting, shown apart from thinking. The run folder holds what `design run`
+writes, plus `model-calls.json` (every call as the proxy saw it), the OpenClaw
+config and its output.
+
+`agent-race` runs two lanes one after the other on the same solver (both
+harnesses started up front, as above), solves
+each lane's final design once more with the far field at the target (outside
+both clocks; `--no-lobe` skips it), and writes the replay logs. The race view
+then shows the request as the headline, the goal each model read from it,
+thinking time apart from solver time, and ends on each lane's 3D lobe. The
+lanes may read the request differently; the view shows what each one read.
+
+### Talking to it mid-run
+
+```bash
+npm run design -- agent-race "a 2.4 GHz patch on a 50 mm FR-4 board" --gpu --say "8:actually make it 5.8 GHz on a 24 mm board"
+```
+
+What the person writes while a lane runs goes to the model through OpenClaw,
+with its next tool result. The MCP server reads a message file in the
+session folder (`--inbox`, `src/design/inbox.ts`); the runner writes to it.
+
+- `--say "<seconds>:<message>"` writes the message that many seconds into
+  each lane's clock, so both lanes of a race hear the same words at the same
+  point. A single `agent` lane in a terminal also takes typed lines.
+- A message that arrives during `optimise` ends the search after the solves
+  in progress, and the search's best point so far stands; the result says it
+  stopped early. A running solve is not cut short: on the CPU a large board's
+  solve can take minutes, on the GPU a few seconds.
+- The tool result carries `person_says` and a note asking the model to
+  replan. If the message changes the goal or the board, the model calls
+  `start_design` again. That restart is refused unless the person has spoken
+  since the last start, so the goal changes only on the person's word. The
+  solve budget carries over, and only designs from the last start count for
+  the result and the closing confirm.
+- `finish` with an unread message is answered with the message instead.
+- The journal and the replay log carry each message at the time it was
+  written (`say`), and `summary.json` lists when each was written and when the
+  model got it (`person_says`). The race view shows it in the lane.
 
 ## Models and spend
 
@@ -248,10 +362,10 @@ second laptop, a fresh container, OpenClaw or any other script on the same key
 starts at $0 here. The provider-side limit (the $5 credit with auto-recharge
 off, the OpenRouter key's own limit) is the real stop.
 
-**OpenClaw runs are not guarded.** With `openclaw/design-agent.json5`,
+**Hand-run OpenClaw is not guarded.** With `openclaw/design-agent.json5`,
 OpenClaw calls the provider itself and the spend guard never sees those calls.
-Use `npm run design -- run` for live runs until the guard sits in front of
-OpenClaw as a proxy. Never give OpenClaw the Cerebras key that holds the
+Use `npm run design -- agent`, which puts the guard in front of OpenClaw as a
+proxy, or `npm run design -- run`. Never give OpenClaw the Cerebras key that holds the
 hackathon credit; use a key with a small provider-side limit of its own. The
 MCP server refuses every call after `finish` and after 40 tool calls
 (`--max-calls`).

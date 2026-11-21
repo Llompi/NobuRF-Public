@@ -13,28 +13,36 @@
  * Nelder-Mead optimiser and the FDTD solver do the search. See docs/design-agent.md.
  * Keys come from the environment or a .env file in the working directory, never the command line.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { basename, dirname, join, relative, resolve, sep } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { createServer } from 'node:http';
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
+import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 import { createInterface } from 'node:readline';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { designAt, designFromProject, parseDesignFile, tuningDesignFromProject, projectFor, type DesignFile } from '../src/design/design_file';
 import { createEvaluator } from '../src/design/evaluate';
 import { decideUseGpu } from './noburf';
-import type { DesignGoal } from '../src/design/goal';
 import { HttpChatModel, laneFor, type ChatModel } from '../src/design/llm';
 import { patchDesign } from '../src/design/patch_template';
 import { parseProject } from '../src/project/schema';
+import type { DesignGoal } from '../src/design/goal';
+import { designFromRequest, parseDesignRequest, sizingNote, START_DESIGN_TOOL } from '../src/design/start_design';
 import { replayFromJournal, servedBy } from '../src/design/replay';
-import { DesignSession, type SensitivityReport, type SessionEvent } from '../src/design/session';
-import { DEFAULT_LEDGER, MAX_PROVIDER_CAP_USD, SpendGuard } from '../src/design/spend';
+import { inboxFor, runOpenClawLane, type OpenClawLaneOptions } from '../src/design/openclaw_lane';
+import { DesignSession, type SensitivityReport, type SessionEvent, type SessionLimits } from '../src/design/session';
+import { appendToInbox, InboxReader } from '../src/design/inbox';
+import { DEFAULT_LEDGER, MAX_PROVIDER_CAP_USD, MAX_RUN_CAP_USD, SpendGuard } from '../src/design/spend';
 import { callTool, ManualDriver, runStrategist, ScriptedStrategist, STRATEGIST_TOOLS, type StrategistEvent, type StrategistResult } from '../src/design/strategist';
 
 const USAGE = `usage: design new --target <GHz> --board <W>x<L> [--s11 dB] [--bandwidth MHz] [--axial-ratio dB] [--substrate name:eps_r:h_mm] --out <file>
        design new --target <GHz> --from <project.json> [--s11 dB] [--bandwidth MHz] [--axial-ratio dB] --out <file>
        design run <file> [--model scripted|manual|cerebras|openrouter] [--gpu] [--solves N] [--confirms N] [--turns N] [--workers N] [--effort low] [--run-cap USD]
-       design mcp <file> [--gpu] [--solves N] [--confirms N] [--workers N] [--max-calls 40]
+       design mcp <file> | --out <folder> [--gpu] [--closing-confirm] [--solves N] [--confirms N] [--workers N] [--max-calls 40]
        design race <file> [--lanes cerebras,openrouter] [run options]   (both lanes, one after the other, then replay logs)
        design replay <run folder> <run folder> [--labels "left|right"] [--out <folder>]
+       design agent "<request>" [--lane cerebras|openrouter] [--effort high] [--gpu] [--solves 30] [--confirms 3] [--run-cap USD] [--timeout s] [--say "<s>:<message>"] [--out <folder>]
+       design agent-race "<request>" [--lanes cerebras,openrouter] [agent options] [--no-lobe]   (OpenClaw drives both lanes, then replay logs)
+       design serve [--port 8000]   (serves this folder on localhost for the race replay)
        design sensitivity <design or project file> [--variables a,b] [--rank f0_mhz|s11_target_db|zin_target_ohm|s11_min_db]
                          [--fidelity search|confirm] [--step-pct 2] [--check-step] [--target GHz] [--gpu | --cpu] [--workers N] [--out report.json]`;
 
@@ -48,6 +56,8 @@ const DEFAULT_PROVIDER_CAP_USD = MAX_PROVIDER_CAP_USD;
 const MAX_COMPLETION_TOKENS: Record<string, number> = { low: 1024, medium: 2048, high: 4096, max: 4096 };
 /** About the size of the first call (system prompt, brief and tool schemas), for the run-cap check. */
 const OPENING_PROMPT_TOKENS = 3000;
+/** Default run cap for an OpenClaw lane (design agent): see the reservation note in agent(). */
+const AGENT_RUN_CAP_USD = MAX_RUN_CAP_USD;
 
 function flags(argv: string[], booleans: string[]): { positional: string[]; opts: Map<string, string> } {
   const positional: string[] = [];
@@ -106,19 +116,30 @@ function loadDesign(path: string): DesignFile {
   return parseDesignFile(JSON.parse(readFileSync(path, 'utf8')));
 }
 
-function sessionFor(design: DesignFile, opts: Map<string, string>, onEvent: (e: SessionEvent) => void) {
+function sessionFor(design: DesignFile, opts: Map<string, string>, onEvent: (e: SessionEvent) => void, limits?: SessionLimits) {
   const evaluator = createEvaluator(design.goal, { useGpu: opts.has('--gpu'), workers: numberOpt(opts, '--workers') });
-  const session = new DesignSession(design, evaluator, {
+  const session = new DesignSession(design, evaluator, limits ?? {
     maxSearchSolves: numberOpt(opts, '--solves', 60)!,
     maxConfirmSolves: numberOpt(opts, '--confirms', 3)!,
   }, onEvent);
   return { evaluator, session };
 }
 
+/**
+ * Hackathon rule (Cerebras moderators, Nov 21): the hackathon key is used only inside OpenClaw. `run` and `race`
+ * call the provider directly, so a Cerebras lane goes through `design agent` / `agent-race` instead.
+ */
+function refuseDirectCerebras(lane: string): void {
+  if (lane === 'cerebras' && process.env.NOBURF_DIRECT_CEREBRAS !== '1') {
+    throw new Error('the Cerebras key is for use inside OpenClaw only: run `npm run design -- agent "<request>" --lane cerebras` or agent-race. With a key of your own that has no such rule, set NOBURF_DIRECT_CEREBRAS=1.');
+  }
+}
+
 function modelFor(lane: string, session: DesignSession, opts: Map<string, string>): ChatModel {
   if (lane === 'scripted') return new ScriptedStrategist(session);
   if (lane === 'manual') return new ManualDriver(createInterface({ input: process.stdin, terminal: false }));
   const l = laneFor(lane);
+  refuseDirectCerebras(l.id);
   const key = process.env[l.keyEnv];
   if (!key) throw new Error(`${l.keyEnv} is not set (environment or .env)`);
   const providerCap = Number(process.env.NOBURF_PROVIDER_CAP_USD ?? DEFAULT_PROVIDER_CAP_USD);
@@ -235,12 +256,20 @@ function laneLabel(modelLabel: string, hosts: string[]): string {
  * lane keeps its own clock from its own start, so lanes run one after another
  * on the same machine race fairly: same solver, no contention.
  */
-function replay(argv: string[]): string[] {
+function replay(argv: string[], solvedLobes?: Array<string | null>): string[] {
   const { positional: runDirs, opts } = flags(argv, []);
   if (runDirs.length !== 2) throw new Error(`replay takes two run folders, one per lane\n${USAGE}`);
+  // A lobe agent-race solved earlier sits in the run folder: replaying the race again keeps its ending.
+  const lobes = solvedLobes ?? runDirs.map((dir) => {
+    const lobeDir = join(dir, 'lobe');
+    const glb = existsSync(lobeDir) ? readdirSync(lobeDir).find((n) => n.startsWith('pattern_') && n.endsWith('.glb')) : undefined;
+    return glb ? join(lobeDir, glb) : null;
+  });
   const labels = opts.get('--labels')?.split('|');
   const outDir = opts.get('--out') ?? join(dirname(runDirs[0]), `race-${stamp()}`);
   mkdirSync(outDir, { recursive: true });
+  // The view fetches logs and lobes by URL: serve the repo root and pass paths from it.
+  const url = (f: string) => '/' + relative(process.cwd(), resolve(f)).split(sep).join('/');
   const files = runDirs.map((dir, n) => {
     const summary = JSON.parse(readFileSync(join(dir, 'summary.json'), 'utf8'));
     const journal = readFileSync(join(dir, 'journal.jsonl'), 'utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line));
@@ -251,15 +280,19 @@ function replay(argv: string[]): string[] {
       goal: summary.goal,
       modelS: summary.timing.model_s,
       costUsd: summary.cost_usd,
+      // Sentence races (design agent) carry the person's words, the solver time and the final design's lobe.
+      ...(summary.sentence ? { prompt: summary.sentence } : {}),
+      ...(typeof summary.timing.tools_s === 'number' ? { toolsS: summary.timing.tools_s } : {}),
+      ...(lobes[n] ? { lobeUrl: url(lobes[n]!) } : {}),
+      ...(summary.stand_in_provider ? { standIn: true } : {}),
+      ...(summary.harness ? { harness: summary.harness } : {}),
     }));
     const file = join(outDir, `replay-${n === 0 ? 'left' : 'right'}.json`);
     writeFileSync(file, JSON.stringify(log, null, 2) + '\n');
     console.log(`${log.lane_label}: ${log.result.met ? 'met' : 'missed'}, model ${log.model_s} s, $${log.cost_usd} -> ${file}`);
     return file;
   });
-  // The view fetches the logs by URL: serve the repo root and pass paths from it.
-  const url = (f: string) => '/' + relative(process.cwd(), resolve(f)).split(sep).join('/');
-  console.log(`\nplay it: python3 -m http.server 8000, then open http://localhost:8000/launch/race-replay/?left=${url(files[0])}&right=${url(files[1])}`);
+  console.log(`\nplay it: npm run design -- serve, then open http://localhost:8000/launch/race-replay/?left=${url(files[0])}&right=${url(files[1])}`);
   return files;
 }
 
@@ -278,9 +311,10 @@ async function race(argv: string[]): Promise<void> {
   if (lanes.length !== 2 || lanes.some((l) => !l)) throw new Error(`--lanes names two lanes, e.g. cerebras,openrouter\n${USAGE}`);
   const rest = lanesAt >= 0 ? [...argv.slice(0, lanesAt), ...argv.slice(lanesAt + 2)] : argv;
   if (rest.includes('--model')) throw new Error('race takes --lanes, not --model');
-  // Both lanes' keys before either spends anything.
+  // Both lanes' keys, and the OpenClaw-only rule for Cerebras, before either spends anything.
   for (const lane of lanes) {
     if (lane === 'scripted' || lane === 'manual') continue;
+    refuseDirectCerebras(lane);
     const keyEnv = laneFor(lane).keyEnv;
     if (!process.env[keyEnv]) throw new Error(`${keyEnv} is not set (environment or .env): lane ${lane} cannot run`);
   }
@@ -300,19 +334,229 @@ async function race(argv: string[]): Promise<void> {
   }
 }
 
+/** --say "<seconds>:<message>": what the person says mid-run, at that time on the lane's clock (the same on every lane). */
+function sayOption(value: string | undefined): { atS: number; text: string } | undefined {
+  if (value === undefined) return undefined;
+  const match = /^\s*(\d+(?:\.\d+)?)\s*:(.+)$/s.exec(value);
+  if (!match || !match[2].trim()) throw new Error('--say takes "<seconds>:<message>", e.g. --say "8:make it fit a 20 mm board"');
+  return { atS: Number(match[1]), text: match[2].trim() };
+}
+
+/** Largest reply OpenClaw may ask for, by reasoning effort: heavy thinking needs room before the tool call. */
+const AGENT_MAX_COMPLETION_TOKENS: Record<string, number> = { low: 2048, medium: 4096, high: 8192, max: 16384 };
+
+/**
+ * One lane of the sentence race: OpenClaw drives Kimi (or any model the lane names) from the person's own words,
+ * through the NobuRF tools, with the model behind a spend-guarded timing proxy. Returns the run folder.
+ */
+async function agent(argv: string[], race: Pick<OpenClawLaneOptions, 'holdUntil' | 'onReady'> = {}): Promise<string> {
+  const { positional: [sentence], opts } = flags(argv, ['--gpu']);
+  if (!sentence?.trim()) throw new Error(`agent needs the design request in quotes\n${USAGE}`);
+  const laneId = opts.get('--lane') ?? 'cerebras';
+  const lane = laneFor(laneId);
+  const effort = opts.get('--effort') ?? 'high';
+  const maxTokens = AGENT_MAX_COMPLETION_TOKENS[effort];
+  if (!maxTokens) throw new Error(`--effort is low, medium, high or max, not "${effort}"`);
+  const key = process.env[lane.keyEnv];
+  if (!key) throw new Error(`${lane.keyEnv} is not set (environment or .env)`);
+  const providerCap = Number(process.env.NOBURF_PROVIDER_CAP_USD ?? DEFAULT_PROVIDER_CAP_USD);
+  // Each call reserves its whole request as prompt tokens plus the full reply budget, and a high-effort history grows
+  // past 100 KB, so a $0.5 cap could refuse a lane mid-run although it has spent far less. The provider cap still holds.
+  const guard = new SpendGuard(lane.id, lane.price, numberOpt(opts, '--run-cap', AGENT_RUN_CAP_USD)!, providerCap, process.env.NOBURF_SPEND_LEDGER ?? DEFAULT_LEDGER);
+  const perCall = guard.costUsd(OPENING_PROMPT_TOKENS, maxTokens);
+  if (guard.runCapUsd < 3 * perCall) throw new Error(`--run-cap $${guard.runCapUsd} is too small: each call reserves up to $${perCall.toFixed(4)} before it is sent, so allow at least $${(3 * perCall).toFixed(2)}`);
+  const outDir = opts.get('--out') ?? join('runs', 'agent', `${laneId}-${stamp()}`);
+  // A stand-in provider for offline runs and tests. Loopback only: the real key goes wherever this points.
+  const upstream = opts.get('--upstream');
+  if (upstream && !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?(\/|$)/.test(upstream)) throw new Error('--upstream must be a loopback URL (http://127.0.0.1:<port>/v1)');
+  console.log(`${lane.model} on ${lane.id} via OpenClaw, ${effort} effort: spent so far $${guard.spentEver().toFixed(4)} of the $${providerCap} cap; run cap $${guard.runCapUsd}`);
+  // One lane in a terminal: each line typed while it runs goes to the model, as --say does on a schedule. A race
+  // takes --say only, so both lanes hear the same words at the same time on their clocks.
+  const typed = !race.holdUntil && process.stdin.isTTY ? createInterface({ input: process.stdin }) : null;
+  if (typed) {
+    console.log('type a message and press Enter to tell the agent something while it works');
+    typed.on('line', (line) => {
+      if (line.trim()) appendToInbox(inboxFor(outDir), line);
+    });
+  }
+  const { summary } = await runOpenClawLane({
+    lane, apiKey: key, guard, sentence, outDir, reasoningEffort: effort, maxCompletionTokens: maxTokens,
+    gpu: opts.has('--gpu'),
+    searchSolves: numberOpt(opts, '--solves', 30)!,
+    confirmSolves: numberOpt(opts, '--confirms', 3)!,
+    timeoutS: numberOpt(opts, '--timeout', 1800)!,
+    openclawBin: process.env.OPENCLAW_BIN,
+    upstream,
+    say: sayOption(opts.get('--say')),
+    ...race,
+    onCall: (c) => console.log(`[${laneId}] ` + (c.http_status === 200
+      ? `model ${((c.ended_at - c.started_at) / 1000).toFixed(1)} s, ${c.completion_tokens ?? '?'} tokens${c.reasoning_tokens ? ` (${c.reasoning_tokens} thinking)` : ''}: ${c.tool_calls.map((t) => `${t.name} ${t.arguments}`).join('; ') || '(no tool call)'}`
+      : `model call ${c.http_status}: ${c.error ?? ''}`)),
+  });
+  typed?.close();
+  const t = summary.timing as Record<string, number>;
+  console.log(`\n${summary.ended}: best confirmed ${JSON.stringify((summary.best_confirmed as { metrics?: unknown } | null)?.metrics ?? null)}`);
+  console.log(`wall ${t.wall_s} s = model ${t.model_s} s + tools ${t.tools_s} s + rate-limit waits ${t.rate_limit_wait_s} s + harness ${t.other_s} s; $${summary.cost_usd} -> ${outDir}`);
+  console.log(`model time: ${t.first_token_wait_s} s waiting for first tokens (queue and prompt), ${t.generating_s} s generating, over ${t.model_turns} calls`);
+  return outDir;
+}
+
+/**
+ * The 3D lobe of a lane's final design: one fine-mesh solve with the far field at the target, written next to
+ * the run. Not part of either lane's clock. Returns the .glb path, or null when the lane has no design.
+ */
+function lobeFor(runDir: string, useGpu: boolean): string | null {
+  const projectPath = join(runDir, 'best.project.json');
+  if (!existsSync(projectPath)) return null;
+  const project = JSON.parse(readFileSync(projectPath, 'utf8'));
+  const summary = JSON.parse(readFileSync(join(runDir, 'summary.json'), 'utf8'));
+  const f = summary.goal?.target_ghz;
+  if (!f) return null;
+  project.outputs = { ...project.outputs, far_field_ghz: [f] };
+  // The far-field box needs air between the board and the absorbing boundary: the margins the template uses
+  // for a far-field goal (patch_template meshFor). More air than the confirm mesh, the same copper.
+  const margin = project.mesh.air_margin_cells ?? {};
+  project.mesh.air_margin_cells = { ...margin, xy: Math.max(4, margin.xy ?? 0), below: Math.max(4, margin.below ?? 0) };
+  const lobeProject = join(runDir, 'lobe.project.json');
+  writeFileSync(lobeProject, JSON.stringify(project, null, 2) + '\n');
+  const outDir = join(runDir, 'lobe');
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const solved = spawnSync(process.execPath, [
+    // --import takes a URL: a bare Windows path (C:\...) reads as a URL scheme and fails.
+    '--import', 'tsx', '--import', pathToFileURL(join(root, 'src', 'node', 'register_raw_imports.mjs')).href,
+    join(root, 'scripts', 'noburf.ts'), 'solve', resolve(lobeProject), '--out', resolve(outDir), ...(useGpu ? ['--gpu'] : []),
+  ], { cwd: root, stdio: 'inherit' });
+  if (solved.status !== 0) {
+    console.log(`warning: the lobe solve for ${runDir} failed; the replay shows no lobe for that lane`);
+    return null;
+  }
+  const glb = readdirSync(outDir).find((n) => n.startsWith('pattern_') && n.endsWith('.glb'));
+  return glb ? join(outDir, glb) : null;
+}
+
+/** The sentence race: both lanes through OpenClaw, one after the other on the same solver, then replay logs and lobes. */
+async function agentRace(argv: string[]): Promise<void> {
+  const lanesAt = argv.indexOf('--lanes');
+  const lanes = (lanesAt >= 0 ? argv[lanesAt + 1] ?? '' : 'cerebras,openrouter').split(',').map((l) => l.trim());
+  if (lanes.length !== 2 || lanes.some((l) => !l)) throw new Error(`--lanes names two lanes, e.g. cerebras,openrouter\n${USAGE}`);
+  // Two lanes on one provider would each get a run cap against the same account, and race nothing.
+  if (lanes[0] === lanes[1]) throw new Error(`--lanes names two different lanes, not ${lanes[0]} twice`);
+  let rest = lanesAt >= 0 ? [...argv.slice(0, lanesAt), ...argv.slice(lanesAt + 2)] : argv;
+  if (rest.includes('--lane') || rest.includes('--out')) throw new Error('agent-race takes --lanes, and names its own run folders');
+  const withLobes = !rest.includes('--no-lobe');
+  rest = rest.filter((a) => a !== '--no-lobe');
+  for (const lane of lanes) {
+    const keyEnv = laneFor(lane).keyEnv;
+    if (!process.env[keyEnv]) throw new Error(`${keyEnv} is not set (environment or .env): lane ${lane} cannot run`);
+  }
+  if (lanes.includes('openrouter') && !process.env.OPENROUTER_PROVIDERS) {
+    console.log('note: OPENROUTER_PROVIDERS is not set, so OpenRouter picks the fastest host per call; the lane is labelled by the hosts that answered');
+  }
+  const raceDir = join('runs', 'agent', `race-${stamp()}`);
+  // Both harnesses start now and each holds its first model request at the proxy: the first lane's clock starts
+  // once both are up, the second's when the first ends. OpenClaw's start-up (minutes on some Windows machines)
+  // then happens before the race, and the second's overlaps the first lane's run. The lanes still run one after the
+  // other, so neither shares the solver.
+  let go!: () => void;
+  const firstGo = new Promise<void>((resolve) => (go = resolve));
+  let ready = 0;
+  const onReady = () => {
+    if (++ready === 2) {
+      console.log('both harnesses are up: the race starts');
+      go();
+    }
+  };
+  const first = agent([...rest, '--lane', lanes[0], '--out', join(raceDir, lanes[0])], { holdUntil: firstGo, onReady });
+  // The second lane races only when the first produced a design: otherwise there is no race to show, and its run
+  // would be paid for nothing. false ends it while it is still held.
+  const firstDone = first.then((dir) => {
+    const solves = JSON.parse(readFileSync(join(dir, 'summary.json'), 'utf8')).solves ?? {};
+    const raced = (solves.search ?? 0) + (solves.confirm ?? 0) > 0;
+    if (!raced) console.log(`${lanes[0]} ended without a solved design: ${lanes[1]} is not started`);
+    return raced;
+  }, () => {
+    console.log(`${lanes[0]} failed: ${lanes[1]} is not started`);
+    return false;
+  });
+  const second = agent([...rest, '--lane', lanes[1], '--out', join(raceDir, lanes[1])], { holdUntil: firstDone, onReady });
+  // A second lane whose harness exits (or fails) before its first request must not hold the first lane forever.
+  // The lane promise resolves on a harness error, so release on either outcome; go() twice is harmless.
+  second.then(go, go);
+  const dirs = await Promise.all([first, second]);
+  if (!(await firstDone)) {
+    console.log(`no race: the runs are in ${dirs.join(' and ')}`);
+    return;
+  }
+  const goals = dirs.map((d) => JSON.stringify(JSON.parse(readFileSync(join(d, 'summary.json'), 'utf8')).goal));
+  if (goals[0] !== goals[1]) console.log(`warning: the lanes read the request differently (${goals.join(' vs ')}); the race view says so`);
+  const lobes = withLobes ? dirs.map((d) => lobeFor(d, rest.includes('--gpu'))) : [null, null];
+  try {
+    replay([...dirs, '--out', raceDir], lobes);
+  } catch (e) {
+    throw new Error(`no race replay: ${(e as Error).message}. The runs are in ${dirs.join(' and ')}`);
+  }
+}
+
 const round1 = (x: number) => Math.round(x * 10) / 10;
+
+/** A tool result with what the person said mid-run, and how to take it. */
+function withMessages(output: unknown, says: string[]): object {
+  const base: Record<string, unknown> = typeof output === 'object' && output !== null && !Array.isArray(output) ? { ...output } : { result: output };
+  if (base.stop === 'stopped by the watcher') base.stop = 'stopped early: the person sent a message';
+  return {
+    ...base,
+    person_says: says,
+    note: 'The person wrote this while you were working. Replan to follow it now. If it changes the goal or the board, ' +
+      'call start_design again with the new request (the solve budget carries over); otherwise change features, ' +
+      'variables or strategy. Tell them in your finish summary how you took it.',
+  };
+}
 
 /**
  * A stdio MCP server (JSON-RPC 2.0, one message per line) exposing the design
  * tools, so OpenClaw can be the harness. stdout carries only protocol messages.
  */
 async function mcp(argv: string[]): Promise<void> {
-  const { positional: [path], opts } = flags(argv, ['--gpu']);
-  if (!path) throw new Error(USAGE);
+  const { positional: [path], opts } = flags(argv, ['--gpu', '--closing-confirm']);
+  // Either a design file, or --out <folder>: the session then starts from the model's start_design call
+  // (a person's sentence turned into a goal), and the design file and journal go in that folder.
+  const outDir = opts.get('--out');
+  if (!path === !outDir) throw new Error(USAGE);
   console.log = console.error; // anything else goes to stderr
-  const design = loadDesign(path);
-  const journal = opts.get('--journal') ?? join(dirname(path), `${basename(path).replace(/\.json$/i, '')}.mcp-${stamp()}.jsonl`);
-  const { session } = sessionFor(design, opts, (e) => writeFileSync(journal, JSON.stringify({ t: Date.now(), ...e }) + '\n', { flag: 'a' }));
+  if (outDir) mkdirSync(outDir, { recursive: true });
+  const journal = opts.get('--journal') ??
+    (outDir ? join(outDir, 'journal.jsonl') : join(dirname(path), `${basename(path).replace(/\.json$/i, '')}.mcp-${stamp()}.jsonl`));
+  const record = (e: object) => writeFileSync(journal, JSON.stringify({ t: Date.now(), ...e }) + '\n', { flag: 'a' });
+  let current = path ? sessionFor(loadDesign(path), opts, record) : null;
+  let session: DesignSession | null = current?.session ?? null;
+  const tools = outDir ? [START_DESIGN_TOOL, ...STRATEGIST_TOOLS] : STRATEGIST_TOOLS;
+  // --inbox <file>: what the person says mid-run (src/design/inbox.ts), handed to the model with the next tool result.
+  const inbox = opts.get('--inbox') ? new InboxReader(opts.get('--inbox')!) : null;
+  let heardSinceStart = false;
+  const startDesign = async (args: Record<string, unknown>) => {
+    // A second start is a restart, allowed once the person has said something since the last one: a new goal
+    // or board is the person's call, not the model's. The budget carries over; the solves so far stay in the journal.
+    if (session && !heardSinceStart) return { error: 'the design has already been started; continue with the other tools' };
+    const t0 = performance.now();
+    let design: DesignFile;
+    let sizing: ReturnType<typeof sizingNote>;
+    try {
+      const request = parseDesignRequest(args);
+      design = designFromRequest(request);
+      sizing = sizingNote(request);
+    } catch (e) {
+      return { error: `start_design: ${(e as Error).message}` };
+    }
+    writeFileSync(join(outDir!, 'design.json'), JSON.stringify(design, null, 2) + '\n');
+    const carried = session ? { maxSearchSolves: session.searchSolvesLeft, maxConfirmSolves: session.confirmSolvesLeft } : undefined;
+    await current?.evaluator.close();
+    current = sessionFor(design, opts, record, carried);
+    session = current.session;
+    heardSinceStart = false;
+    const brief = { ...session.brief(), sizing };
+    record({ type: 'tool', name: 'start_design', args, result: { goal: design.goal, sizing }, ms: Math.round(performance.now() - t0) });
+    return brief;
+  };
   const send = (msg: object): void => void process.stdout.write(JSON.stringify({ jsonrpc: '2.0', ...msg }) + '\n');
   const maxCalls = numberOpt(opts, '--max-calls', 40)!;
   let toolCalls = 0;
@@ -323,22 +567,41 @@ async function mcp(argv: string[]): Promise<void> {
           protocolVersion: (req.params?.protocolVersion as string) ?? '2025-06-18',
           capabilities: { tools: {} },
           serverInfo: { name: 'noburf-design', version: '0.1.0' },
-          instructions: 'Antenna design tools: call brief first, then optimise / sweep / try_design, confirm, and finish.',
+          instructions: outDir
+            ? "Antenna design tools: call start_design with the person's request first, then optimise / sweep / try_design, confirm, and finish."
+            : 'Antenna design tools: call brief first, then optimise / sweep / try_design, confirm, and finish.',
         };
       case 'ping':
         return {};
       case 'tools/list':
-        return { tools: STRATEGIST_TOOLS.map((t) => ({ name: t.name, description: t.description, inputSchema: t.parameters })) };
+        return { tools: tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.parameters })) };
       case 'tools/call': {
         const name = String(req.params?.name);
-        if (!STRATEGIST_TOOLS.some((t) => t.name === name)) return { isError: true, content: [{ type: 'text', text: `unknown tool ${name}` }] };
+        if (!tools.some((t) => t.name === name)) return { isError: true, content: [{ type: 'text', text: `unknown tool ${name}` }] };
         // The client's model calls are not guarded here: bound the session instead, so a looping client stops getting answers.
         if (++toolCalls > maxCalls) return { isError: true, content: [{ type: 'text', text: `tool call limit (${maxCalls}) reached; call nothing more` }] };
+        const args = (req.params?.arguments as Record<string, unknown>) ?? {};
         let output: unknown;
+        // A message that arrives while a search runs ends it after the solve in progress, so the model hears it now.
+        const listening = inbox && setInterval(() => {
+          if (session && inbox.peek().length) session.stopSearchRequested = true;
+        }, 250);
         try {
-          output = await callTool(session, name, (req.params?.arguments as Record<string, unknown>) ?? {});
+          if (name === 'finish' && inbox?.peek().length) output = { finished: false }; // the person spoke: hear it first
+          else if (name === 'start_design') output = await startDesign(args);
+          else if (!session) output = { error: "no design yet: call start_design with the person's request first" };
+          else output = await callTool(session, name, args);
         } catch (e) {
           output = { error: `${name} failed: ${(e as Error).message}` }; // a tool failure is a tool result, not a protocol error
+        } finally {
+          if (listening) clearInterval(listening);
+          if (session) session.stopSearchRequested = false; // set during a tool with no search: must not stop the next one
+        }
+        const heard = inbox?.take() ?? [];
+        if (heard.length) {
+          heardSinceStart = true;
+          for (const m of heard) record({ type: 'say', text: m.text, said_at: m.t, with_tool: name });
+          output = withMessages(output, heard.map((m) => m.text));
         }
         const isError = typeof output === 'object' && output !== null && 'error' in output;
         return { isError, content: [{ type: 'text', text: JSON.stringify(output) }] };
@@ -381,6 +644,49 @@ async function mcp(argv: string[]): Promise<void> {
     }
   });
   await new Promise<void>((done) => process.stdin.on('end', () => void queue.then(done)));
+  // --closing-confirm: when the client hangs up without a confirmed design that meets the goal, confirm its best
+  // unconfirmed one, as `design run` does, so a lane is judged on the fine mesh whoever drives it.
+  if (session && opts.has('--closing-confirm')) {
+    const t0 = performance.now();
+    const result = await session.closingConfirm();
+    if (result) record({ type: 'tool', name: 'closing_confirm', args: {}, result, ms: Math.round(performance.now() - t0) });
+  }
+}
+
+const SERVED_TYPES: Record<string, string> = {
+  '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css',
+  '.glb': 'model/gltf-binary', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2',
+};
+
+/**
+ * Serves the working directory (the repo root) on loopback, for the race replay. Not python's http.server: on
+ * Windows that takes .mjs types from the registry, often text/plain, and the browser then refuses the lobe module.
+ */
+function serve(argv: string[]): Promise<never> {
+  const { opts } = flags(argv, []);
+  const port = numberOpt(opts, '--port', 8000)!;
+  const root = resolve('.');
+  createServer((req, res) => {
+    let path: string;
+    try {
+      path = resolve(root, '.' + decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname));
+    } catch {
+      return void res.writeHead(400).end('bad path');
+    }
+    // Loopback only, and only page assets: never .env or other dotfiles, run logs or anything without a known type.
+    const host = (req.headers.host ?? '').replace(/:\d+$/, '');
+    if (!['localhost', '127.0.0.1', '[::1]'].includes(host)) return void res.writeHead(403).end('forbidden');
+    const file = existsSync(path) && statSync(path).isDirectory() ? join(path, 'index.html') : path;
+    const rel = relative(root, file);
+    const hidden = rel.split(/[\\/]/).some((segment) => segment.startsWith('.'));
+    if (rel.startsWith('..') || hidden || !(extname(file) in SERVED_TYPES) || !existsSync(file)) {
+      return void res.writeHead(404).end('not found');
+    }
+    if (relative(root, realpathSync(file)).startsWith('..')) return void res.writeHead(404).end('not found'); // a symlink out
+    res.writeHead(200, { 'content-type': SERVED_TYPES[extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-store' });
+    res.end(readFileSync(file));
+  }).listen(port, '127.0.0.1', () => console.log(`serving ${root} on http://localhost:${port}/ (Ctrl+C to stop)`));
+  return new Promise<never>(() => {});
 }
 
 /** Rank the variables of a design (at its current point) or a project by their effect on the results. */
@@ -458,6 +764,9 @@ export async function main(): Promise<void> {
   if (command === 'race') return race(rest);
   if (command === 'replay') return void replay(rest);
   if (command === 'mcp') return mcp(rest);
+  if (command === 'agent') return void (await agent(rest));
+  if (command === 'agent-race') return agentRace(rest);
+  if (command === 'serve') return serve(rest);
   if (command === 'sensitivity') return void (await sensitivity(rest));
   throw new Error(USAGE);
 }

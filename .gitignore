@@ -15,3 +15,6 @@ __pycache__/
 *.runs/
 *.mcp-*.jsonl
 dist-site/
+
+# sentence races (npm run design -- agent / agent-race)
+/runs/

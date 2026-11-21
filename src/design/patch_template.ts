@@ -85,6 +85,8 @@ export function patchDesign(request: PatchRequest): DesignFile {
   if (patchWMax < 4 || patchLMax < 4) throw new Error(`a ${boardWMm} x ${boardLMm} mm board leaves no room for a patch and its feed`);
   const patchW = Math.min(est.w, patchWMax);
   const patchL = Math.min(est.l, patchLMax);
+  // A patch clamped to a small board can be narrower than three 50-ohm feed widths: start the feed at its maximum.
+  const feedWStart = Math.min(feedW, patchW / 3);
   const farField = goal.max_axial_ratio_db !== undefined;
 
   const project: Project = {
@@ -95,7 +97,7 @@ export function patchDesign(request: PatchRequest): DesignFile {
       board_l: { value: mm(boardLMm), locked: true },
       patch_w: { value: mm(patchW), min: '4 mm', max: 'board_w - 2 mm' },
       patch_l: { value: mm(patchL), min: '4 mm', max: 'board_l - 6 mm' },
-      feed_w: { value: mm(feedW), min: '0.5 mm', max: 'patch_w / 3' },
+      feed_w: { value: mm(feedWStart), min: '0.5 mm', max: 'patch_w / 3' },
       port_y: { value: '-board_l / 2 + 1 mm', locked: true },
       inset_d: { value: mm(patchL * 0.3), min: '0.5 mm', max: 'patch_l / 2' },
       inset_gap: { value: '1 mm', min: '0.5 mm', max: '3 mm' },

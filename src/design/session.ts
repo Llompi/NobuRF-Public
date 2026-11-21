@@ -151,6 +151,9 @@ export type ToolName = (typeof DESIGN_TOOLS)[number]['name'];
 /** Thrown for a tool call the strategist got wrong: the message goes back to it as the tool result. */
 export class ToolInputError extends Error {}
 
+/** Thrown inside the optimiser's objective when a watcher asked the search to stop. */
+class SearchStopped extends Error {}
+
 /**
  * A design session: the current design point, the solves so far, and the
  * tools the strategist drives it with. The strategist chooses features,
@@ -163,6 +166,11 @@ export class DesignSession {
   private confirmSolves = 0;
   /** The result of the last optimise when it aimed off the target frequency (a measured mesh offset), else null. */
   private aimedPoint: DesignPoint | null = null;
+  /**
+   * Set by the MCP server when the person writes mid-run (scripts/design.ts, --inbox) to end the running optimise before its next solve. The search
+   * returns its best point so far with stop "stopped by the watcher". Cleared when optimise returns.
+   */
+  stopSearchRequested = false;
   /** Every project solved so far (both meshes), by its JSON text: a repeat costs no solve and no budget. */
   private readonly solved = new Map<string, Evaluation | Error>();
 
@@ -296,10 +304,23 @@ export class DesignSession {
       values: { ...start.values, ...Object.fromEntries(free.map((v, k) => [v, bounds[k].min + u[k] * (bounds[k].max - bounds[k].min)])) },
     });
     const u0 = free.map((v, k) => (bounds[k].max > bounds[k].min ? (start.values[v] - bounds[k].min) / (bounds[k].max - bounds[k].min) : 0));
-    const result = await nelderMead(async (us) => (await this.solve(us.map(toPoint), 'search', aim)).map((r) => r.score), u0, {
-      maxEvaluations: maxSolves,
-      stopAt: 0,
-    });
+    // A watcher may stop the search between solves; the best point so far then stands as the result.
+    let bestSoFar = { u: u0, score: Infinity, evaluations: 0 };
+    let result: { best: number[]; evaluations: number; reason: string };
+    try {
+      result = await nelderMead(async (us) => {
+        if (this.stopSearchRequested) throw new SearchStopped();
+        const scores = (await this.solve(us.map(toPoint), 'search', aim)).map((r) => r.score);
+        bestSoFar.evaluations += us.length;
+        scores.forEach((score, k) => { if (score < bestSoFar.score) bestSoFar = { ...bestSoFar, u: us[k], score }; });
+        return scores;
+      }, u0, { maxEvaluations: maxSolves, stopAt: 0 });
+    } catch (e) {
+      if (!(e instanceof SearchStopped)) throw e;
+      result = { best: bestSoFar.u, evaluations: bestSoFar.evaluations, reason: 'stopped by the watcher' };
+    } finally {
+      this.stopSearchRequested = false;
+    }
     const best = toPoint(result.best);
     const [record] = await this.solve([best], 'search', this.goal); // cached: re-scored against the real goal
     if (!record.metrics) return { stop: result.reason, solves: result.evaluations, error: `no point solved: ${record.error}` };

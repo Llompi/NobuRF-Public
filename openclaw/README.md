@@ -1,6 +1,11 @@
 # OpenClaw + Kimi K3.1 Pro
 
-Two ways to let OpenClaw drive NobuRF:
+Three ways to let OpenClaw drive NobuRF:
+
+- From a sentence, with the spend guard: `npm run design -- agent "<request>"` writes an OpenClaw config for the
+  run, starts the MCP server with `start_design` as its first tool, and puts the model behind a local proxy that
+  holds the key and enforces the caps. `agent-race` does it for two lanes. See
+  [docs/design-agent.md](../docs/design-agent.md#from-a-sentence-through-openclaw).
 
 - The design tools, as an MCP server: `openclaw/design-agent.json5` registers
   `node scripts/design-mcp.mjs mcp <design.json>`. The tools, the goal and the spend caps are described in

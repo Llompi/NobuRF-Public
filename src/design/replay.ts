@@ -15,17 +15,32 @@ import type { DesignGoal } from './goal';
  */
 export interface ReplayEvent {
   time_ms: number;
-  type: 'start' | 'model_turn_done' | 'edit' | 'solve_done' | 'done';
+  type: 'start' | 'model_turn_done' | 'edit' | 'solve_done' | 'done' | 'say' | 'heard' | 'goal';
   s11_db_at_target?: number | null;
   /** Whether the design shown meets the whole goal (frequency and S11), so the view does not judge by S11 alone. */
   goal_met?: boolean;
   output_tokens?: number;
+  /** model_turn_done: the call's own time, so the view can show thinking apart from the solver, and the
+   *  rate-limit wait just before the call (in the lane's clock, not thinking). */
+  model_ms?: number;
+  wait_ms?: number;
+  /** On a solve_done: the model has the turn after it (the tool returned, or a retried call began). */
+  model_thinking?: boolean;
   edit?: string;
+  /**
+   * say: what the person wrote mid-run, at the time they wrote it. heard: when the model got it (with its next
+   * tool result). goal: the goal the model set with start_design, in words, from then on.
+   */
+  text?: string;
+  task?: string;
   reason?: string;
 }
 
 export interface ReplayLog {
-  is_sample_data: false;
+  /** True when a stand-in provider played the model (a rehearsal): the view says so on screen. */
+  is_sample_data: boolean;
+  /** The agent harness that drove the model (OpenClaw for a sentence race); the view names it. */
+  harness?: string;
   lane_label: string;
   match_threshold_db: number;
   target_ghz: number;
@@ -37,6 +52,10 @@ export interface ReplayLog {
   /** Time the lane spent waiting out rate limits: in its clock, not in model_s or tokens/s. */
   rate_limit_wait_s: number;
   cost_usd: number;
+  /** Sentence races: the person's request word for word, the lane's solver time, and its final design's 3D lobe (.glb URL). */
+  prompt?: string;
+  tools_s?: number;
+  lobe_glb?: string;
   events: ReplayEvent[];
 }
 
@@ -56,8 +75,16 @@ interface JournalTool {
   t_ms: number;
   type: 'tool';
   name: string;
+  /** start_design: the goal it set. */
+  goal?: DesignGoal;
 }
-export type JournalEntry = JournalSolve | JournalModel | JournalTool;
+interface JournalSay {
+  t_ms: number;
+  type: 'say';
+  text: string;
+  heard_ms?: number;
+}
+export type JournalEntry = JournalSolve | JournalModel | JournalTool | JournalSay;
 
 const round1 = (x: number) => Math.round(x * 10) / 10;
 
@@ -82,6 +109,15 @@ export function describeCall(name: string, argsText: string): string {
     case 'try_design': {
       const values = args.values && typeof args.values === 'object' ? Object.entries(args.values as Record<string, unknown>).map(([k, v]) => `${k} = ${mm(v)}`) : [];
       return `try ${values.join(', ') || 'the current design'}${on}`;
+    }
+    case 'start_design': {
+      if (typeof args.target_ghz !== 'number') return 'start the design';
+      const board = `${args.board_w_mm} x ${args.board_l_mm} mm ${typeof args.substrate === 'string' ? args.substrate : 'FR-4'}`;
+      const extras = [
+        typeof args.min_bandwidth_mhz === 'number' ? `${args.min_bandwidth_mhz} MHz wide` : '',
+        typeof args.max_axial_ratio_db === 'number' ? 'circularly polarised' : '',
+      ].filter(Boolean);
+      return `start: ${args.target_ghz} GHz on a ${board} board${extras.length ? `, ${extras.join(', ')}` : ''}`;
     }
     case 'confirm':
       return 'confirm on the fine mesh';
@@ -108,7 +144,7 @@ export function servedBy(journal: JournalEntry[]): string[] {
 
 export function replayFromJournal(
   journal: JournalEntry[],
-  options: { laneLabel: string; goal: DesignGoal; modelS: number; costUsd: number },
+  options: { laneLabel: string; goal: DesignGoal; modelS: number; costUsd: number; prompt?: string; toolsS?: number; lobeUrl?: string; standIn?: boolean; harness?: string },
 ): ReplayLog {
   const solves = journal.filter((e): e is JournalSolve => e.type === 'solve' && e.record.metrics !== null);
   if (!solves.length) throw new Error('the journal has no solved design to replay');
@@ -118,6 +154,10 @@ export function replayFromJournal(
   let best: JournalSolve | null = null;
   let bestConfirmed: JournalSolve | null = null;
   // Met counts only on the confirm mesh: the search mesh can read a percent or two off.
+  let previousBest: JournalSolve | null = null;
+  let startsSeen = 0;
+  // A message is heard when a tool returns, later than it was written: those marks go in by time at the end.
+  const heard: ReplayEvent[] = [];
   const metOnConfirm = (e: JournalSolve) => e.record.fidelity === 'confirm' && e.record.score === 0;
   for (const entry of journal) {
     if (entry.type === 'model') {
@@ -125,15 +165,30 @@ export function replayFromJournal(
       // model's speed: mark where the answered attempt began (the trace stays flat), so tokens/s covers that alone.
       // The lane's clock keeps the wait; it is real time the lane lost.
       if (entry.stats.retry_wait_ms && best) {
-        events.push({ time_ms: Math.max(0, entry.t_ms - entry.stats.ms), type: 'solve_done', s11_db_at_target: round1(best.record.metrics!.s11_at_target_db), goal_met: metOnConfirm(best) });
+        events.push({ time_ms: Math.max(0, entry.t_ms - entry.stats.ms), type: 'solve_done', s11_db_at_target: round1(best.record.metrics!.s11_at_target_db), goal_met: metOnConfirm(best), model_thinking: true });
       }
       // A turn logged in the same millisecond as the step before it gets 1 ms.
       const at = Math.max(entry.t_ms, (events[events.length - 1]?.time_ms ?? 0) + 1);
-      events.push({ time_ms: at, type: 'model_turn_done', output_tokens: entry.stats.completion_tokens ?? 0 });
-      for (const call of entry.tool_calls) events.push({ time_ms: at, type: 'edit', edit: describeCall(call.name, call.arguments) });
+      events.push({ time_ms: at, type: 'model_turn_done', output_tokens: entry.stats.completion_tokens ?? 0, model_ms: entry.stats.ms, ...(entry.stats.retry_wait_ms ? { wait_ms: entry.stats.retry_wait_ms } : {}) });
+      for (const call of entry.tool_calls) {
+        const edit = describeCall(call.name, call.arguments);
+        events.push({ time_ms: at, type: 'edit', edit: call.name === 'start_design' && startsSeen > 0 ? edit.replace(/^start/, 'restart') : edit });
+      }
+    } else if (entry.type === 'say') {
+      events.push({ time_ms: entry.t_ms, type: 'say', text: entry.text });
+      if (entry.heard_ms !== undefined) heard.push({ time_ms: entry.heard_ms, type: 'heard', text: entry.text });
+    } else if (entry.type === 'tool' && entry.name === 'start_design') {
+      if (entry.goal) events.push({ time_ms: entry.t_ms, type: 'goal', task: taskText(entry.goal) });
+      // A restart after the person changed the request: the designs so far answered the old goal.
+      if (startsSeen++ > 0) {
+        previousBest = bestConfirmed ?? best;
+        best = null;
+        bestConfirmed = null;
+      }
     } else if (entry.type === 'tool' && best) {
       // The tool's end: the view times each model turn from the previous solve_done, so mark it (the trace stays flat).
-      events.push({ time_ms: entry.t_ms, type: 'solve_done', s11_db_at_target: round1(best.record.metrics!.s11_at_target_db), goal_met: metOnConfirm(best) });
+      // After finish the model has nothing left to think about: the harness is shutting down.
+      events.push({ time_ms: entry.t_ms, type: 'solve_done', s11_db_at_target: round1(best.record.metrics!.s11_at_target_db), goal_met: metOnConfirm(best), model_thinking: entry.name !== 'finish' });
     } else if (entry.type === 'solve' && entry.record.metrics) {
       if (entry.record.fidelity === 'confirm' && (!bestConfirmed || entry.record.score < bestConfirmed.record.score)) bestConfirmed = entry;
       // At an equal score a confirmed design takes the place of a search one.
@@ -144,11 +199,17 @@ export function replayFromJournal(
       }
     }
   }
-  const final = bestConfirmed ?? best!;
+  for (const mark of heard) {
+    const at = events.findIndex((e) => e.time_ms > mark.time_ms);
+    events.splice(at < 0 ? events.length : at, 0, mark);
+  }
+  // A restart with no solve after it leaves the last design solved for the old goal.
+  const final = bestConfirmed ?? best ?? previousBest!;
   const endMs = Math.max(...journal.map((e) => e.t_ms), ...events.map((e) => e.time_ms));
   events.push({ time_ms: endMs, type: 'done', s11_db_at_target: round1(final.record.metrics!.s11_at_target_db), goal_met: bestConfirmed !== null && metOnConfirm(bestConfirmed) });
   return {
-    is_sample_data: false,
+    is_sample_data: options.standIn === true,
+    ...(options.harness ? { harness: options.harness } : {}),
     lane_label: options.laneLabel,
     match_threshold_db: options.goal.s11_max_db,
     target_ghz: options.goal.target_ghz,
@@ -162,6 +223,9 @@ export function replayFromJournal(
     model_s: options.modelS,
     rate_limit_wait_s: round1(journal.reduce((sum, e) => sum + (e.type === 'model' ? e.stats.retry_wait_ms ?? 0 : 0), 0) / 1000),
     cost_usd: options.costUsd,
+    ...(options.prompt !== undefined ? { prompt: options.prompt } : {}),
+    ...(options.toolsS !== undefined ? { tools_s: options.toolsS } : {}),
+    ...(options.lobeUrl !== undefined ? { lobe_glb: options.lobeUrl } : {}),
     events,
   };
 }
