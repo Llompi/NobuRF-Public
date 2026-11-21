@@ -27,7 +27,8 @@
     "validate:deembed": "node --import tsx --import ./src/node/register_raw_imports.mjs scripts/validate/deembed.ts",
     "selfverify": "tsx scripts/selfverify/run.ts",
     "noburf": "node --import tsx --import ./src/node/register_raw_imports.mjs scripts/noburf.ts",
-    "design": "node --import tsx --import ./src/node/register_raw_imports.mjs scripts/design.ts"
+    "design": "node --import tsx --import ./src/node/register_raw_imports.mjs scripts/design.ts",
+    "record": "node --import tsx --import ./src/node/register_raw_imports.mjs scripts/record.ts"
   },
   "engines": {
     "node": ">=20.3"

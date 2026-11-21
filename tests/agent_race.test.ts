@@ -187,7 +187,7 @@ describe('model proxy', () => {
 
   it('forwards with the real key and the lane model, reads the tool calls and usage from the stream, and settles the spend', async () => {
     const dir = tempDir();
-    const provider = await startFakeProvider();
+    const provider = await startFakeProvider({ timeInfo: { queue_time: 0.8, prompt_time: 0.01, completion_time: 0.1, total_time: 0.91, created: 1 } });
     const guard = guardFor(dir);
     const lane = laneFor('cerebras', { CEREBRAS_MODEL: 'moonshotai-kimi-k3.1-pro-trial' });
     const proxy = await startModelProxy({ lane, apiKey: 'real-key', guard, reasoningEffort: 'high', maxCompletionTokens: 4096, upstream: provider.url });
@@ -207,6 +207,9 @@ describe('model proxy', () => {
       expect(provider.requests[0]).not.toHaveProperty('n');
       const [call] = proxy.calls;
       expect(call).toMatchObject({ http_status: 200, prompt_tokens: 1000, completion_tokens: 200, reasoning_tokens: 150, usage_reported: true, finish_reason: 'tool_calls' });
+      // Cerebras's own timing is kept, and the last streamed token is timed so generation can leave the queue out.
+      expect(call.server_timing).toEqual({ queue_s: 0.8, prompt_s: 0.01, completion_s: 0.1, total_s: 0.91 });
+      expect(call.last_token_ms).toBeGreaterThanOrEqual(call.time_to_first_token_ms!);
       expect(call.tool_calls).toEqual([{ name: 'noburf__start_design', arguments: JSON.stringify({ target_ghz: 5.8, board_w_mm: 24, board_l_mm: 24, substrate: 'FR-4' }) }]);
       // Settled to tokens x price, not the 4096-token worst case reserved before the call.
       expect(call.cost_usd).toBeCloseTo((1000 * 3 + 200 * 12) / 1e6, 9);

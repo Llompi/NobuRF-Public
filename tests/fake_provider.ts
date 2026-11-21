@@ -31,7 +31,8 @@ export const REPLAN_SCRIPT: FakeStep[] = [
   ...SENTENCE_SCRIPT,
 ];
 
-export async function startFakeProvider(options: { script?: FakeStep[]; thinkMs?: number; completionTokens?: number } = {}) {
+/** timeInfo: send Cerebras's per-call time_info (seconds) with the usage. */
+export async function startFakeProvider(options: { script?: FakeStep[]; thinkMs?: number; completionTokens?: number; timeInfo?: Record<string, number> } = {}) {
   const script = options.script ?? SENTENCE_SCRIPT;
   const requests: Array<Record<string, unknown>> = [];
   const server = http.createServer(async (req, res) => {
@@ -75,7 +76,7 @@ export async function startFakeProvider(options: { script?: FakeStep[]; thinkMs?
     send({ choices: [{ index: 0, delta: { tool_calls: [{ index: 0, ...toolCall, function: { name, arguments: '' } }] } }] });
     send({ choices: [{ index: 0, delta: { tool_calls: [{ index: 0, function: { arguments: toolCall.function.arguments } }] } }] });
     send({ choices: [{ index: 0, delta: {}, finish_reason: 'tool_calls' }] });
-    send({ choices: [], usage });
+    send({ choices: [], usage, ...(options.timeInfo ? { time_info: options.timeInfo } : {}) });
     res.end('data: [DONE]\n\n');
   });
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));

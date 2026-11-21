@@ -36,6 +36,27 @@ export interface ProxyCall {
   finish_reason?: string;
   tool_calls: Array<{ name: string; arguments: string }>;
   error?: string;
+  /** When the last streamed token arrived, ms after started_at: generation ran from the first token to this one. */
+  last_token_ms?: number;
+  /** The provider's own timing for the call, in seconds, when it reports one (Cerebras: time_info). */
+  server_timing?: ServerTiming;
+}
+
+export interface ServerTiming {
+  queue_s?: number;
+  prompt_s?: number;
+  completion_s?: number;
+  total_s?: number;
+}
+
+/** Cerebras reports time_info { queue_time, prompt_time, completion_time, total_time } in seconds; other providers report none. */
+export function serverTiming(info: unknown): ServerTiming | null {
+  if (!info || typeof info !== 'object') return null;
+  const t = info as Record<string, unknown>;
+  const pick = (k: string) => (typeof t[k] === 'number' && Number.isFinite(t[k]) ? (t[k] as number) : undefined);
+  const out: ServerTiming = { queue_s: pick('queue_time'), prompt_s: pick('prompt_time'), completion_s: pick('completion_time'), total_s: pick('total_time') };
+  const kept = Object.fromEntries(Object.entries(out).filter(([, v]) => v !== undefined)) as ServerTiming;
+  return Object.keys(kept).length ? kept : null;
 }
 
 export interface ModelProxy {
@@ -65,18 +86,25 @@ interface StreamState {
   servedBy: string | null;
   finishReason: string | null;
   firstTokenAt: number | null;
+  lastTokenAt: number | null;
+  timeInfo: unknown;
   toolCalls: Map<number, { name: string; arguments: string }>;
 }
 
 function readStreamEvent(state: StreamState, event: Record<string, unknown>, now: number): void {
   if (event.usage) state.usage = event.usage as Record<string, unknown>;
   if (typeof event.provider === 'string') state.servedBy = event.provider;
+  const timeInfo = event.time_info ?? (event.usage as Record<string, unknown> | undefined)?.time_info;
+  if (timeInfo) state.timeInfo = timeInfo;
   const choice = (event.choices as Array<Record<string, unknown>> | undefined)?.[0];
   if (!choice) return;
   if (typeof choice.finish_reason === 'string') state.finishReason = choice.finish_reason;
   const delta = choice.delta as Record<string, unknown> | undefined;
   if (!delta) return;
-  if (state.firstTokenAt === null && (delta.content || delta.reasoning || delta.reasoning_content || delta.tool_calls)) state.firstTokenAt = now;
+  if (delta.content || delta.reasoning || delta.reasoning_content || delta.tool_calls) {
+    state.firstTokenAt ??= now;
+    state.lastTokenAt = now;
+  }
   for (const part of (delta.tool_calls as Array<Record<string, unknown>> | undefined) ?? []) {
     const index = typeof part.index === 'number' ? part.index : state.toolCalls.size;
     const call = state.toolCalls.get(index) ?? { name: '', arguments: '' };
@@ -203,7 +231,7 @@ export async function startModelProxy(options: {
     }
     call.http_status = upstreamResponse.status;
     response.writeHead(upstreamResponse.status, { 'content-type': upstreamResponse.headers.get('content-type') ?? 'application/json', 'cache-control': 'no-cache' });
-    const state: StreamState = { usage: null, servedBy: null, finishReason: null, firstTokenAt: null, toolCalls: new Map() };
+    const state: StreamState = { usage: null, servedBy: null, finishReason: null, firstTokenAt: null, lastTokenAt: null, timeInfo: null, toolCalls: new Map() };
     const streamed = Boolean(body.stream) && upstreamResponse.status === 200;
     const decoder = new TextDecoder();
     let pending = '';
@@ -256,6 +284,7 @@ export async function startModelProxy(options: {
         const completion = JSON.parse(whole);
         state.usage = completion.usage ?? null;
         state.servedBy = completion.provider ?? null;
+        state.timeInfo = completion.time_info ?? completion.usage?.time_info ?? null;
         const choice = completion.choices?.[0];
         state.finishReason = choice?.finish_reason ?? null;
         (choice?.message?.tool_calls ?? []).forEach((c: { function?: { name?: string; arguments?: string } }, n: number) =>
@@ -278,6 +307,9 @@ export async function startModelProxy(options: {
       reservation.settled = true; // no usage: the worst case stays charged
     }
     if (state.firstTokenAt !== null) call.time_to_first_token_ms = state.firstTokenAt - startedAt;
+    if (state.lastTokenAt !== null) call.last_token_ms = state.lastTokenAt - startedAt;
+    const timing = serverTiming(state.timeInfo);
+    if (timing) call.server_timing = timing;
     if (state.servedBy) call.served_by = state.servedBy;
     if (state.finishReason) call.finish_reason = state.finishReason;
     call.tool_calls = [...state.toolCalls.entries()].sort(([a], [b]) => a - b).map(([, c]) => c);
