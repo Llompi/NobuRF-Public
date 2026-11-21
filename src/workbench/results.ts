@@ -169,7 +169,9 @@ export class ResultViews {
     ]);
     this.zChart.set({ traces: zTraces, yUnit: 'Ω', rules: [{ y: r.z0[r.excited[0]], label: `${r.z0[r.excited[0]]} Ω` }, { y: 0, label: '' }],
       markers: markerGHz === null ? [] : [{ x: markerGHz, label: `${markerGHz} GHz` }] });
-    this.el.zFacts.innerHTML = facts(this.zFactRows(r));
+    this.el.zFacts.innerHTML = facts([...this.zFactRows(r), ['Seen from', r.deembedding
+      ? 'the end of the de-embedded feed line'
+      : 'the port, through the whole feed line. To see the antenna itself, set "De-embed feed" on the port and solve again']]);
     this.drawSmith();
     this.renderFarField();
   }

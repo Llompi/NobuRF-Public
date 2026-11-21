@@ -124,7 +124,11 @@ function updateResultTabs(): void {
   const has = result !== null;
   for (const t of ['sparams', 'smith', 'impedance'] as const) byId<HTMLButtonElement>(`tab-${t}`).disabled = !has;
   byId<HTMLButtonElement>('tab-farfield').disabled = !result?.farField;
+  byId('tab-farfield').title = result?.farField ? 'Gain, directivity and the radiation pattern'
+    : 'Enter a frequency in "Far field at" under Setup, Analysis and outputs, then solve';
   byId<HTMLButtonElement>('tab-emissions').disabled = !result?.farField && !result?.nearField;
+  byId('tab-emissions').title = result?.farField || result?.nearField ? 'Radiated emissions and near-field scans'
+    : 'Enter "Far field at" or "Near-field scan at" under Setup, Analysis and outputs, then solve';
   if (result && !byId<HTMLButtonElement>('tab-emissions').disabled) emissionsView.show(result);
   const line = result ? analyseLine(result) : null;
   byId<HTMLButtonElement>('tab-line').disabled = !line?.ok;
@@ -202,8 +206,8 @@ function renderValidity(): void {
   const v = store.validation;
   const portProblems = v.resolved ? portsOffCopper(v.resolved) : [];
   const el = byId('validity');
-  el.className = `validity ${v.error ? 'bad' : portProblems.length ? 'caution' : 'good'}`;
-  el.textContent = v.error ? 'Needs a fix before it can be solved' : portProblems.length ? 'A port is not on copper' : 'Ready to solve';
+  el.className = `validity ${v.error ? 'bad' : portProblems.length ? 'caution' : solving ? 'busy' : 'good'}`;
+  el.textContent = v.error ? 'Needs a fix before it can be solved' : portProblems.length ? 'A port is not on copper' : solving ? 'Solving' : 'Ready to solve';
   el.title = portProblems.join('\n');
   const key = portProblems.join('\n');
   if (key && key !== reportedPortProblems) for (const problem of portProblems) message('warning', problem);

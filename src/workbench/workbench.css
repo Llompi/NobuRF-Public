@@ -27,15 +27,16 @@ button, select, input { font: inherit; color: inherit; }
 /* ------------------------------------------------------------- top bar */
 /* The bar needs about 1270 px on one row. Narrower, the solver group wraps to
    a second row on the right instead of pushing Solve off screen. */
-.bar { grid-area: bar; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--rule); }
-.bar .wordmark { font-size: 17px; margin-right: var(--space-2); }
-.bar .source-link { font-size: 13px; margin-left: var(--space-2); color: var(--text-muted); text-decoration: none; }
+.bar { grid-area: bar; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--rule); }
+.bar .wordmark { font-size: 17px; }
+.bar .source-link { font-size: 13px; margin-left: calc(-1 * var(--space-2)); color: var(--text-muted); text-decoration: none; }
 .bar .source-link:hover, .bar .source-link:focus-visible { color: var(--text); text-decoration: underline; }
 .bar-group { display: flex; align-items: center; gap: var(--space-2); }
 .bar-end { margin-left: auto; }
 .select-label { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-muted); white-space: nowrap; }
 .validity { font-size: 13px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .validity::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.validity.busy { color: var(--text-muted); }
 .workbench button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; min-width: 88px; }
 .workbench button.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
 .workbench button.primary.stop { background: var(--surface-raised); border-color: var(--bad); color: var(--bad); }
