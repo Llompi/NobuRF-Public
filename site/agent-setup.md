@@ -81,7 +81,7 @@ the address to start from the example again; it asks before dropping unsaved cha
 The same project file can be solved from a script with Node 20 or later:
 
 ```bash
-git clone https://github.com/Llompi/NobuRF
+git clone https://github.com/Llompi/NobuRF-Public
 cd NobuRF
 npm install
 npm run noburf -- solve examples/patch-5g8.json
@@ -97,4 +97,4 @@ unless the user wants it; the browser version needs nothing installed.
 - Results come with the solver's own checks (passivity, reciprocity, and an optional mesh error bar).
   Report them as simulation results, not measurements.
 - How NobuRF compares with openEMS and published measurements, including what still disagrees:
-  <https://github.com/Llompi/NobuRF/blob/main/docs/validation.md>
+  <https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md>

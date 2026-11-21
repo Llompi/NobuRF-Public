@@ -2,6 +2,7 @@
   "name": "noburf",
   "version": "0.1.0",
   "private": true,
+  "license": "AGPL-3.0-only",
   "description": "Browser-based 3D WebGPU FDTD antenna solver with a local tool bridge for an OpenClaw + Kimi K3.1 Pro tuning agent.",
   "type": "module",
   "scripts": {

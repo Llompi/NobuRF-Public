@@ -42,11 +42,11 @@ The [README](README.md#tests) lists every test command.
 
 ## Contributor License Agreement
 
-NobuRF is licensed under [Apache-2.0](LICENSE). Before your first pull request can be merged, you need to sign the
-[Contributor License Agreement](CLA.md). A bot comments on your pull request with a sentence to paste back; that
-comment is your signature, and it covers all your later pull requests too.
+NobuRF is licensed under the [GNU AGPL-3.0](LICENSE). Before your first pull request can be merged, you need to
+sign the [Contributor License Agreement](CLA.md). A bot comments on your pull request with a sentence to paste
+back; that comment is your signature, and it covers all your later pull requests too.
 
-The CLA lets the project owner keep NobuRF under one licence holder, so it can change licence or offer other
+The CLA lets the project owner keep NobuRF under one license holder, so it can change the license or offer other
 terms in the future. You keep the copyright in your work.
 
 ## Code style
