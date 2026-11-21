@@ -234,7 +234,7 @@ export function readFeed(r: ResolvedProject, index: number): Feed {
         }
       }
       if (crowded) {
-        reasons.push(`other copper on "${signalLayer}" lies within ${clear.toFixed(2)} mm of the feed toward ${direction} (a coplanar ground or a neighbouring trace)`);
+        reasons.push(`other copper on "${signalLayer}" lies within ${clear.toFixed(2)} mm of the feed toward ${direction} (a coplanar ground or a neighboring trace)`);
         continue;
       }
       candidates.push({

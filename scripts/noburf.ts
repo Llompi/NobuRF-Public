@@ -351,7 +351,7 @@ export async function solveProjectText(text: string, sourceName: string, useGpu:
   const multiport = project.ports.length > 1;
   if (multiport && excited.length === portIds.length && new Set(z0s).size > 1) {
     throw new Error(`ports have different reference impedances (${z0s.join(', ')} ohm); the s${portIds.length}p file needs one ` +
-      'and renormalisation is not implemented yet');
+      'and renormalization is not implemented yet');
   }
   const farFieldGhz = project.outputs.far_field_ghz ?? [];
   if (multiport && farFieldGhz.length) throw new Error('$.outputs.far_field_ghz: the far field is computed for one-port projects only today');

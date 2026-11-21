@@ -145,7 +145,7 @@ export const BEHAVIOUR_TEXT: Record<Exclude<Behaviour, 'monotone' | 'unchanged'>
 };
 
 /** What the band is and is not. */
-export const BAND_SCOPE = 'mesh discretisation uncertainty only; it excludes port and material model error';
+export const BAND_SCOPE = 'mesh discretization uncertainty only; it excludes port and material model error';
 
 /** How far the last pass moved S and the resonance, against the stop rule's tolerances. */
 export function lastChange(r: ConvergenceReport): string {

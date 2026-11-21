@@ -108,7 +108,7 @@ Never commit a key or paste one into an issue.
 
 ## License
 
-NobuRF is free software under the [GNU Affero General Public License, version 3](LICENSE). If you run a changed
+NobuRF is licensed under the [GNU Affero General Public License, version 3](LICENSE). If you run a changed
 version as a service, the AGPL asks you to offer your users its source. Contributions are accepted under a
 [Contributor License Agreement](CLA.md), which lets the owner offer other license terms as well.
 

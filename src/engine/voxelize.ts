@@ -458,7 +458,7 @@ export function voxelize(g: MicroGeometryDSL, grid: GridConfig, z0 = 50, portKin
 
   // --- Port: vertical column at the open end of the feed line.
   const pi = nx / 2; // feed is centred on x = 0, which is node nx/2 (nx even)
-  if (!Number.isInteger(pi)) throw new Error('nx must be even so the feed centre is a grid node');
+  if (!Number.isInteger(pi)) throw new Error('nx must be even so the feed center is a grid node');
   const portYmm = -g.patch.l_mm / 2 - g.feed.len_mm;
   // Step inward (ceil) so the node is on the line, never just past its end.
   const pj = Math.ceil(portYmm / dx - 1e-9) + ny / 2;

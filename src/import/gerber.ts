@@ -294,7 +294,7 @@ export function parseGerber(text: string, sourceName: string): GerberImage {
     const radius = Math.hypot(from[0] - center[0], from[1] - center[1]);
     const endRadius = Math.hypot(to[0] - center[0], to[1] - center[1]);
     if (Math.abs(radius - endRadius) > ARC_RADIUS_MISMATCH_MM) {
-      fail(`arc start and end are ${radius.toFixed(6)} mm and ${endRadius.toFixed(6)} mm from its centre; they must be equal`);
+      fail(`arc start and end are ${radius.toFixed(6)} mm and ${endRadius.toFixed(6)} mm from its center; they must be equal`);
     }
     const a0 = Math.atan2(from[1] - center[1], from[0] - center[0]);
     const a1 = Math.atan2(to[1] - center[1], to[0] - center[0]);

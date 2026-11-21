@@ -50,7 +50,7 @@ export const PATCH_FEATURES: FeatureMap = {
     variables: ['inset_d', 'inset_gap'],
   },
   slot: {
-    what: 'transverse slot across the patch centre: lengthens the current path, lowering the resonance (miniaturisation)',
+    what: 'transverse slot across the patch center: lengthens the current path, lowering the resonance (miniaturization)',
     shapes: ['slot'],
     variables: ['slot_l', 'slot_w', 'slot_y'],
   },
@@ -60,7 +60,7 @@ export const PATCH_FEATURES: FeatureMap = {
     variables: ['stub_l', 'stub_w', 'stub_d'],
   },
   chamfer: {
-    what: 'two opposite patch corners cut at 45 degrees: splits the patch into two orthogonal modes for circular polarisation',
+    what: 'two opposite patch corners cut at 45 degrees: splits the patch into two orthogonal modes for circular polarization',
     shapes: ['chamfer_a', 'chamfer_b'],
     variables: ['chamfer'],
   },

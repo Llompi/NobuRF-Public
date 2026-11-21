@@ -27,6 +27,8 @@ button, select, input { font: inherit; color: inherit; }
 /* ------------------------------------------------------------- top bar */
 .bar { grid-area: bar; display: flex; align-items: center; gap: var(--space-4); padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--rule); }
 .bar .wordmark { font-size: 17px; margin-right: var(--space-2); }
+.bar .source-link { font-size: 13px; margin-left: var(--space-2); color: var(--text-muted); text-decoration: none; }
+.bar .source-link:hover, .bar .source-link:focus-visible { color: var(--text); text-decoration: underline; }
 .bar-group { display: flex; align-items: center; gap: var(--space-2); }
 .bar-end { margin-left: auto; }
 .select-label { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-muted); }

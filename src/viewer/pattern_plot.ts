@@ -133,7 +133,7 @@ ${polarPanel(`H-plane (φ = ${hPhi}°)`, traces(hPhi), topDb, PANEL)}
 <text class="legend" x="${width / 2 - 140}" y="${legendY + 4}">Co-polar (${polarisation}), solid</text>
 <line class="trace cross" x1="${width / 2 + 20}" y1="${legendY}" x2="${width / 2 + 44}" y2="${legendY}"/>
 <text class="legend" x="${width / 2 + 50}" y="${legendY + 4}">Cross-polar, dashed</text>
-<text class="caption" x="16" y="${height - 12}">Directivity in dBi, Ludwig-3 polarisation. θ from broadside (+z); negative θ is the half plane at φ + 180°.</text>
+<text class="caption" x="16" y="${height - 12}">Directivity in dBi, Ludwig-3 polarization. θ from broadside (+z); negative θ is the half plane at φ + 180°.</text>
 </svg>
 `;
 }

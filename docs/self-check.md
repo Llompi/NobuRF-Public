@@ -30,7 +30,7 @@ means one-port, lumped-fed patches on low-ε substrates.
 | Physics | Passivity (largest singular value of S), reciprocity (\|S_ij − S_ji\|), and whether the field rang down | free, always on |
 | Validated range | Whether each feature of the design (substrate, ports, copper model, edges, band) matches a benchmark that agrees with measurement | free, always on |
 
-The error bar is **mesh discretisation uncertainty only**. It does not
+The error bar is **mesh discretization uncertainty only**. It does not
 include port or material model error. Every printed bar and the `scope`
 field in `result.json` say so.
 
@@ -38,7 +38,7 @@ In `result.json` this is the `self_check` entry. With a mesh check the
 console prints a summary line like this:
 
 ```
-mesh check over 2 meshes (mesh discretisation uncertainty only; it excludes port and material model error): f_res 5.2758 GHz +/- 3.76 % (the resonance is measured on two meshes, so the band assumes first-order convergence with a safety factor of 3), |S11| at the dip 0.379 +/- 0.264, still moving: Delta S 0.0756 (tolerance 0.02), resonance shift 0.39 % (tolerance 0.5 %)
+mesh check over 2 meshes (mesh discretization uncertainty only; it excludes port and material model error): f_res 5.2758 GHz +/- 3.76 % (the resonance is measured on two meshes, so the band assumes first-order convergence with a safety factor of 3), |S11| at the dip 0.379 +/- 0.264, still moving: Delta S 0.0756 (tolerance 0.02), resonance shift 0.39 % (tolerance 0.5 %)
 ```
 
 Modes (`--mesh-check` on the command line, **Mesh check** in the workbench

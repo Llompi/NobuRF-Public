@@ -173,7 +173,7 @@ describe('noburf CLI', () => {
     writeFileSync(join(dir, 'p.json'), JSON.stringify(json));
     const run = runCli('solve', join(dir, 'p.json'), '--out', join(dir, 'out'), '--mesh-check', 'check');
     expect(run.status).toBe(0);
-    expect(run.stdout).toMatch(/mesh check over 2 meshes \(mesh discretisation uncertainty only[^)]*\): f_res [\d.]+ GHz \+\/- [\d.]+ %/);
+    expect(run.stdout).toMatch(/mesh check over 2 meshes \(mesh discretization uncertainty only[^)]*\): f_res [\d.]+ GHz \+\/- [\d.]+ %/);
     const result = JSON.parse(readFileSync(join(dir, 'out', 'result.json'), 'utf8'));
     const c = result.self_check.mesh_convergence;
     expect(c.levels.map((l: { scale: number }) => l.scale)).toEqual([1, 0.707107]);

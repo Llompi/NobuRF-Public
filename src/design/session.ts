@@ -482,7 +482,7 @@ export class DesignSession {
 
   private aimInBand(ghz: number): number {
     const { f_min_ghz: lo, f_max_ghz: hi } = this.design.project.analysis;
-    if (!(ghz > lo && ghz < hi)) throw new ToolInputError(`aim_ghz must lie inside the analysed band, ${lo} to ${hi} GHz`);
+    if (!(ghz > lo && ghz < hi)) throw new ToolInputError(`aim_ghz must lie inside the analyzed band, ${lo} to ${hi} GHz`);
     return ghz;
   }
 

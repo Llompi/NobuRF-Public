@@ -229,7 +229,7 @@ export function connectorsOverlap(a: CoaxFeedSpec, b: CoaxFeedSpec): boolean {
 function nodeIndex(lines: Float64Array, value: number, what: string): number {
   let best = 0;
   for (let i = 1; i < lines.length; i++) if (Math.abs(lines[i] - value) < Math.abs(lines[best] - value)) best = i;
-  if (Math.abs(lines[best] - value) > 1e-6) throw new Error(`${what} (${value} mm) is not on a mesh line (nearest ${lines[best]} mm, neighbours ${lines[best - 1]} and ${lines[best + 1]}); mesh with coaxRefinements()`);
+  if (Math.abs(lines[best] - value) > 1e-6) throw new Error(`${what} (${value} mm) is not on a mesh line (nearest ${lines[best]} mm, neighbors ${lines[best - 1]} and ${lines[best + 1]}); mesh with coaxRefinements()`);
   return best;
 }
 
@@ -958,7 +958,7 @@ export async function solvePorts(
   const portCount = boardModel.ports.length;
   if (referenceOhm.length !== portCount) throw new Error(`${referenceOhm.length} reference impedances for ${portCount} ports`);
   if (coaxPorts.length > 0 && portCount > 1 && excited.length !== portCount) {
-    throw new Error('with a coax feed and more than one port, every port must be excited: S is renormalised from the coax line to the reference impedance');
+    throw new Error('with a coax feed and more than one port, every port must be excited: S is renormalized from the coax line to the reference impedance');
   }
   const replaced = coaxPorts.map((c) => c.port);
   const { model, feeds } = addCoaxFeeds(boardModel, coaxPorts.map((c) => c.spec), replaced);

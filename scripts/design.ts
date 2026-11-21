@@ -285,7 +285,7 @@ async function race(argv: string[]): Promise<void> {
     if (!process.env[keyEnv]) throw new Error(`${keyEnv} is not set (environment or .env): lane ${lane} cannot run`);
   }
   if (lanes.includes('openrouter') && !process.env.OPENROUTER_PROVIDERS) {
-    console.log('note: OPENROUTER_PROVIDERS is not set, so OpenRouter picks the fastest host per call; the lane is labelled by the hosts that answered');
+    console.log('note: OPENROUTER_PROVIDERS is not set, so OpenRouter picks the fastest host per call; the lane is labeled by the hosts that answered');
   }
   const dirs: string[] = [];
   for (const lane of lanes) {

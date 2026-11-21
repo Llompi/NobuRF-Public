@@ -554,7 +554,7 @@ async function solveOnce(projectText: string, choice: SolverChoice, hooks: Solve
   const coax = coaxPorts.length > 0;
   // With a coax port, S is renormalised from the coax line to each port's reference impedance, which needs every port excited.
   const excited = coax && multiport ? portIds.map((_, n) => n) : resolved.excite;
-  if (excited.length > resolved.excite.length) warnings.push('Every port is excited: with a coax port, S is renormalised from the meshed coax to the reference impedance, which takes a run from each port.');
+  if (excited.length > resolved.excite.length) warnings.push('Every port is excited: with a coax port, S is renormalized from the meshed coax to the reference impedance, which takes a run from each port.');
   // One value for all ports, so the Touchstone file's single R and the line views stay right.
   if (multiport && excited.length === portIds.length && new Set(z0).size > 1) {
     throw new Error(`The ports have different reference impedances (${z0.join(', ')} Ω). The S-matrix needs one value for all of them.`);
@@ -601,7 +601,7 @@ async function solveOnce(projectText: string, choice: SolverChoice, hooks: Solve
     return {
       projectName: project.name, projectText, zinGHz: project.outputs.zin_at_ghz,
       ports: resolved.ports.map((p) => ({ id: p.id, xMm: p.xMm, yMm: p.yMm, between: p.between })),
-      solver: `CPU reference solver. S at the connector flanges, renormalised from the meshed coax (${lines.join(', ')}) to each port's reference impedance`, solveMs, grid,
+      solver: `CPU reference solver. S at the connector flanges, renormalized from the meshed coax (${lines.join(', ')}) to each port's reference impedance`, solveMs, grid,
       portIds, z0, excited, runs, s: solved.s, farField: null,
       fields: fieldMaps(model, planes, fieldPlanesFromDft(solved.planeAccumulators, layout, planes), solved.volumeAccumulators, volumeHz, fieldVolume), nearField: null, accuracy: null, deembedding: null, warnings,
     };

@@ -194,7 +194,7 @@ export function scatteringFromWaves(
  */
 export function renormaliseScattering(s: ScatteringResult, from: number[], to: number[]): ScatteringResult {
   const n = from.length;
-  if (s.re.some((row) => row.some((column) => column === null))) throw new Error('renormalising S needs every port excited');
+  if (s.re.some((row) => row.some((column) => column === null))) throw new Error('renormalizing S needs every port excited');
   const re = s.re.map((row) => row.map(() => new Float64Array(s.fGHz.length)));
   const im = s.re.map((row) => row.map(() => new Float64Array(s.fGHz.length)));
   const identity = (i: number, j: number): Complex => [i === j ? 1 : 0, 0];

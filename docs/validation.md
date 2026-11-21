@@ -1,22 +1,27 @@
 # NobuRF solver validation
 
-**Short version.** NobuRF's FDTD kernel reproduces textbook physics to the
-ppm level against the discrete Yee frequency (0.014 to 0.23 % against the analytic modes, set by the grid). On the
-demo patch antenna, at the same 0.25 mm resolution (NobuRF uniform, openEMS graded) and the same one-edge port as [openEMS](https://openems.de), an independent open-source FDTD
-code, the resonance lands **0.4 % low** (edge-fed) and **0.9 % low** (4 mm
-inset). On a graded mesh (0.25 mm at the copper, six cells across the
-substrate), with openEMS meshed by its own rule for zero-thickness metal
-(lines a third of a cell inside each copper edge), the resonance lands
-**0.7 % low** (edge-fed) and **the same to the 0.01 GHz step** (inset), and at the inset dip
-NobuRF reads 44.3 + 5.6j Ω against openEMS's 42.2 + 4.0j Ω (section 3.1).
-Meshed with lines on the drawn edges, both codes read about 1.2 % lower and
-still agree with each other, because they share that edge error. The live demo
-grid (0.5 mm uniform) reads **1.7 to 2.4 % high** vs openEMS at 0.25 mm. The
-open boundary is a CPML that reflects **−84 dB** at 8 cells, and a box with
-twice the air gives the same answer. The gaps to a commercial finite-element tool are listed
-at the end.
+**Short version.** The FDTD kernel matches the exact discrete Yee solution to a
+few parts per million, and analytic cavity modes to 0.014 to 0.23 %, depending on
+the grid. On the demo patch antenna, with both codes on a graded mesh with
+0.25 mm cells at the copper and the same one-edge port, the resonance lands at
+**5.30 GHz against [openEMS](https://openems.de)'s 5.34 GHz** (edge-fed, 0.7 % low)
+and **5.47 GHz for both** (4 mm inset, the same to the 0.01 GHz step). openEMS is
+an independent open-source FDTD code meshed here by its own rule for
+zero-thickness metal (lines a third of a cell inside each copper edge). At the
+inset dip NobuRF reads 44.3 + 5.6j Ω against openEMS's 42.2 + 4.0j Ω
+(section 3.1). Both are FDTD codes, so this checks the implementation, not the
+method; a fabricated board on a network analyzer is still to come.
 
-![NobuRF vs openEMS on the same patch antenna](validation/img/00_summary.png)
+An earlier comparison, on a uniform 0.25 mm grid against openEMS with lines on
+the drawn copper edges, agreed to 0.4 % (edge-fed) and 0.9 % (inset). Both codes
+shared an edge error of about 1.2 % there, so that pair is kept for the record
+(figure below) and is no longer the headline. The coarser 0.5 mm grid the live
+demo uses reads 0.4 to 1.3 % high against the graded openEMS runs. The open
+boundary is a CPML that reflects **−84 dB** at normal incidence with 8 cells,
+and a box with twice the air gives the same resonance. The gaps to a commercial
+finite-element tool are listed at the end.
+
+![The earlier uniform-grid comparison of NobuRF and openEMS on the same patch antenna](validation/img/00_summary.png)
 
 Everything here is reproducible from this repo:
 
