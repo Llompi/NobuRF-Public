@@ -82,7 +82,7 @@ The same project file can be solved from a script with Node 20 or later:
 
 ```bash
 git clone https://github.com/Llompi/NobuRF-Public
-cd NobuRF
+cd NobuRF-Public
 npm install
 npm run noburf -- solve examples/patch-5g8.json
 ```

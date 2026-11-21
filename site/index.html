@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet" media="(prefers-color-scheme: dark)">
 <link rel="preload" as="image" href="assets/wave-poster.jpg">
 <style>
   :root {
@@ -40,13 +41,19 @@
     --space-4: 2.5rem;
     --space-5: 4.5rem;
   }
+  /* Dark mode is the posters' look, not just inverted colors: warm near-black under a fine grain,
+     Jost capitals for headings, serif reading text, and figures that sit straight on the page. */
   @media (prefers-color-scheme: dark) {
     :root {
-      --page: #0e1014;
-      --ink: #e7e8eb;
-      --ink-muted: #a2a8b3;
-      --rule: #2b2f37;
+      --page: #141413;
+      --ink: #e8e8e8;
+      --ink-muted: #b3b3ad;
+      --rule: #34342f;
       --accent: #62cde8;
+      --plate: #141413;
+      --font-display: "Jost", "Futura", system-ui, sans-serif;
+      --font-reading: "Source Serif 4", Georgia, serif;
+      --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.6' intercept='-0.9'/%3E%3CfeFuncG type='linear' slope='2.6' intercept='-0.9'/%3E%3CfeFuncB type='linear' slope='2.6' intercept='-0.9'/%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
   }
 
@@ -177,6 +184,56 @@
     .site-header .page { flex-wrap: wrap; row-gap: 0; }
     .site-nav { margin-left: 0; gap: var(--space-2); }
     .lede { font-size: 1.125rem; }
+  }
+  /* Dark mode rules, after the base rules so they win. */
+  @media (prefers-color-scheme: dark) {
+    /* The posters' grain, behind the content so text and figures stay clean. It never takes a click. */
+    body::after {
+      content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background-image: var(--grain); mix-blend-mode: overlay;
+    }
+    .page :is(p, ol):not(.setup-prompt-toast) { font-family: var(--font-reading); font-size: 1.1875rem; line-height: 1.55; }
+    h1, h2 { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0; }
+    /* The posters set Jost at 90 % width. */
+    h2 { transform: scaleX(0.9); transform-origin: left; }
+    .page h1 { font-size: clamp(2.4rem, 1rem + 4.8vw, 5rem); line-height: 0.95; text-align: center; max-width: none; transform: scaleX(0.9); }
+    h2 { font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem); line-height: 1; }
+    .intro .lede { font-size: 1.3125rem; color: var(--ink); }
+    /* Under the centered headline, the lede is a left-aligned column centered on the page. */
+    @media (min-width: 900px) {
+      .page .intro .lede { max-width: 40rem; margin-inline: auto; }
+      .intro .actions { justify-content: center; }
+    }
+    .setup-prompt-row { justify-content: center; }
+    .button.primary { background: var(--ink); color: #111110; border-color: var(--ink); }
+    /* Figures sit on the page itself, as on the posters: no card, and the recording fades out at its edges. */
+    .plate { border-radius: 0; overflow: visible; background: none; }
+    .plate video {
+      /* The recording's navy background lightens to the page color, and its edges fade out. */
+      mix-blend-mode: lighten;
+      --fade-edges: linear-gradient(to bottom, transparent, #000 6%, #000 92%, transparent),
+                    linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+      -webkit-mask-image: var(--fade-edges); -webkit-mask-composite: source-in;
+      mask-image: var(--fade-edges); mask-composite: intersect;
+    }
+    .figure-svg .grid { stroke: #2f2f2b; }
+    .figure-svg :is(.tick, .muted) { fill: #8f96a3; }
+    .figure-svg :is(.point-earlier, .point-final) { stroke: var(--page); }
+    .figure-svg .point-earlier { fill: var(--page); }
+    .motion-toggle { background: color-mix(in srgb, var(--page) 72%, transparent); }
+    .figure-svg .leader { stroke: #5a5a54; }
+    figcaption { font-family: var(--font-body); }
+    .page .data, pre { font-family: var(--font-data); }
+    pre { background: #222220; }
+  }
+  @media (prefers-color-scheme: dark) and (max-width: 560px) {
+    .intro .lede { font-size: 1.1875rem; }
+    .page h1 { line-height: 1; }
+    .intro .actions .button { flex: 1 1 100%; justify-content: center; }
+    .plate video { --fade-edges: linear-gradient(to bottom, transparent, #000 6%, #000 92%, transparent); }
+  }
+  @media (prefers-color-scheme: dark) and (prefers-contrast: more), (forced-colors: active), print {
+    body::after { display: none; }
   }
 </style>
 </head>
@@ -510,8 +567,8 @@
       Without WebGPU it solves on the CPU, which is much slower.
     </p>
     <p>To run it from the source instead, with the agent bridge, you need Node.js 20.19 or later, and a browser with WebGPU, such as Chrome or Edge, for GPU solves.</p>
-<pre><code>git clone https://github.com/Llompi/NobuRF-Public
-cd NobuRF
+<pre tabindex="0" aria-label="Commands to run NobuRF from source"><code>git clone https://github.com/Llompi/NobuRF-Public
+cd NobuRF-Public
 npm install
 npm run dev</code></pre>
     <p>
