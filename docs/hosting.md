@@ -31,15 +31,17 @@ scripts. Preview branch deployments are off in the Pages project, so only `main`
 ## Domains
 
 `https://noburf.com` is the site's address. Every link in the repo, the share tags and the agent setup prompt
-use it. Two other names reach the same Pages project and answer with a permanent (301) redirect that keeps the
-path and query string:
+use it. Two other names reach the same Pages project. `www.noburf.com` answers with a permanent (301) redirect
+that keeps the path and query string. `noburf.llom.party` has the same rule, but the rule is switched off for
+now, so that host serves the site directly. noburf.com was registered on 2026-11-22, and some phone networks and
+DNS filters don't resolve a domain that new yet. Switch the rule on once noburf.com loads everywhere.
 
 | Host | Where the redirect lives |
 | --- | --- |
 | `www.noburf.com` | Redirect Rule "www.noburf.com to noburf.com" in the `noburf.com` zone |
-| `noburf.llom.party` | Redirect Rule "noburf.llom.party to noburf.com" in the `llom.party` zone |
+| `noburf.llom.party` | Redirect Rule "noburf.llom.party to noburf.com" in the `llom.party` zone (off for now) |
 
-Keep `noburf.llom.party` attached and redirecting: the launch posts on X, Reddit and Discord link to it.
+Keep `noburf.llom.party` attached and serving: the launch posts on X, Reddit and Discord link to it.
 Redirect Rules are free (10 per zone on the Free plan) and run before Pages, so they don't add a Function.
 They only fire on proxied traffic, so keep the DNS records for all three hosts proxied (orange cloud).
 
