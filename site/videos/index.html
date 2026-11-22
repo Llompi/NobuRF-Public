@@ -23,15 +23,19 @@
 <link rel="stylesheet" href="../assets/site.css">
 <style>
   .intro { padding-bottom: var(--space-2); }
-  /* A 9:16 and a 1:1 video in 9fr and 16fr columns come out the same height. */
-  .films { display: grid; grid-template-columns: 9fr 16fr; gap: var(--space-4); align-items: start; margin-bottom: var(--space-5); }
+  /* A 9:16 and a 1:1 video in 9fr and 16fr columns come out the same height.
+     The width cap keeps that height under 75 % of the screen, so the controls show on a laptop. */
+  .films {
+    display: grid; grid-template-columns: 9fr 16fr; gap: var(--space-4); align-items: start;
+    max-width: calc(75svh * 25 / 16 + var(--space-4)); margin-bottom: var(--space-5);
+  }
   .films figure { margin: 0; }
   .films video { width: 100%; background: #1a1a19; }
   @media (max-width: 720px) {
-    .films { grid-template-columns: 1fr; }
-    /* Keep the tall video from filling more than the screen. */
-    .films .portrait .plate { width: fit-content; margin-inline: auto; }
-    .films .portrait video { max-height: 85svh; width: auto; }
+    .films { grid-template-columns: 1fr; max-width: none; }
+    /* Keep each video from filling more than the screen. */
+    .films .plate { width: fit-content; margin-inline: auto; }
+    .films video { max-height: 85svh; width: auto; }
   }
   @media (prefers-color-scheme: dark) {
     .page h1 { transform: scaleX(0.9); transform-origin: left; }
@@ -44,7 +48,7 @@
 <header class="site-header">
   <div class="page">
     <a class="wordmark" href="../">NobuRF</a>
-    <nav class="site-nav" aria-label="Sections">
+    <nav class="site-nav" aria-label="Site">
       <a href="../#accuracy">Accuracy</a>
       <a href="../#agent">AI design</a>
       <a href="./" aria-current="page">Videos</a>
@@ -65,28 +69,28 @@
   <div class="films">
     <figure class="portrait">
       <div class="plate">
-        <video controls playsinline preload="none" poster="../assets/videos/hackathon-entry-poster.jpg" width="720" height="1280"
+        <video aria-label="NobuRF hackathon entry, 53 seconds" controls playsinline preload="none" poster="../assets/videos/hackathon-entry-poster.jpg" width="720" height="1280"
                aria-describedby="hackathon-entry-caption">
           <source src="../assets/videos/hackathon-entry.mp4" type="video/mp4">
         </video>
       </div>
       <figcaption id="hackathon-entry-caption">
-        <b>Figure 1.</b> My entry for the Kimi K3.1 Pro hackathon, 53&nbsp;s. I give an AI agent one sentence, and Kimi K3.1 Pro on
-        Cerebras, running in OpenClaw, tunes a 5.8&nbsp;GHz patch antenna with a full 3D NobuRF solve on every try.
-        The timings on screen come from the run logs.
+        <b>Figure 1.</b> My entry for the Kimi K3.1 Pro on Cerebras hackathon, 53&nbsp;s. From a one-line request, an
+        OpenClaw agent running Kimi K3.1 Pro on Cerebras tunes a 5.8&nbsp;GHz patch antenna, with a full 3D NobuRF solve
+        on every try. The timings on screen come from the run logs.
       </figcaption>
     </figure>
 
     <figure>
       <div class="plate">
-        <video controls playsinline preload="none" poster="../assets/videos/teaser-poster.jpg" width="1080" height="1080"
+        <video aria-label="NobuRF teaser, 40 seconds" controls playsinline preload="none" poster="../assets/videos/teaser-poster.jpg" width="1080" height="1080"
                aria-describedby="teaser-caption">
           <source src="../assets/videos/teaser.mp4" type="video/mp4">
         </video>
       </div>
       <figcaption id="teaser-caption">
-        <b>Figure 2.</b> The teaser from November 21, 40&nbsp;s. I change a patch antenna in the workbench and solve it again,
-        then the video shows the fields on the board, the resonance moving, and the radiation pattern.
+        <b>Figure 2.</b> The teaser from November 21, 2026, 40&nbsp;s. I change a patch antenna in the workbench and solve it
+        again. The video then shows the field on the board and the radiation pattern.
       </figcaption>
     </figure>
   </div>
