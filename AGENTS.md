@@ -7,7 +7,7 @@ repository (and, for `npm run design -- agent`, OpenClaw on Node 24.16 or newer)
 (`--gpu`) or on a CPU reference.
 
 ```bash
-git clone https://github.com/Llompi/NobuRF && cd NobuRF && npm install
+git clone https://github.com/Llompi/NobuRF-Public && cd NobuRF-Public && npm install
 ```
 
 ## Three ways in
