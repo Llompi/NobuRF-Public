@@ -466,7 +466,9 @@ async function farFieldParity(label: string, grid: GridConfig, model: ReturnType
   };
   const cpuE = march(model);
   const rel = maxRelativeDifference(gpuE, cpuE);
-  const sheetEffect = maxRelativeDifference(cpuE, march({ ...model, thinSheets: undefined }));
+  // Against the same grid with no sheets at all. (Dropping only the sparse passes would keep the sheets'
+  // changes to the main coefficients, such as the rim ties' scaled curl, without the rows that keep them stable.)
+  const sheetEffect = maxRelativeDifference(cpuE, march(vacuumModel(grid)));
   const sheets = model.thinSheets!;
   report(`thin sheets E GPU vs CPU (sphere sheet and turned strip, ${sheets.ghostE} ghost E, ${sheets.ghostH} ghost H, ${steps} steps)`,
     rel < PARITY_TOLERANCE && sheetEffect > 10 * PARITY_TOLERANCE, `max rel diff ${rel.toExponential(2)}, the sheets move E by ${sheetEffect.toExponential(2)}`);

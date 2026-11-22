@@ -20,6 +20,9 @@ from pathlib import Path
 
 import numpy as np
 
+if int(np.__version__.split('.')[0]) < 2:  # theory.py uses np.trapezoid, new in numpy 2.0
+    sys.exit(f'exam.py needs numpy 2.0 or later (found {np.__version__}); the antenna cases fail on older numpy')
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import network as nw  # noqa: E402
@@ -411,14 +414,25 @@ def case_resonator() -> list[Grade]:
                    corrected_ghz=corrected, steps=solved.result.get('runs', [{}])[0].get('steps'))]
 
 
+def via_fence(fence_id: str, x0: float, x1: float, y: float, between: list[str], drill: float = 0.5, pitch: float = 1.0) -> dict:
+    """A row of plated vias along x at y, one every `pitch` from x0 towards x1."""
+    return {'id': fence_id, 'x': mm(x0), 'y': mm(y), 'to': [mm(x1), mm(y)], 'pitch': mm(pitch), 'drill': mm(drill),
+            'between': between}
+
+
 def waveguide_project(name: str, length_mm: float) -> dict:
     """Air-filled WR-90 (a = 22.86, b = 10.16 mm) along x between two probe ports.
 
-    The y and z faces are PEC; copper sheets at z = 0 and b are the broad walls, and the PEC y faces
-    one 1 mm cell outside the 20.86 mm wide board are the narrow walls, so a = 22.86 mm exactly."""
+    The broad walls are two copper sheets b apart; the narrow walls are via fences a apart (drill 0.5 mm,
+    pitch 1 mm), tying the sheets into one conductor as the guide's walls are. On 0.5 mm cells each via is
+    one grid column at every other node of the wall line, so the fence is a row of posts, not a wall. The guide sits in open
+    space (PML on every face), so it ends in an open end radiating into the PML. The first model used the
+    PEC faces of the box as narrow walls, one cell away from the sheets: the sheets were then separate
+    conductors and the guide also carried a TEM mode, resonant along the sheets."""
     a, b, cell = 22.86, 10.16, 1.0
     half = length_mm / 2 + 15
-    outline = (-half, -(a / 2 - cell), half, a / 2 - cell)
+    outline = (-half, -(a / 2 + 1), half, a / 2 + 1)
+    fences = [via_fence(f'wall{n + 1}', -half + 0.5, half - 0.5, y, ['bottom', 'top']) for n, y in enumerate((-a / 2, a / 2))]
     return {
         'noburf_project': 1, 'name': name, 'variables': {}, 'materials': {},
         'stackup': [{'type': 'copper', 'name': 'bottom', 'material': 'pec'},
@@ -428,9 +442,9 @@ def waveguide_project(name: str, length_mm: float) -> dict:
         'geometry': {'bottom': shapes('floor', [outline]), 'top': shapes('roof', [outline])},
         'ports': [{'id': 'p1', 'x': mm(-length_mm / 2), 'y': mm(0), 'between': ['bottom', 'top'], 'reference_impedance_ohm': 50},
                   {'id': 'p2', 'x': mm(length_mm / 2), 'y': mm(0), 'between': ['bottom', 'top'], 'reference_impedance_ohm': 50}],
-        'boundaries': {'x_min': {'type': 'pml', 'cells': 20}, 'x_max': {'type': 'pml', 'cells': 20},
-                       'y_min': {'type': 'pec'}, 'y_max': {'type': 'pec'}, 'z_min': {'type': 'pec'}, 'z_max': {'type': 'pec'}},
-        'mesh': {'cell': mm(cell), 'air_margin_cells': {'xy': 1, 'below': 1, 'above': 1},
+        'vias': fences,
+        'boundaries': pml_all(),
+        'mesh': {'cell': mm(cell), 'air_margin_cells': {'xy': 4, 'below': 4, 'above': 4},
                  'graded': {'edge_cell': mm(0.5), 'dielectric_cells': 10, 'max_growth': 1.3}},
         'analysis': {'f_min_ghz': 8.0, 'f_max_ghz': 12.5, 'n_freq': 91, 'loss_reference_ghz': 10,
                      'stop': {'energy_decay_db': 50, 'max_steps': 150000}},
@@ -457,8 +471,7 @@ def case_waveguide() -> list[Grade]:
     decay = min(r['energy_decay_db'] for r in short.result['runs'] + long_.result['runs'])
     if spread > 0.1:
         why = (f'Inconclusive: the two solves are not consistent (|eigenvalue| off 1 by up to {spread:.2f}; a lossless guide '
-               f'gives 1), and the energy fell only {decay:.0f} dB in 150,000 steps. Probe ports reflect |S11| about 0.9 '
-               'and the end PMLs absorb the guided mode poorly, so the field never rings down.')
+               f'gives 1); the energy fell {decay:.0f} dB in 150,000 steps.')
         return [Grade('waveguide', 'Pozar §3.3 (WR-90, TE10)', 'TE10 cutoff frequency', fc_book, fc, 'GHz',
                       100 * (fc - fc_book) / fc_book, 'inconclusive', why),
                 Grade('waveguide', 'Pozar §3.3 (WR-90, TE10)', 'Guide wavelength at 10 GHz', th.guide_wavelength_mm(10, fc_book),
@@ -474,15 +487,19 @@ def case_waveguide() -> list[Grade]:
 def case_stripline() -> list[Grade]:
     """Pozar Ex. 3.5: 50 ohm stripline, b = 0.32 cm, eps_r 2.20: W = 0.266 cm, eps_eff = eps_r exactly (TEM).
 
-    PEC side and top/bottom faces sit one cell outside the two ground sheets. That is meant to stand in
-    for a via fence, but the sheets do not touch the walls, so the grounds are only coupled through
-    the gap, not tied."""
+    The two ground planes are tied by a via fence on each side, as a stripline board's are, and the board
+    sits in open space (PML on every face). The fences are s = 1.5 b from the strip edges, a rule fixed
+    before the solve: close enough that the fenced parallel-plate mode (cutoff c / (2 (W + 2 s) sqrt(eps_r))
+    = 8.25 GHz) stays above the 8 GHz band, far enough that the strip's field at the fence centre line is
+    down to exp(-pi s / b) < 1 % (about 1.2 % at the barrel's edge). The first model had no vias: its ground sheets stopped one cell short of a PEC box
+    and floated, and the sheets and the box rang as a line of their own."""
     b, eps = 3.2, 2.2
     w = (30 * math.pi / (math.sqrt(eps) * 50) - 0.441) * b
     cell = 0.5
+    fence_y = w / 2 + 1.5 * b
     def project(name: str, length: float) -> dict:
         half = length / 2 + 10
-        outline = (-half, -6 * b / 2, half, 6 * b / 2)
+        outline = (-half, -(fence_y + 1), half, fence_y + 1)
         return {
             'noburf_project': 1, 'name': name, 'variables': {}, 'materials': {'teflon': {'eps_r': eps, 'tan_delta': 0}},
             'stackup': [{'type': 'copper', 'name': 'gnd_bottom', 'material': 'pec'},
@@ -495,9 +512,12 @@ def case_stripline() -> list[Grade]:
                          'strip': shapes('s', [(-length / 2, -w / 2, length / 2, w / 2)])},
             'ports': [{'id': 'p1', 'x': mm(-length / 2), 'y': mm(0), 'between': ['gnd_bottom', 'strip'], 'reference_impedance_ohm': 50},
                       {'id': 'p2', 'x': mm(length / 2), 'y': mm(0), 'between': ['gnd_bottom', 'strip'], 'reference_impedance_ohm': 50}],
-            'boundaries': {'x_min': {'type': 'pml', 'cells': 10}, 'x_max': {'type': 'pml', 'cells': 10},
-                           'y_min': {'type': 'pec'}, 'y_max': {'type': 'pec'}, 'z_min': {'type': 'pec'}, 'z_max': {'type': 'pec'}},
-            'mesh': {'cell': mm(cell), 'air_margin_cells': {'xy': 1, 'below': 1, 'above': 1},
+            # 0.8 mm pitch from 0.4 mm inside the board edge puts a via line on each strip end, so the fence's
+            # mesh lines do not crowd the lines there (a 1 mm pitch left a 0.11 mm cell next to the port).
+            'vias': [via_fence(f'fence{n + 1}', -half + 0.4, half - 0.4, y, ['gnd_bottom', 'gnd_top'], pitch=0.8)
+                     for n, y in enumerate((-fence_y, fence_y))],
+            'boundaries': pml_all(),
+            'mesh': {'cell': mm(cell), 'air_margin_cells': {'xy': 4, 'below': 4, 'above': 4},
                      'graded': {'edge_cell': mm(0.2), 'dielectric_cells': 6, 'max_growth': 1.3}},
             'analysis': {'f_min_ghz': 0.5, 'f_max_ghz': 8.0, 'n_freq': 151, 'loss_reference_ghz': 4,
                          'stop': {'energy_decay_db': 50, 'max_steps': 60000}},
@@ -516,8 +536,7 @@ def case_stripline() -> list[Grade]:
     decay = min(r['energy_decay_db'] for r in s1.result['runs'] + s2.result['runs'])
     if decay < 40:
         why = (f'Inconclusive: one solve\'s energy fell only {decay:.0f} dB in 60,000 steps (the solver warns the result '
-               'is approximate). The two ground sheets stop one cell short of the PEC box, so they are not tied together '
-               'and the box rings. NobuRF needs vias (or ground sheets that reach the walls) to model stripline.')
+               'is approximate), so the numbers are not a converged answer.')
         return [Grade('stripline', 'Pozar Ex. 3.5', 'eps_eff (TEM: equals eps_r)', eps, ee, '', 100 * (ee - eps) / eps,
                       'inconclusive', why),
                 Grade('stripline', 'Pozar Ex. 3.5', 'Characteristic impedance', 50, z_line, 'ohm', 100 * (z_line - 50) / 50,
@@ -734,6 +753,7 @@ def main() -> None:
     names = [n for n in args.only.split(',') if n] or list(CASES)
     results_path = RESULTS_DIR / 'grades.json'
     previous = json.loads(results_path.read_text()) if results_path.exists() else {}
+    errored = []
     for name in names:
         try:
             grades = CASES[name]()
@@ -743,8 +763,11 @@ def main() -> None:
         except Exception as error:  # a case that cannot be built is itself an exam answer
             previous[name] = [{'case': name, 'verdict': 'error', 'note': f'{type(error).__name__}: {error}'}]
             print(f'{name:18} ERROR  {error}')
+            errored.append(name)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     results_path.write_text(json.dumps(previous, indent=2, default=float) + '\n')
+    if errored:  # a grade table with errored cases is not a finished exam; say so to the caller
+        sys.exit(f'{len(errored)} of {len(names)} cases errored: {", ".join(errored)}')
 
 
 if __name__ == '__main__':

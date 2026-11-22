@@ -31,10 +31,10 @@ const SECTION_7 = 'docs/validation.md section 7';
 
 /** Benchmarks and what they cover: section 7 of docs/validation.md. */
 export const VALIDATED = {
-  epsR: { min: 2.2, max: 2.33, evidence: `measured benchmarks that agree: eps_r 2.2 (Sheen 1990 patch, -0.4 %) and 2.33 (Chang 1986 patches, -0.7 to +1.8 % on the three in section 7.1, -2.2 to +3.5 % on all six up to h/lambda_d 0.11). The alumina line (9.9) reads eps_eff 0.7 to 1.6 % high, so it is not included: ${SECTION_7}` },
+  epsR: { min: 2.2, max: 2.33, evidence: `measured benchmarks that agree: eps_r 2.2 (Sheen 1990 patch, -0.3 %) and 2.33 (Chang 1986 patches, -0.5 to +1.9 % on the three in section 7.1, -1.8 to +4.0 % on all six up to h/lambda_d 0.11). The alumina line (9.9) reads eps_eff 0.7 to 1.6 % high, so it is not included: ${SECTION_7}` },
   thicknessInWavelengths: {
     max: 0.1,
-    evidence: 'Chang 1986 measured patches: within 3.5 % up to h/lambda_d 0.11; above it NobuRF reads high, +6.6 % at 0.125 rising to +14.5 % at 0.23 with a lumped feed (docs/validation.md section 7.4)',
+    evidence: 'Chang 1986 measured patches: within 4.0 % up to h/lambda_d 0.11 (1.8 % with the coax probe); above it NobuRF reads high with a lumped feed, +7.1 % at 0.125 and +10 to +16 % from 0.134 to 0.23 (docs/validation.md section 7.4)',
   },
   frequencyGhz: { min: 2, max: 8, evidence: `the measured resonances that agree lie between 2.31 GHz (Chang 1986) and 7.5 GHz (Sheen 1990 patch): ${SECTION_7}` },
   dielectricLayers: { max: 1, evidence: `every measured benchmark has one substrate: ${SECTION_7}` },

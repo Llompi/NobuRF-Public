@@ -3,7 +3,8 @@ import { rasterise } from '../src/project/rasterise';
 import { parseProject } from '../src/project/schema';
 import * as actions from '../src/workbench/doc_actions';
 import { MATERIAL_LIBRARY } from '../src/workbench/material_library';
-import { defaultBoardMm, newProject, withoutUnusedVariables } from '../src/workbench/new_project';
+import { defaultBoardMm, newProject, patchNote, withoutUnusedVariables } from '../src/workbench/new_project';
+import { insetDepthMm, patchEdgeResistanceOhm } from '../src/design/patch_template';
 import { csvFile, touchstoneFile } from '../src/workbench/export';
 import type { WorkbenchResult } from '../src/workbench/solve';
 import { snap } from '../src/workbench/draw_tool';
@@ -19,13 +20,65 @@ describe('new project templates', () => {
     expect(p.ports.length).toBe(template === 'line' ? 2 : 1);
   });
 
+  it('patch: a wide feed on a narrow board is not refused by the removed stub feature\'s bounds', () => {
+    // board_w - feed_w < 8 mm: the agent's stub_l max (board_w / 2 - feed_w / 2 - 1 mm) falls below its 3 mm start.
+    const p = newProject({ template: 'patch', name: 'narrow', frequencyGHz: 10, substrate: 'RT/duroid 5880', thicknessMm: 1.588, boardWMm: 12 });
+    expect(p.variables).not.toHaveProperty('stub_l');
+    expect(() => rasterise(p)).not.toThrow();
+  });
+
   it('patch: builds the Balanis Example 14.1 patch, whose 50 ohm feed is wider than a third of the patch', () => {
     const p = newProject({ template: 'patch', name: 'balanis', frequencyGHz: 10, substrate: 'RT/duroid 5880', thicknessMm: 1.588 });
     // Balanis eq. 14-6 to 14-7: W = 11.86 mm, L = 9.06 mm.
     expect(Number.parseFloat(p.variables.patch_w.value)).toBeCloseTo(11.86, 1);
     expect(Number.parseFloat(p.variables.patch_l.value)).toBeCloseTo(9.06, 1);
     expect(Number.parseFloat(p.variables.feed_w.value)).toBeGreaterThan(11.86 / 3);
+    // Balanis Examples 14.2 and 14.3: 228 ohm at the edge, a 3.126 mm inset for 50 ohm.
+    expect(Number.parseFloat(p.variables.inset_d.value)).toBeCloseTo(3.126, 2);
+    expect(p.variables.inset_gap.value).toBe('1 mm');
+    expect(p.geometry.top.map((s) => s.id)).toEqual(['patch', 'inset_left', 'inset_right', 'feed', 'inset_feed']);
     expect(() => rasterise(p)).not.toThrow();
+  });
+
+  it('patch: edge resistance and inset depth match Balanis Examples 14.2 and 14.3', () => {
+    const edge = patchEdgeResistanceOhm(10, 11.86, 9.06);
+    expect(edge).toBeCloseTo(228.3, 0);
+    expect(insetDepthMm(edge, 9.06, 50)).toBeCloseTo(3.126, 2);
+    expect(insetDepthMm(40, 9.06, 50)).toBeNull();
+  });
+
+  it('patch: says where its numbers come from, and that both are starting points', () => {
+    const note = patchNote({ template: 'patch', frequencyGHz: 10, substrate: 'RT/duroid 5880', thicknessMm: 1.588 });
+    expect(note).toMatch(/^Patch 11\.85 mm × 9\.05 mm from the transmission-line model .* edge resistance 22\d Ω, so a 3\.1\d mm inset for 50 Ω/);
+    expect(note).toMatch(/the resonance lands a few percent off 10 GHz and the inset depth usually needs adjusting/);
+  });
+
+  it('patch: narrows the inset gap on a small patch, so a 28 GHz patch keeps its inset', () => {
+    const spec = { template: 'patch' as const, frequencyGHz: 28, substrate: 'RT/duroid 5880', thicknessMm: 0.254 };
+    const p = newProject({ ...spec, name: 'mmwave' });
+    // A 4.23 mm patch with a 0.78 mm feed: (4.23 - 0.78) / 6 = 0.575 mm each side, above the template's 0.5 mm least gap.
+    expect(Number.parseFloat(p.variables.inset_gap.value)).toBeCloseTo(0.575, 2);
+    expect(p.geometry.top.map((s) => s.id)).toEqual(['patch', 'inset_left', 'inset_right', 'feed', 'inset_feed']);
+    expect(() => rasterise(p)).not.toThrow();
+    expect(patchNote(spec)).toMatch(/inset for 50 Ω/);
+  });
+
+  it('patch: a board too narrow for an inset gets an edge feed, and the note blames the board', () => {
+    const spec = { template: 'patch' as const, frequencyGHz: 10, substrate: 'RT/duroid 5880', thicknessMm: 0.787, boardWMm: 7 };
+    const p = newProject({ ...spec, name: 'narrow' });
+    expect(p.geometry.top.map((s) => s.id)).toEqual(['patch', 'feed']);
+    expect(p.variables.inset_d).toBeUndefined();
+    expect(() => rasterise(p)).not.toThrow();
+    const note = patchNote(spec);
+    expect(note).toMatch(/The 5\.00 mm patch leaves no room for an inset beside the 2\.\d\d mm feed/);
+    expect(note).toMatch(/The board holds the patch below the 11\.\d\d mm × 9\.\d\d mm the formulas ask for\. Use a larger board/);
+    expect(note).not.toMatch(/few percent|pulls the resonance/);
+  });
+
+  it('patch: a board that shortens the patch says the resonance lands high, not a few percent off', () => {
+    const note = patchNote({ template: 'patch', frequencyGHz: 10, substrate: 'RT/duroid 5880', thicknessMm: 1.588, boardLMm: 12 });
+    expect(note).toMatch(/× 6\.00 mm .* so expect the resonance above 10 GHz\. Use a larger board/);
+    expect(note).not.toMatch(/few percent/);
   });
 
   it('patch: refuses a feed wider than half the patch, without suggesting a board that would not help', () => {

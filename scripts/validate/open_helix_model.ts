@@ -174,8 +174,8 @@ export function buildOpenHelix(g: OpenHelixGeometry, o: OpenHelixMeshOptions, z0
   const innerXY = g.radiusMm + 2 * o.cellMm;
   const innerZ = top + 2 * o.cellMm;
   const halfW = g.diskTraceWidthMm / 2;
-  // Sheet arms keep their free ends exactly where mesh lines run through them: a sheet's rim inside a
-  // face is only seen at the edges it crosses (conformal_sheets.ts), so a rim between lines snaps by up to a cell.
+  // Sheet arms keep their free ends exactly where mesh lines run through them. Sub-cell rims
+  // (conformal_sheets.ts) would place them between lines too; the lines keep rims: 'snap' runs exact there.
   const sheetArms = o.arms === 'sheet';
   if (sheetArms && g.copperConductivitySPerM !== null) throw new Error('sheet arms are PEC: thin sheets carry no copper loss yet, so pass copperConductivitySPerM null (--copper 0)');
   const endPhi = g.armWrapDeg * DEG - (g.diskTraceWidthMm / 2) / g.radiusMm;

@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import time
 from dataclasses import dataclass
@@ -111,7 +112,7 @@ def solve(project: dict) -> Solved:
     name = project['name']
     path = PROJECT_DIR / f'{name}.json'
     text = json.dumps(project, indent=2) + '\n'
-    path.write_text(text)
+    path.write_text(text, newline='\n')  # LF on Windows too, so the file noburf hashes matches `sha`
     sha = hashlib.sha256(text.encode()).hexdigest()
     out_dir = RESULTS_DIR / name
     result_path = out_dir / 'result.json'
@@ -121,7 +122,8 @@ def solve(project: dict) -> Solved:
             return Solved(name, out_dir, previous, previous.get('solve_ms', 0) / 1e3)
     env = dict(os.environ, VK_ICD_FILENAMES='/opt/lavapipe/lvp_icd.json')
     env.pop('VK_DRIVER_FILES', None)
-    args = ['npm', 'run', '-s', 'noburf', '--', 'solve', str(path), '--out', str(out_dir)] + (['--gpu'] if USE_GPU else ['--cpu'])
+    # On Windows npm is npm.cmd, which subprocess does not find by its bare name.
+    args = [shutil.which('npm') or 'npm', 'run', '-s', 'noburf', '--', 'solve', str(path), '--out', str(out_dir)] + (['--gpu'] if USE_GPU else ['--cpu'])
     start = time.time()
     run = subprocess.run(args, cwd=REPO, env=env, capture_output=True, text=True)
     if run.returncode:

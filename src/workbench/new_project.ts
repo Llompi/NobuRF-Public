@@ -9,7 +9,7 @@
 import { timestepSec } from '../engine/config';
 import { TIMING_ENERGY_DECAY_DB } from '../engine/differential';
 import { sourceEndStep, sourceParams } from '../engine/source';
-import { microstripWidthMm, patchDesign, patchEstimateMm } from '../design/patch_template';
+import { insetDepthMm, microstripWidthMm, patchDesign, patchEdgeResistanceOhm, patchEstimateMm } from '../design/patch_template';
 import { applyProjectEdit } from '../project/edits';
 import { rasterise } from '../project/rasterise';
 import { resolveProject } from '../project/resolve';
@@ -63,8 +63,13 @@ export function defaultBoardMm(spec: Omit<NewProjectSpec, 'boardWMm' | 'boardLMm
   return { w: Math.max(10, Math.ceil(span + 12 * spec.thicknessMm)), l: Math.max(20, Math.ceil(guided / 2)) };
 }
 
+/** The board a project is built on: the given size where there is one, the template's own otherwise. */
+function boardFor(spec: Omit<NewProjectSpec, 'name'>): { w: number; l: number } {
+  return { ...defaultBoardMm(spec), ...(spec.boardWMm ? { w: spec.boardWMm } : {}), ...(spec.boardLMm ? { l: spec.boardLMm } : {}) };
+}
+
 export function newProject(spec: NewProjectSpec): Project {
-  const board = { ...defaultBoardMm(spec), ...(spec.boardWMm ? { w: spec.boardWMm } : {}), ...(spec.boardLMm ? { l: spec.boardLMm } : {}) };
+  const board = boardFor(spec);
   const project = spec.template === 'patch' ? patchProject(spec, board)
     : spec.template === 'line' ? lineProject(spec, board)
     : spec.template === 'pair' ? pairProject(spec, board)
@@ -98,39 +103,96 @@ function stepLimit(project: Project, frequencyGHz: number): number {
   return Math.max(20000, Math.ceil((pulse + ringDown) / 1000) * 1000);
 }
 
-function patchProject(spec: NewProjectSpec, board: { w: number; l: number }): Project {
+/** Gap on each side of the feed in an inset, as in the design agent's template, and the least its bounds allow. */
+const INSET_GAP_MM = 1;
+const INSET_GAP_MIN_MM = 0.5;
+
+/**
+ * How New sizes a patch, in the closed forms a textbook uses, so a student can
+ * check the numbers: W and L from the transmission-line model, the edge
+ * resistance with mutual coupling, and the inset depth for 50 Ω.
+ */
+export function patchSizing(spec: Pick<NewProjectSpec, 'frequencyGHz' | 'substrate' | 'thicknessMm'>, board: { w: number; l: number }) {
   const epsR = substrateEpsR(spec.substrate);
+  const est = patchEstimateMm(spec.frequencyGHz, epsR, spec.thicknessMm);
+  const patchW = Math.min(est.w, board.w - 2);
+  const patchL = Math.min(est.l, board.l - 6);
+  const feedW = microstripWidthMm(50, epsR, spec.thicknessMm);
+  const edgeOhm = patchEdgeResistanceOhm(spec.frequencyGHz, patchW, patchL);
+  // The notch beside the feed shrinks with a small patch, so that each side keeps at least two gaps of copper
+  // beside the notches; below the template's 0.5 mm least gap there is no room for an inset.
+  const insetGapMm = Math.min(INSET_GAP_MM, (patchW - feedW) / 6);
+  const insetMm = insetGapMm >= INSET_GAP_MIN_MM ? insetDepthMm(edgeOhm, patchL, 50) : null;
+  return { epsR, est, patchW, patchL, feedW, edgeOhm, insetGapMm, insetMm };
+}
+
+/** What New tells the student about a patch it built: where the numbers come from, and what to expect. */
+export function patchNote(spec: Omit<NewProjectSpec, 'name'>): string {
+  const s = patchSizing(spec, boardFor(spec));
+  const mm = (x: number) => `${x.toFixed(2)} mm`;
+  const f = `${spec.frequencyGHz} GHz`;
+  const sizes = `Patch ${mm(s.patchW)} × ${mm(s.patchL)} from the transmission-line model (Balanis 14.2.1), edge resistance ${s.edgeOhm.toFixed(0)} Ω`;
+  const feed = s.insetMm !== null
+    ? `${sizes}, so a ${mm(s.insetMm)} inset for 50 Ω (Balanis eq. 14-20a).`
+    : s.insetGapMm >= INSET_GAP_MIN_MM
+      ? `${sizes}, at or below 50 Ω already, so the feed meets the edge directly.`
+      : `${sizes}. The ${mm(s.patchW)} patch leaves no room for an inset beside the ${mm(s.feedW)} feed, so it meets the edge directly and is not matched.`;
+  // A board too small for the patch shortens it, which moves the resonance more than the formulas' usual error.
+  if (s.patchL < s.est.l || s.patchW < s.est.w) {
+    const shorter = s.patchL < s.est.l ? `, so expect the resonance above ${f}` : '';
+    return `${feed} The board holds the patch below the ${mm(s.est.w)} × ${mm(s.est.l)} the formulas ask for${shorter}. ` +
+      'Use a larger board, or solve and adjust from there.';
+  }
+  if (s.insetMm !== null) {
+    return `${feed} These formulas ignore the feed line and the finite ground, so treat both as starting points: ` +
+      `the resonance lands a few percent off ${f} and the inset depth usually needs adjusting. Solve, then adjust patch_l and inset_d.`;
+  }
+  return `${feed} An edge feed also pulls the resonance below ${f}, the more so the wider it is. Solve, then adjust patch_l.`;
+}
+
+function patchProject(spec: NewProjectSpec, board: { w: number; l: number }): Project {
+  const sizing = patchSizing(spec, board);
   const design = patchDesign({
     goal: { target_ghz: spec.frequencyGHz, s11_max_db: -10, f_tolerance_pct: 1 },
     boardWMm: board.w,
     boardLMm: board.l,
-    substrate: { material: spec.substrate, epsR, thicknessMm: spec.thicknessMm },
+    substrate: { material: spec.substrate, epsR: sizing.epsR, thicknessMm: spec.thicknessMm },
   });
-  const est = patchEstimateMm(spec.frequencyGHz, epsR, spec.thicknessMm);
-  const feedW = microstripWidthMm(50, epsR, spec.thicknessMm);
-  // The design agent keeps the feed under a third of the patch so an inset fits beside it. The plain
-  // edge-fed patch has no inset, and textbook designs on thick, low-εr laminates need more: Balanis
-  // Example 14.1 (10 GHz, εr 2.2, 1.588 mm) has a 4.9 mm feed on an 11.9 mm patch.
-  const patchW = Math.min(est.w, board.w - 2);
-  if (feedW > patchW / 2) {
-    const boardLimited = board.w - 2 < est.w;
-    throw new Error(`A 50 Ω feed on ${spec.thicknessMm} mm ${spec.substrate} is ${feedW.toFixed(2)} mm wide, more than half ` +
-      `the ${patchW.toFixed(1)} mm patch. Use a thinner substrate${boardLimited ? ' or a wider board' : ''}.`);
+  // The design agent keeps the feed under a third of the patch so an inset fits beside it. Textbook designs on
+  // thick, low-εr laminates need more: Balanis Example 14.1 (10 GHz, εr 2.2, 1.588 mm) has a 4.9 mm feed on an
+  // 11.9 mm patch, which still leaves room for a 1 mm gap each side.
+  if (sizing.feedW > sizing.patchW / 2) {
+    const boardLimited = board.w - 2 < patchEstimateMm(spec.frequencyGHz, sizing.epsR, spec.thicknessMm).w;
+    throw new Error(`A 50 Ω feed on ${spec.thicknessMm} mm ${spec.substrate} is ${sizing.feedW.toFixed(2)} mm wide, more than half ` +
+      `the ${sizing.patchW.toFixed(1)} mm patch. Use a thinner substrate${boardLimited ? ' or a wider board' : ''}.`);
   }
   // The design agent starts the feed at most a third of the patch wide; the plain patch takes the full 50 Ω width.
-  design.project.variables.feed_w = { ...design.project.variables.feed_w, value: mm(feedW), max: 'patch_w / 2' };
+  design.project.variables.feed_w = { ...design.project.variables.feed_w, value: mm(sizing.feedW), min: '0.1 mm', max: 'patch_w / 2' };
+  // The agent's bounds keep its search to sizes a hand-etched board can hold; a new project only needs them positive.
+  // Set before the edits below, which check every bound: a 28 GHz patch is under the agent's 4 mm.
+  design.project.variables.patch_w.min = '1 mm';
+  design.project.variables.patch_l.min = '1 mm';
   const entry = libraryMaterial(spec.substrate);
   if (entry) design.project.materials[spec.substrate] = projectMaterial(entry);
-  // The plain patch: the design agent's optional inset, slot, stub and chamfer shapes removed.
   let project = design.project;
-  for (const feature of Object.values(design.features)) {
+  if (sizing.insetMm !== null) {
+    project.variables.inset_d = { ...project.variables.inset_d, value: `${Number(sizing.insetMm.toFixed(3))} mm` };
+    project.variables.inset_gap = { ...project.variables.inset_gap, value: mm(sizing.insetGapMm) };
+  }
+  // The design agent's optional features removed, except the inset when it fits: the textbook 50 Ω match.
+  const removed = Object.entries(design.features).filter(([name]) => !(name === 'inset' && sizing.insetMm !== null));
+  // The removed features' variables are dropped later as unused; until then their agent bounds (some tied to
+  // feed_w, which New may widen past the agent's) must not refuse the project on a narrow board.
+  for (const [, feature] of removed) {
+    for (const v of feature.variables) {
+      const { min: _min, max: _max, ...free } = project.variables[v];
+      project.variables[v] = free;
+    }
+  }
+  for (const [, feature] of removed) {
     for (const id of feature.shapes) project = applyProjectEdit(project, { op: 'remove_polygon', id }).project;
   }
   project = structuredClone(project);
-  // The agent's bounds keep its search to sizes a hand-etched board can hold; a new project only needs them positive.
-  project.variables.patch_w.min = '1 mm';
-  project.variables.patch_l.min = '1 mm';
-  project.variables.feed_w.min = '0.1 mm';
   // An eighth of a wavelength of air past the board edge, so the absorbing boundary is clear of the radiating ground edge.
   const cell = Number.parseFloat(project.mesh.cell);
   project.mesh.air_margin_cells.xy = Math.max(4, Math.ceil(C_MM_GHZ / spec.frequencyGHz / 8 / cell));

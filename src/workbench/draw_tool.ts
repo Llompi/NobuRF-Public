@@ -8,10 +8,10 @@
 import * as THREE from 'three';
 import type { Vec2 } from '../project/resolve';
 
-export type DrawToolKind = 'select' | 'rectangle' | 'polygon' | 'port';
+export type DrawToolKind = 'select' | 'rectangle' | 'polygon' | 'port' | 'section';
 
 export type Drawn =
-  | { kind: 'rectangle' | 'polygon'; layer: string; points: Vec2[] }
+  | { kind: 'rectangle' | 'polygon' | 'section'; layer: string; points: Vec2[] }
   | { kind: 'port'; layer: string; at: Vec2 };
 
 /** Snap step, mm: fine enough for RF traces, coarse enough to land on round numbers. */
@@ -137,7 +137,8 @@ export class DrawTool {
     if (!hit) return null;
     // Only shapes line up with corners: a port goes mid-trace, not on its edge. Shift held turns it off, for a
     // feature finer than the snap distance at this zoom.
-    const corners = !toCorners || this.kind === 'port' || e.shiftKey ? [] : this.host.corners();
+    // A section boundary goes where the user drags it, on the grid, not onto copper edges.
+    const corners = !toCorners || this.kind === 'port' || this.kind === 'section' || e.shiftKey ? [] : this.host.corners();
     // CLOSE_PX on screen, per axis, in mm on the board where the pointer is; never more than SNAP_REACH_MM.
     const reach = (pxPerMm: number) => (pxPerMm > 0 ? Math.min(CLOSE_PX / pxPerMm, SNAP_REACH_MM) : 0);
     return snapToCorners([hit.x, hit.y], corners, [reach(this.pixelsPerMm([hit.x, hit.y], 0)), reach(this.pixelsPerMm([hit.x, hit.y], 1))]);
@@ -165,7 +166,7 @@ export class DrawTool {
     // Keep the pointer while the button is down, so a release off the canvas still ends the drag.
     (e.target as Element).setPointerCapture?.(e.pointerId);
     const at = this.boardPoint(e);
-    if (at && this.kind === 'rectangle') this.dragFrom = at;
+    if (at && (this.kind === 'rectangle' || this.kind === 'section')) this.dragFrom = at;
   }
 
   private onMove(e: PointerEvent): void {
@@ -179,7 +180,8 @@ export class DrawTool {
     if (!this.active || e.button !== 0) return;
     e.stopPropagation();
     const at = this.boardPoint(e);
-    if (this.kind === 'rectangle') {
+    if (this.kind === 'rectangle' || this.kind === 'section') {
+      const kind = this.kind;
       const from = this.dragFrom;
       this.dragFrom = null;
       // A narrow drag whose two edges snap to the same line keeps the grid point instead of vanishing.
@@ -188,7 +190,7 @@ export class DrawTool {
       if (from && end && end[0] !== from[0] && end[1] !== from[1]) {
         const [x0, x1] = [Math.min(from[0], end[0]), Math.max(from[0], end[0])];
         const [y0, y1] = [Math.min(from[1], end[1]), Math.max(from[1], end[1])];
-        this.emit({ kind: 'rectangle', layer: this.layer, points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]] });
+        this.emit({ kind, layer: this.layer, points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]] });
       } else {
         this.drawPreview();
       }
@@ -230,9 +232,9 @@ export class DrawTool {
       this.preview.add(object);
     };
     const c = this.cursor;
-    if (this.kind === 'rectangle' && this.dragFrom && c) {
+    if ((this.kind === 'rectangle' || this.kind === 'section') && this.dragFrom && c) {
       const f = this.dragFrom;
-      line([[f[0], f[1]], [c[0], f[1]], [c[0], c[1]], [f[0], c[1]]], true);
+      line([[f[0], f[1]], [c[0], f[1]], [c[0], c[1]], [f[0], c[1]]], true, this.kind === 'section');
     } else if (this.kind === 'polygon' && this.points.length) {
       line(this.points, false);
       if (c) line([this.points.at(-1)!, c, ...(this.points.length >= 2 ? [this.points[0]] : [])], false, true);

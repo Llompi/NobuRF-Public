@@ -1,0 +1,62 @@
+{
+  "stripline": [
+    {
+      "case": "stripline",
+      "source": "Pozar Ex. 3.5",
+      "quantity": "eps_eff (TEM: equals eps_r)",
+      "book": 2.2,
+      "nobu": 2.1754257348355166,
+      "unit": "",
+      "error_pct": -1.1170120529310716,
+      "verdict": "inconclusive",
+      "note": "Inconclusive: one solve's energy fell only 0 dB in 60,000 steps (the solver warns the result is approximate). The two ground sheets stop one cell short of the PEC box, so they are not tied together and the box rings. NobuRF needs vias (or ground sheets that reach the walls) to model stripline.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "stripline",
+      "source": "Pozar Ex. 3.5",
+      "quantity": "Characteristic impedance",
+      "book": 50,
+      "nobu": 53.19536266560741,
+      "unit": "ohm",
+      "error_pct": 6.390725331214823,
+      "verdict": "inconclusive",
+      "note": "Inconclusive: one solve's energy fell only 0 dB in 60,000 steps (the solver warns the result is approximate). The two ground sheets stop one cell short of the PEC box, so they are not tied together and the box rings. NobuRF needs vias (or ground sheets that reach the walls) to model stripline.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    }
+  ],
+  "waveguide": [
+    {
+      "case": "waveguide",
+      "source": "Pozar \u00a73.3 (WR-90, TE10)",
+      "quantity": "TE10 cutoff frequency",
+      "book": 6.557140376202975,
+      "nobu": 6.927670448336216,
+      "unit": "GHz",
+      "error_pct": 5.650787551810856,
+      "verdict": "inconclusive",
+      "note": "Inconclusive: the two solves are not consistent (|eigenvalue| off 1 by up to 3.82; a lossless guide gives 1), and the energy fell only 23 dB in 150,000 steps. Probe ports reflect |S11| about 0.9 and the end PMLs absorb the guided mode poorly, so the field never rings down.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    },
+    {
+      "case": "waveguide",
+      "source": "Pozar \u00a73.3 (WR-90, TE10)",
+      "quantity": "Guide wavelength at 10 GHz",
+      "book": 39.7071192111121,
+      "nobu": 42.44562326868215,
+      "unit": "mm",
+      "error_pct": 6.896758344543086,
+      "verdict": "inconclusive",
+      "note": "Inconclusive: the two solves are not consistent (|eigenvalue| off 1 by up to 3.82; a lossless guide gives 1), and the energy fell only 23 dB in 150,000 steps. Probe ports reflect |S11| about 0.9 and the end PMLs absorb the guided mode poorly, so the field never rings down.",
+      "absolute": false,
+      "extra": {},
+      "post_hoc": false
+    }
+  ]
+}

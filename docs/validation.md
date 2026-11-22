@@ -38,7 +38,7 @@ npx vitest run tests/validation.test.ts               # fast regression guard (<
 All NobuRF numbers come from the CPU reference solver (`src/engine/fdtd_cpu.ts`),
 which runs the same update equations as the WGSL kernels. GPU/CPU parity on
 the full demo grid is checked by `npm run test:gpu` and the in-browser
-self-test (max difference ~1e-6 on a laptop GTX 1660 Ti). Raw data is in
+self-test (max difference ~1e-6 on a GTX 1660 Ti laptop GPU). Raw data is in
 [`validation/data/`](validation/data/).
 
 ---
@@ -47,7 +47,7 @@ self-test (max difference ~1e-6 on a laptop GTX 1660 Ti). Raw data is in
 
 ![Yee cell](validation/img/01_yee_cell.png)
 
-NobuRF is a standard Yee-grid FDTD solver: E on cell edges, H on face centres,
+NobuRF is a standard Yee-grid FDTD solver: E on cell edges, H on face centers,
 leapfrogged in time, cubic cells, Courant number 0.99/√3. Copper is
 zero-thickness PEC on Yee edges; the port is a 50 Ω resistive voltage source
 across the substrate. Checks fall into three tiers:
@@ -139,7 +139,7 @@ Lorentz or Debye permeability); see project-file.md. Checks, all in
   left is the grid's own dispersion: it grows with the refractive index.
 - **The same slab, built through a project file.** A 10 mm Debye-εr,
   Lorentz-μr slab between 1 mm air layers, rasterised as a board on 0.25 mm
-  cells. Its centre column, laid along the line, keeps the E and H edges
+  cells. Its center column, laid along the line, keeps the E and H edges
   rasterise lists and their interface mix, for both in-plane polarisations
   (Ex with Hy, Ey with Hx). Measured within **1.3e-3** of the closed form,
   2-10 GHz (test bound 3e-3). Giving the face edges the whole slab instead of
@@ -232,7 +232,7 @@ What this shows, and what it doesn't:
   openEMS's two port models differ by 10 Ω and 15 dB on the same board. That
   NobuRF's inset impedance lands on the feed-wide port's is a coincidence,
   not a port mismatch. NobuRF's port is openEMS's one-edge ("line") port: one
-  Ez column at the feed centre, R split in series, V summed up the column, I
+  Ez column at the feed center, R split in series, V summed up the column, I
   from the H loop around its middle cell, which is what openEMS's
   `AddLumpedPort` builds and probes for a start/stop on one line. On the
   edge-fed patch at 0.25 mm the two codes' line-port Z(f) differ by 12 Ω mean
@@ -243,7 +243,7 @@ What this shows, and what it doesn't:
 
   NobuRF has the feed-wide port too, as an option (`voxelize(..., 'strip')`:
   one column on every node across the trace, R shared in parallel, V on the
-  centre column, I through all columns; `npx tsx scripts/validate/patch.ts
+  center column, I through all columns; `npx tsx scripts/validate/patch.ts
   strip`). On the 0.5 mm demo grid, line to strip:
 
   | Case | NobuRF line → strip | openEMS 0.5 mm line → strip | openEMS 0.25 mm line → strip |
@@ -498,7 +498,7 @@ The GPU box DFT matches the CPU one to 1e-6 (`npm run test:gpu:node`), on
 uniform and graded meshes.
 
 On a graded mesh the box faces fall between cells of unequal width, and H,
-which lives at cell centres, is interpolated linearly to the face. Without
+which lives at cell centers, is interpolated linearly to the face. Without
 that the graded dipole's box read 1 % low in power and 0.07 dB low in
 directivity.
 
@@ -581,9 +581,9 @@ FCC Part 15.109 limits shown beside them are for unintentional emissions.
    3 or more cells (efficiency 0.11 to 0.20 against the box flux), while 1 or 2
    cells read 1.00. Feeds that touch metal at both ends are not affected.
 
-## 6. Gap to commercial FEM tools (roadmap)
+## 6. Gap to a commercial finite-element solver (roadmap)
 
-Commercial suites are frequency-domain finite-element solvers with adaptive meshing, curved
+A commercial finite-element solver works in the frequency domain with adaptive meshing, curved
 elements, mature ports, losses, far fields and decades of measured validation.
 NobuRF is a time-domain solver that answers a 200k-cell patch in about two
 seconds on a laptop GPU. These are different tools. Here is what it would take to close the
@@ -600,11 +600,11 @@ accuracy and capability gap, roughly in order of impact:
 | 7 | Geometry import: Gerber, DXF and STEP implemented (`noburf import`, the workbench), no validation case yet; vias done ([vias.md](vias.md)), thin-wire feeds to add; a modelled SMA feed exists on the CPU solver (section 3.2) | Real boards, not one parametric patch | Large |
 | 8 | ~~Dispersive materials~~ (Debye, Lorentz, Djordjevic-Sarkar) and magnetic materials | Done, checked against closed forms (section 2.4); no measured magnetic part yet | |
 | 9 | **Scale**: f16/mixed precision, multi-GPU or tiled domains | 2.4 GHz and arrays need 10–100× the cells | Large |
-| 10 | **Measured validation**: a fabricated board on a VNA; published measured benchmarks in section 7: Chang 1986 within 3.5 % up to h/λd 0.11, within 3.6 % to 0.15 with the coax probe on a graded mesh without the edge offset, −11.9 % on the thickest board; Sheen 1990 patch −0.4 %, filter roll-off within 1.0 %, coupler −0.8 to −3.2 % with SMA ports (unmatched with lumped ports) | The gold standard. Nothing above replaces it | Medium; needs hardware |
+| 10 | **Measured validation**: a fabricated board on a VNA; published measured benchmarks in section 7: Chang 1986 within 4.0 % up to h/λd 0.11 (1.8 % with the coax probe), within 8.1 % to 0.166 with the coax probe, −11.3 % on the thickest board; Sheen 1990 patch −0.3 %, filter roll-off within 1.0 %, coupler −0.8 to −3.2 % with SMA ports (unmatched with lumped ports) | The gold standard. Nothing above replaces it | Medium; needs hardware |
 
 A fair public claim today: *"An in-browser WebGPU FDTD solver that matches
 openEMS to within 1 % on resonance at the same resolution, with every check
-open and reproducible."* Not yet fair: anything about matching or replacing commercial FEM suites.
+open and reproducible."* Not yet fair: anything about matching or replacing a commercial solver.
 
 ## 7. Published benchmarks
 
@@ -614,49 +614,62 @@ textbook cavity with losses, a textbook patch design and closed-form
 microstrip formulas. Project files, reference numbers and sources are in
 [`examples/benchmarks/`](../examples/benchmarks/README.md).
 `scripts/validate/benchmarks.ts` runs them through the same solve path as
-`noburf solve` (CPU reference, energy stop at 40 to 50 dB). Geometry is the
+`noburf solve` (CPU reference, energy stop at 40 to 70 dB). Geometry is the
 published geometry and no dimension was changed after seeing a result. The
 graded meshes were added after the first, uniform pass; both are reported.
 
 Each patch runs on two graded meshes, the second with half the edge cell and
 twice the cells across the substrate. The largest cell stays the same, so the
-smallest cell shrinks by a factor of about 1.9, not 2 (2.5 on the Balanis
-edge-probe file). The change between the two
+smallest cell shrinks by a factor of about 1.9 to 2, not exactly 2 (1.7 on
+the Balanis edge-probe file, whose graded mesh already has a 0.137 mm cell
+below its 0.2 mm edge cell; the mesh warns about it). The change between the two
 runs shows how sensitive the number is to edge resolution.
 
 The graded tables in this section, and `benchmarks-graded-r1.json` and
-`-r2.json`, are one run of the whole suite on main 4e2e277, after PR #58
-moved graded-mesh copper edge lines about a third of a cell inside the
-copper (section 3.1). CPU, every solve stopped on its energy decay. PR #58
-raised the Chang resonances by up to 4.8 points on the graded mesh and up
-to 2.5 points on the refined one, most on the 14 × 9 to 10.5 × 7 patches;
-the 9.525 mm board barely moved. It moved the
-Sheen patch and the filter's roll-off 0.4 to 1.1 points closer to the
-measurement, and the filter's second S11 dip 0.4 to 0.9 points
-further away. The numbers before it are in the files' git history. Three
-runs in sections 7.4 and 7.5 do not have the offset (the PEC-pin
-diagnostic, the coax-probe column and the SMA coupler); each says so.
+`-r2.json`, are one run of the whole suite on main f612fdd, CPU, every solve
+stopped on its energy decay. That build has two mesh changes the earlier
+runs did not. PR #58 moves graded-mesh copper edge lines about a third of a
+cell inside the copper (section 3.1). PR #83 applies that offset on meshes
+where it used to be skipped (the coax-probe files in 7.4), and holds uniform
+cells around each moved edge, which makes the graded meshes about 1.7
+times larger (1.3 to 3.4) and the refined ones about 2.6 times. The numbers before each change are in the files' git history.
 
-It also made the graded results much less sensitive to the mesh. Halving
-the edge cell used to move the Chang resonances by 0.36 to 2.65 %; it now
-moves them by 0.05 to 0.49 %, the Sheen patch by 0.2 % and the Balanis
-patches by 0.1 to 0.7 %.
+PR #58 raised the Chang resonances by up to 4.8 points on the graded mesh
+and up to 2.5 points on the refined one, most on the 14 × 9 to 10.5 × 7
+patches, and moved the Sheen patch and the filter's roll-off 0.4 to 1.1
+points closer to the measurement. PR #83 then moved the refined results by
+at most 0.7 points, with one exception: the 10.5 × 7 patch rose 4.0 points,
+so its gap to the measurement grew from +12.0 to +16.0 %. An openEMS run
+suggests the earlier value was the low one. openEMS on the same file (a
+one-off run, not in the repository) climbs from 10.08 to 10.585 GHz as its z cells go from 8 to
+24 across the substrate with uniform air above; NobuRF now reads 10.590 and
+10.599 GHz, and on NobuRF's own graded grid the two codes agree to 0.2 %.
+The earlier, lower value most likely came from too few z cells, whose
+error partly cancelled the feed's. Why only this patch moved that much (the
+9 × 6 patch moved 0.3 points) is open. Two runs in
+sections 7.4 and 7.5 do not have the offset (the PEC-pin diagnostic and the
+SMA coupler); each says so.
+
+Halving the edge cell now changes the graded results very little. It
+moved the Chang resonances by 0.36 to 2.65 % before PR #58; it now moves
+them by 0.02 to 0.14 %, the Sheen patch by 0.3 % and the Balanis patches by
+0.07 %.
 
 ### 7.1 Resonance against measurement and textbook values
 
 | Benchmark | Quantity | Reference | Uniform | Graded | Graded, refined | Δ (refined) |
 | --- | --- | --- | --- | --- | --- | --- |
-| Chang 1986, 57 × 38 mm, εr 2.33, h 3.175 mm | f_r, Re Z peak | 2.310 GHz, measured | 2.297 | 2.350 | 2.351 | **+1.8 %** |
-| Chang 1986, 45.5 × 30.5 mm | f_r | 2.890 GHz, measured | 2.821 | 2.869 | 2.871 | **−0.7 %** |
-| Chang 1986, 29.5 × 19.5 mm | f_r | 4.240 GHz, measured | 4.178 | 4.259 | 4.263 | **+0.5 %** |
-| Sheen 1990 line-fed patch, 12.45 × 16 mm, h 0.794 mm | S11 dip | 7.5 GHz, measured (text) | 7.32 | 7.49 | 7.47 | **−0.4 %** |
-| Balanis Ex. 14.1, probe at the edge | f0, Re Z peak | 10 GHz, design value | 8.99 | 9.33 | 9.40 | −6.0 % |
-| Balanis Ex. 14.1, probe 3.126 mm in | f0 | 10 GHz, design value | 8.98 | 9.42 | 9.43 | −5.7 % |
-| Balanis Ex. 14.2, probe at the edge | R_in at resonance | 228 Ω, cavity model | 182 | 180 | 182 | −20 % |
+| Chang 1986, 57 × 38 mm, εr 2.33, h 3.175 mm | f_r, Re Z peak | 2.310 GHz, measured | 2.297 | 2.354 | 2.354 | **+1.9 %** |
+| Chang 1986, 45.5 × 30.5 mm | f_r | 2.890 GHz, measured | 2.821 | 2.875 | 2.875 | **−0.5 %** |
+| Chang 1986, 29.5 × 19.5 mm | f_r | 4.240 GHz, measured | 4.178 | 4.274 | 4.276 | **+0.8 %** |
+| Sheen 1990 line-fed patch, 12.45 × 16 mm, h 0.794 mm | S11 dip | 7.5 GHz, measured (text) | 7.32 | 7.50 | 7.48 | **−0.3 %** |
+| Balanis Ex. 14.1, probe at the edge | f0, Re Z peak | 10 GHz, design value | 8.99 | 9.43 | 9.44 | −5.6 % |
+| Balanis Ex. 14.1, probe 3.126 mm in | f0 | 10 GHz, design value | 8.98 | 9.45 | 9.45 | −5.5 % |
+| Balanis Ex. 14.2, probe at the edge | R_in at resonance | 228 Ω, cavity model | 182 | 180 | 181 | −21 % |
 | Balanis Ex. 14.2, probe 3.126 mm in | R_in at resonance | 50 Ω, cavity model | 32 | 32 | 33 | −35 % |
 
-Smallest cell: Chang 0.41 / 0.22 mm, Balanis 0.20 / 0.08 mm (edge probe)
-and 0.20 / 0.11 mm (inset), Sheen 0.19 / 0.10 mm. Data:
+Smallest cell: Chang 0.34 / 0.18 mm, Balanis 0.14 / 0.08 mm (edge probe)
+and 0.19 / 0.10 mm (inset), Sheen 0.18 / 0.09 mm. Data:
 [`benchmarks.json`](validation/data/benchmarks.json) (uniform),
 [`benchmarks-graded-r1.json`](validation/data/benchmarks-graded-r1.json),
 [`benchmarks-graded-r2.json`](validation/data/benchmarks-graded-r2.json).
@@ -664,37 +677,37 @@ and 0.20 / 0.11 mm (inset), Sheen 0.19 / 0.10 mm. Data:
 - **Chang, Long and Richards 1986** is the measured set; these are the
   first three rows of their Table I (h/λd 0.037 to 0.068).
   Section 7.4 has all eleven. On the refined graded mesh the three land at
-  +1.8, −0.7 and +0.5 % from the measured resonance. For scale, a 1 % error
+  +1.9, −0.5 and +0.8 % from the measured resonance. For scale, a 1 % error
   in the substrate's εr moves f_r by about 0.5 %. Checked against the paper:
   f_r is the frequency of maximum input resistance (section III-B; Chang
   chose it because the coax feed shifts the reactance so far inductive that
-  it never crosses zero on the thicker boards). The probe sits on the centre
+  it never crosses zero on the thicker boards). The probe sits on the center
   line 1.5 mm in from the radiating edge, and the ground is 10 × 10 cm, both
   as in the paper's section II. NobuRF's feed is a lumped port column, not
-  the paper's SMA pin. At the S11 minimum the numbers are 3.9 to 5.8 % high, but
+  the paper's SMA pin. At the S11 minimum the numbers are 4.0 to 6.0 % high, but
   that is not what Chang measured.
 - **Mesh sensitivity.** Halving the edge cell moves these resonances by
-  0.05 to 0.7 % (0.05 to 0.49 % on all eleven Chang patches in section 7.4),
-  up on every patch except Sheen's, which moves down 0.2 %. Two meshes that
+  0.02 to 0.3 % (0.02 to 0.14 % on all eleven Chang patches in section 7.4),
+  up on every patch except Sheen's, which moves down 0.3 %. Two meshes that
   agree are not a convergence study, but on these two meshes the change is
   much smaller than most of the gaps to the reference.
 - **Uniform grid.** The first pass ran on uniform cubic cells, where
   zero-thickness copper behaves as if it reached a little past its drawn
   edge, and edges snap to the grid. Every patch here reads lower on the
-  uniform grid than on the refined graded one, by up to 4.7 % on the Balanis
-  patch. Use the graded files for any comparison.
-- **Sheen et al. 1990**: 0.4 % below the measured resonance. The paper's
+  uniform grid than on the refined graded one, by up to 5 % on the Balanis
+  patches. Use the graded files for any comparison.
+- **Sheen et al. 1990**: 0.3 % below the measured resonance. The paper's
   text puts the patch's operating resonance at 7.5 GHz, and its Fig. 6
   input resistance peaks at about 7.47 GHz. The patch, feed width and feed
   offset match the paper's Fig. 3.
 - **Balanis Examples 14.1 and 14.2** are design equations, not data. The 10
   GHz is what the transmission-line model predicts for this patch, and
-  NobuRF puts the resonance 5.7 to 6.0 % below it. Section 4.1 found
+  NobuRF puts the resonance 5.5 to 5.6 % below it. Section 4.1 found
   NobuRF 5 to 7 % below the same model on another patch, where openEMS
   agreed with NobuRF to 0.4 %, so a gap of this size is expected from the
   model. The
   cavity model's input resistance is higher than NobuRF's at the edge (228
-  vs 182 Ω) and more so at the inset (50 vs 33 Ω). That model ignores the
+  vs 181 Ω) and more so at the inset (50 vs 33 Ω). That model ignores the
   probe, the finite ground and the feed reactance. An openEMS or commercial-solver run on
   the same file would separate the model's error from NobuRF's.
 
@@ -741,26 +754,26 @@ width). Graded edge cells 0.05 / 0.025 mm, 6 / 12 cells across the substrate.
 | Quantity | Reference (Hammerstad–Jensen) | Uniform 0.1 mm | Graded | Graded, refined | Δ (refined) |
 | --- | --- | --- | --- | --- | --- |
 | εeff near 9.3 GHz (uniform) and 9.4 GHz (graded), two-resonator method | 6.88 (with Kirschning–Jansen dispersion) | 6.99 | 6.93 | 6.93 | **+0.7 %** |
-| Re(Z0), lossy line, mean over 8 to 12 GHz | 46.67 Ω | 46.28 | 49.16 | 49.29 | +5.6 % |
+| Re(Z0), lossy line, mean over 8 to 12 GHz | 46.67 Ω | 46.28 | 49.58 | 49.61 | +6.3 % |
 
-The graded columns are on the PR #58 build (edge lines placed inside the
-copper, section 3.1). Before it they read Re(Z0) 47.51 and 48.41 Ω (+1.8 and
-+3.7 %) and εeff 6.98 and 6.96 (+1.5 and +1.1 %). The Z0 gap to the closed
-form grew, and the εeff gap is now +0.7 % on both meshes. A spot rerun of
-the PR #58 branch had read the refined εeff as 6.96 (+1.1 %), against
-6.934 here, with the same graded εeff and Z0; that difference is not
-explained, so the refined εeff change is not credited to PR #58 alone. The
-graded Z0 no longer moves with the mesh (+0.25 % on halving, against +1.9 %
-before), and 49.2 to 49.3 Ω is where the two earlier graded
-runs extrapolate to at first order, so the remaining 5.5 % is not
-resolution. Where it comes from is open: the closed form here is
+The graded columns are on main f612fdd (edge lines placed inside the
+copper by PR #58, section 3.1, and the cells around them held uniform by PR
+#83). Before PR #58 they read Re(Z0) 47.51 and 48.41 Ω (+1.8 and +3.7 %) and
+εeff 6.98 and 6.96 (+1.5 and +1.1 %); after it, before PR #83, 49.16 and
+49.29 Ω and εeff 6.93 on both meshes. The Z0 gap to the closed form grew
+with each change, and the εeff gap is +0.7 % on both meshes. A spot rerun of
+the PR #58 branch had read the refined εeff as 6.96 (+1.1 %), against 6.934
+on the merged PR #58 build (4e2e277), with the same graded εeff and Z0; that difference is
+not explained, so the refined εeff change is not credited to PR #58 alone.
+The graded Z0 no longer moves with the mesh (+0.07 % on halving, against
++1.9 % before PR #58), so the remaining gap does not shrink with refinement. Where it comes from is open: the closed form here is
 Hammerstad–Jensen's static Z0 (49.05 Ω at W/h = 1), scaled by
 Kirschning–Jansen's dispersive εeff and reduced by the lossy-line factor for
 tan δ 0.3 (3 %); the line is read through Re(Z_in) with a residual far-end
 echo; and the earlier near-agreement on the uniform mesh came with edges on
 the lines, which reads Z0 low. The lossless exam lines on RO4003C
 ([textbook-exam.md](textbook-exam.md)), de-embedded with a thru-line
-calibration, read within 0.8 % of their design Z0 on the same build.
+calibration, read within 0.8 % of their design Z0.
 
 **openEMS on the same line, run after the result above.** The reference
 column of the table is left as it was. `validation/openems/microstrip_openems.py`
@@ -772,14 +785,16 @@ which no reflection reaches. Mean over 8 to 12 GHz:
 
 | Reading | openEMS, edge 0.05 mm, 6 substrate cells | openEMS, edge 0.025 mm, 12 cells | NobuRF, graded / refined |
 | --- | --- | --- | --- |
-| Re(Z_in), lumped port, as the benchmark | 48.65 Ω | 49.08 Ω | 49.16 / 49.29 Ω |
+| Re(Z_in), lumped port, as the benchmark | 48.65 Ω | 49.08 Ω | 49.58 / 49.61 Ω |
 | the same, edge lines on the copper edges | 47.15 Ω | | |
 | the same, 10 mm of ground beside the strip | 48.60 Ω | | |
 | Re(Z0), MSL port | 48.33 Ω | 48.77 Ω | |
 | the same, lossless (tan δ 0) | 49.71 Ω | | |
 
-- **The same reading agrees.** NobuRF sits 1.0 % and 0.4 % above openEMS at
-  the two resolutions, so the 5.5 % is not NobuRF's.
+- **The same reading agrees to about 2 %.** NobuRF sits 1.9 % and 1.1 %
+  above openEMS at the two resolutions (1.0 % and 0.4 % before PR #83), so
+  most of the 6.3 % is not NobuRF's. The openEMS runs were not repeated on
+  the PR #83 mesh, so why the gap between the two codes widened is open.
 - **Not the finite ground.** 10 mm of ground beside the strip moves openEMS
   by 0.1 %.
 - **The lossy-line factor holds.** The MSL port reads 48.33 / 49.71 = 0.972
@@ -789,7 +804,7 @@ which no reflection reaches. Mean over 8 to 12 GHz:
   microstrip's Z0 rises with frequency. The reference instead divides the
   air-line Z0 by the square root of Kirschning–Jansen's dispersive εeff,
   which makes it fall (48.12 Ω at 10 GHz before the loss factor). Against
-  the same line read by openEMS, NobuRF is within about 1 %.
+  the same line read by openEMS, NobuRF is within about 2 %.
 - **Edge lines on the copper read Z0 3 % low** in openEMS too, which is why
   the uniform mesh (edges on lines) once sat close to 46.67 Ω.
 - **εeff.** openEMS's MSL port gives 6.88 at 10 GHz, in line with
@@ -941,7 +956,7 @@ cavities it read Q 98 % above the textbook value at the copper's own
 conductivity: with the field on one side the sheet dissipates half the
 loss. A quarter of the conductivity (twice the surface resistance) brings
 both within 1 % (−0.8 % and −0.5 %), so the runs below use it. The resonator
-is a quarter of the same box, with a magnetic wall on the strip's centre
+is a quarter of the same box, with a magnetic wall on the strip's center
 line and an electric wall half way along it. α from the ring-down as above,
 against the same Wheeler 2D solve at each run's own resonance:
 
@@ -970,8 +985,8 @@ uncorrected figure happened to sit closer (2 to 11 % low), because its
 coarse-mesh deficit cancelled the high-frequency excess; it does not
 converge either.
 
-The Z0 rows were not rerun at 70 dB; they stopped at 41 to 42 dB. Uniform,
-graded and refined read −0.9, +5.3 and +5.6 % (graded to refined +0.25 %),
+The Z0 rows were not rerun at 70 dB; they stopped at 40 to 42 dB. Uniform,
+graded and refined read −0.9, +6.2 and +6.3 % (graded to refined +0.07 %),
 and section 7.3 above names the reference's dispersion as the suspect for
 the gap. It is also the weaker method: Re(Z0) is read from a line made lossy with tan δ = 0.3, and the closed-form loss correction it is
 compared against (Pozar eq. 3.198) is a quasi-TEM approximation that is
@@ -984,29 +999,29 @@ h/λd = 0.037 to 0.229: nine patch sizes on the same 3.175 mm board, then one
 17 × 11 mm patch on three thicknesses. Same files, mesh rules and reader as
 7.1; the band is ±25 % around the measured value. The reader takes the
 lowest Re(Z_in) maximum in the band, because on the smallest patches the
-centre-line probe also drives a higher mode whose resistance peak is larger.
+center-line probe also drives a higher mode whose resistance peak is larger.
 
 | Patch (mm) | h (mm) | h/λd | Measured | Hammerstad (Chang's table) | Graded | Refined | Δ (refined) | Coax probe, graded | Δ (probe) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 57 × 38 | 3.175 | 0.037 | 2.31 | 2.38 | 2.350 | 2.351 | +1.8 % | 2.332 | +1.0 % |
-| 45.5 × 30.5 | 3.175 | 0.047 | 2.89 | 2.90 | 2.869 | 2.871 | −0.7 % | 2.840 | −1.7 % |
-| 17 × 11 | 1.524 | 0.061 | 7.87 | 7.84 | 7.679 | 7.694 | −2.2 % | 7.648 | −2.8 % |
-| 29.5 × 19.5 | 3.175 | 0.068 | 4.24 | 4.34 | 4.259 | 4.263 | +0.5 % | 4.187 | −1.2 % |
-| 19.5 × 13 | 3.175 | 0.094 | 5.84 | 6.12 | 6.034 | 6.044 | +3.5 % | 5.871 | +0.5 % |
-| 17 × 11 | 3.175 | 0.110 | 6.80 | 7.01 | 6.894 | 6.904 | +1.5 % | 6.658 | −2.1 % |
-| 14 × 9 | 3.175 | 0.125 | 7.70 | 8.19 | 8.184 | 8.206 | +6.6 % | 7.858 | +2.1 % |
-| 12 × 8 | 3.175 | 0.134 | 8.27 | 9.01 | 9.015 | 9.034 | +9.2 % | 8.535 | +3.2 % |
-| 10.5 × 7 | 3.175 | 0.148 | 9.14 | 9.97 | 10.184 | 10.233 | +12.0 % | 9.472 | +3.6 % |
-| 9 × 6 | 3.175 | 0.166 | 10.25 | not legible in the scan | 11.384 | 11.405 | +11.3 % | 10.882 | +6.2 % |
-| 17 × 11 | 9.525 | 0.229 | 4.73 | 5.27 | 5.406 | 5.415 | +14.5 % | 4.166 | −11.9 % |
+| 57 × 38 | 3.175 | 0.037 | 2.31 | 2.38 | 2.354 | 2.354 | +1.9 % | 2.340 | +1.3 % |
+| 45.5 × 30.5 | 3.175 | 0.047 | 2.89 | 2.90 | 2.875 | 2.875 | −0.5 % | 2.852 | −1.3 % |
+| 17 × 11 | 1.524 | 0.061 | 7.87 | 7.84 | 7.716 | 7.725 | −1.8 % | 7.730 | −1.8 % |
+| 29.5 × 19.5 | 3.175 | 0.068 | 4.24 | 4.34 | 4.274 | 4.276 | +0.8 % | 4.215 | −0.6 % |
+| 19.5 × 13 | 3.175 | 0.094 | 5.84 | 6.12 | 6.070 | 6.073 | +4.0 % | 5.923 | +1.4 % |
+| 17 × 11 | 3.175 | 0.110 | 6.80 | 7.01 | 6.943 | 6.947 | +2.2 % | 6.726 | −1.1 % |
+| 14 × 9 | 3.175 | 0.125 | 7.70 | 8.19 | 8.243 | 8.249 | +7.1 % | 7.942 | +3.1 % |
+| 12 × 8 | 3.175 | 0.134 | 8.27 | 9.01 | 9.087 | 9.093 | +10.0 % | 8.663 | +4.7 % |
+| 10.5 × 7 | 3.175 | 0.148 | 9.14 | 9.97 | 10.590 | 10.599 | +16.0 % | 9.697 | +6.1 % |
+| 9 × 6 | 3.175 | 0.166 | 10.25 | not legible in the scan | 11.416 | 11.432 | +11.5 % | 11.079 | +8.1 % |
+| 17 × 11 | 9.525 | 0.229 | 4.73 | 5.27 | 5.416 | 5.418 | +14.6 % | 4.197 | −11.3 % |
 
-Frequencies in GHz. Up to h/λd ≈ 0.11, NobuRF is within 3.5 % of the
-measurement on the refined mesh, and within 2.3 % on five of those six
-rows. Above that the error grows with thickness, from +6.6 % at h/λd 0.125
-to +12.0 % at 0.148 and +14.5 % at 0.229 (the 9 × 6 patch, at 0.166, reads
-+11.3 %), and
-NobuRF follows the transmission-line prediction in Chang's
-table instead of the measurement. Chang explains the measured drop below
+Frequencies in GHz. Up to h/λd ≈ 0.11, NobuRF is within 4.0 % of the
+measurement on the refined mesh, and within 2.2 % on five of those six
+rows. Above that it reads high by 7 to 16 %: +7.1 % at h/λd 0.125, +10.0 %
+at 0.134, +16.0 % at 0.148, +11.5 % at 0.166 and +14.6 % at 0.229. With
+this feed NobuRF tracks the transmission-line prediction in Chang's table,
+and on the 10.5 × 7 patch reads 6 % above it, instead of following the
+measurement. Chang explains the measured drop below
 that prediction by the coax probe crossing a thick substrate. NobuRF's
 lumped port is a source spread evenly up the substrate: it carries the
 feed current, but it has neither the pin's inductance nor the condition
@@ -1038,40 +1053,37 @@ Chang's probe.
 The last two columns of the first table use the `coax_probe` port instead:
 an SMA line below the ground plane whose pin, at the SMA's diameter, rises
 through a cut in the ground to the patch
-(`chang_probe_pin.ts <file> --coax`; it reproduces the 9 × 6 value exactly).
-They are on the graded mesh only, and rerun on main db77935 they match the
-earlier run to four decimals
-([`chang1986-coax-probe-db77935.txt`](validation/data/chang1986-coax-probe-db77935.txt)):
-the edge offset of PR #58 does not engage on
-these meshes. The coax feed's mesh puts z cells of 0.125 to 0.14 mm next to
-the ground and the patch, against a 0.4 mm edge cell, which is outside the
-range of z-cell to edge-cell ratios the offset is applied in (0.5 to 2),
-so the patch edges keep a mesh line on the drawn edge, as before PR #58. The
-mesh warning on these files still says the edge lines sit inside the
-copper. The column will be rerun once the offset works on these meshes.
-Compare the probe column with the lumped feed on the same edge placement, the graded lumped run before PR #58, not with the lumped columns
-above:
+(`chang_probe_pin.ts <file> --coax`). They are on the graded mesh only, on
+main f612fdd
+([`chang1986-coax-probe-f612fdd.txt`](validation/data/chang1986-coax-probe-f612fdd.txt)).
+Before PR #83 the edge offset did not engage on these meshes, because the
+coax feed puts z cells of 0.125 to 0.14 mm next to the ground and the patch
+against a 0.4 mm edge cell; the earlier run is in
+[`chang1986-coax-probe-db77935.txt`](validation/data/chang1986-coax-probe-db77935.txt).
+PR #83 raised every probe row, by 0.4 to 2.5 points, most on the 10.5 × 7
+and 9 × 6 patches. Against the graded lumped column on the same build:
 
-- **3.175 mm board, h/λd 0.125 to 0.166:** the error drops from +3.9, +5.6,
-  +6.6 and +9.8 % (graded lumped, before PR #58) to +2.1, +3.2, +3.6 and
-  +6.2 %, about 40 % less.
-- **Rows below h/λd 0.11:** the probe moves the error by 1.5 points at most.
-- **9.525 mm board:** the probe overshoots, from +14.1 % (graded lumped,
-  before PR #58) to −11.9 %. The pin there is 9.5 mm long. Z_in has a single
-  resonance in the band, Re(Z_in) 473 Ω at 4.16 GHz, and only a shallow
-  shoulder near 5.55 GHz, close to where the lumped feed peaks. The single
-  peak suggests the patch mode pulled down by the pin's inductance rather
-  than a separate pin or coax resonance, but no field plot has confirmed
-  that.
+- **3.175 mm board, h/λd 0.125 to 0.166:** the error drops from +7.1, +9.9,
+  +15.9 and +11.4 % (graded, lumped) to +3.1, +4.7, +6.1 and +8.1 %, a
+  relative reduction of 29 to 62 %.
+- **Rows up to h/λd 0.11:** every one is within 1.8 % of the measurement
+  with the probe. The probe moves f_r by 0.2 to 1.4 points on the four
+  thinnest rows, and lowers it by 2.5 and 3.2 points at h/λd 0.094 and
+  0.110, which brings those two inside 1.5 %.
+- **9.525 mm board:** the probe overshoots, from +14.5 % (graded, lumped) to
+  −11.3 %. The pin there is 9.5 mm long. In the run before PR #83 (4.166
+  GHz), Z_in had a single resonance in the band, Re(Z_in) 473 Ω, and only a
+  shallow shoulder near 5.55 GHz, close to where the lumped feed peaks. The
+  single peak suggests the patch mode pulled down by the pin's inductance
+  rather than a separate pin or coax resonance, but no field plot has
+  confirmed that, and the shape was not re-read on the current build.
 
-On the lumped feed, the edge offset raised the graded 14 × 9 to 9 × 6 rows
-by 1.2 to 4.8 points. If it does the same once it works with the coax
-lattice, the probe rows will read higher than in the table. So the
-statement for the probe is: on a mesh without the edge offset, every
-3.175 mm row up to h/λd 0.15 is within 3.6 % of Chang's measurement with
-the coax probe; it is not yet a result for the current mesh. The refined
-statement, with the lumped feed, is as above: within 3.5 % up to h/λd 0.11.
-That range covers ordinary PCB antennas (1.6 mm FR-4 at 2.4 GHz is 0.027).
+So with the coax probe on the graded mesh, every row up to h/λd 0.11 is
+within 1.8 % of Chang's measurement, and the 3.175 mm rows up to 0.166 are
+within 8.1 %. The thickest board is the exception. The probe was not run on
+the refined mesh; on the lumped feed the two meshes now agree to 0.14 %.
+With the lumped feed the statement is as above: within 4.0 % up to h/λd
+0.11. That range covers ordinary PCB antennas (1.6 mm FR-4 at 2.4 GHz is 0.027).
 
 ### 7.5 Sheen 1990: low-pass filter and branch-line coupler
 
@@ -1082,13 +1094,13 @@ substrate, lumped ports at the ends of 10 mm feed lines, not de-embedded.
 
 | Circuit | Quantity | Measured | Graded | Refined | Δ (refined) |
 | --- | --- | --- | --- | --- | --- |
-| Low-pass filter | S21 falls through −3 dB | 5.45 GHz | 5.428 | 5.398 | **−1.0 %** |
-| Low-pass filter | S21 falls through −10 dB | 5.98 GHz | 5.965 | 5.954 | **−0.4 %** |
-| Low-pass filter | first S11 dip | 5.0 GHz | 4.893 | 4.858 | −2.8 % |
-| Low-pass filter | second S11 dip | 10.8 GHz | 10.973 | 10.965 | +1.5 % |
-| Branch-line coupler | S31 = S41 crossover | 6.5 GHz | 5.973 | 5.913 | −9.0 % |
-| Branch-line coupler | S11 null | 6.5 GHz | 5.969 | 7.886 | +21.3 % |
-| Branch-line coupler | S21 (isolation) null | 6.5 GHz | 6.003 | 5.796 | −10.8 % |
+| Low-pass filter | S21 falls through −3 dB | 5.45 GHz | 5.430 | 5.394 | **−1.0 %** |
+| Low-pass filter | S21 falls through −10 dB | 5.98 GHz | 5.969 | 5.953 | **−0.5 %** |
+| Low-pass filter | first S11 dip | 5.0 GHz | 4.896 | 4.857 | −2.9 % |
+| Low-pass filter | second S11 dip | 10.8 GHz | 10.983 | 10.968 | +1.6 % |
+| Branch-line coupler | S31 = S41 crossover | 6.5 GHz | 5.941 | 5.892 | −9.4 % |
+| Branch-line coupler | S11 null | 6.5 GHz | 5.937 | 7.897 | +21.5 % |
+| Branch-line coupler | S21 (isolation) null | 6.5 GHz | 5.973 | 5.760 | −11.4 % |
 
 The filter's roll-off was read off the measured curve in Fig. 10 by pixel
 position on a 400 dpi scan (about ±0.05 GHz); the S11 dips were read off
@@ -1097,10 +1109,10 @@ the thin patches in 7.1; the ±0.05 GHz reading error alone is 0.9 %.
 
 With the lumped ports the coupler does not match. Sheen gives 6.5 GHz as
 the operating point in both calculation and measurement; the lumped-port
-crossover is 8.1 to 9.0 % low, and S11 and S21 never form a sharp null:
-both sit on a floor of about −16 to −20 dB from about 5.9 to 7.8 GHz, where Sheen's
+crossover is 8.6 to 9.4 % low, and S11 and S21 never form a sharp null:
+both sit on a floor of about −16 to −20 dB from about 5.8 to 7.9 GHz, where Sheen's
 fall to about −30 dB. The "nulls" in the table are the lowest points of that
-flat floor, which is why the S11 null moves 1.9 GHz between the two meshes.
+flat floor, which is why the S11 null moves about 2 GHz between the two meshes.
 
 The evidence points to the ports. The same graded coupler with `sma_edge` ports
 (an SMA launch at each board edge, de-embedded to the flange; board trimmed
@@ -1114,7 +1126,7 @@ so the feed lines run to the edge, band 3 to 9 GHz) gives:
 
 This is a full four-port solve of the committed file
 [`graded/sheen1990-branch-line-coupler-sma.json`](../examples/benchmarks/graded/sheen1990-branch-line-coupler-sma.json),
-S renormalised to 50 Ω at every port, read on a 0.05 GHz grid (main at
+S renormalized to 50 Ω at every port, read on a 0.05 GHz grid (main at
 f6ffbc7, before the graded-mesh edge offset of #58; CPU, 12 h, every run
 stopped on its 50 dB energy decay). Both nulls form, as deep as Sheen's
 −30 dB or deeper, within 0.16 GHz of the crossover, as they should for a
@@ -1122,27 +1134,28 @@ matched coupler. S31 = S41 is the only crossing between 3 and 9 GHz.
 The port 1 column is in
 [`validation/data/sheen1990-coupler-sma-4port.txt`](validation/data/sheen1990-coupler-sma-4port.txt);
 `scripts/validate/coupler_readout.ts` reads these numbers off it. The file
-holds magnitudes in dB only, so the renormalisation cannot be re-checked from
+holds magnitudes in dB only, so the renormalization cannot be re-checked from
 it.
 
-An earlier one-port diagnostic, not renormalised, put the S11 null at
+An earlier one-port diagnostic, not renormalized, put the S11 null at
 6.30 GHz and the S21 null at 6.20 GHz, 0.15 GHz below the four-port values,
 while the crossover did not move. Two things changed between those runs: the
-four-port run renormalises to 50 Ω, and the build differs. Before the run the
+four-port run renormalizes to 50 Ω, and the build differs. Before the run the
 coax line's mismatch (a few ohms below 50 Ω) was expected to move the nulls
 by up to about 0.1 GHz, so the 0.15 GHz shift is not shown to come from
-renormalisation alone.
+renormalization alone.
 
 Between the lumped-port run and the SMA-port run both the port type and
 the board trim changed, so this is one A/B test, not an isolated cause; but
 the lumped ports, which reflect and are not de-embedded, are the change
-expected to produce a −16 to −20 dB floor. The crossover also moved about 5 points,
-from −8.1 to −9.0 % with lumped ports to −3.2 %. The SMA run predates PR #58
+expected to produce a −16 to −20 dB floor. The crossover also moved 5 to 6 points,
+from −8.6 to −9.4 % with lumped ports to −3.2 %. The SMA run predates PR #58
 and the lumped rows above do not; before it the lumped crossover read −7.5
-and −8.8 %, so the gap is not an artefact of the build.
+and −8.8 %, and on the PR #58 build −8.1 and −9.0 %, so the gap is not an
+artifact of the build.
 
 The remaining −0.8 to −3.2 % is within what the drawing leaves open. Fig. 11
-gives the 9.75 mm centre-to-centre spacing and the 3.96 mm arm width but
+gives the 9.75 mm center-to-center spacing and the 3.96 mm arm width but
 not how far the wide section runs. In an ideal transmission-line model of
 the coupler (Hammerstad–Jensen εeff and Z0 per section; a one-off script,
 not in the repository), changing the wide arms' length by ±0.4 mm moves the
@@ -1195,7 +1208,7 @@ then, treat a series part across a gap as reading up to 13 % low at 3 GHz
 on 1 mm cells.
 
 **LC notch.** A 3 nH + 0.5 pF series LC from the strip to ground at the
-line's centre should short the line at 4.109 GHz. The notch is at
+line's center should short the line at 4.109 GHz. The notch is at
 3.918 GHz (−4.6 %), 33 dB deep. The shift is the 1 mm post the part sits on:
 it implies 0.30 nH in series with the part, which a real part's via and pads
 would add too. Count the post into the inductance, or use a finer mesh.
@@ -1245,7 +1258,7 @@ falls back to the half thru at any frequency, and none warns.
 | 30 mm 50 Ω line on RO4003C, 10 mm feeds | largest \|S11\|, 0.25 to 6.5 GHz | 0.217 | 0.011 | 0 for a matched line |
 | same | largest \|S − S_ideal line\| (the kit's own Z and γ) | | 0.011 | 0 |
 | Pozar Ex. 5.5 section, 10 mm against 16 mm feeds | largest \|ΔS\| between the two | 1.75 (planes differ) | 0.035 (at 6.5 GHz) | 0 (same planes) |
-| Pozar Ex. 5.5, 10 Ω load | centre of the \|Γ\| ≤ 0.4 band | no band | 2.940 GHz (1.978 to 3.902) | book 3 GHz; the exam's external calibration 2.942 GHz |
+| Pozar Ex. 5.5, 10 Ω load | center of the \|Γ\| ≤ 0.4 band | no band | 2.940 GHz (1.978 to 3.902) | book 3 GHz; the exam's external calibration 2.942 GHz |
 | Pozar Ex. 3.7 alumina line (W/h = 1, lossless) | εeff at 10 GHz from the kit's γ | | 6.926 | openEMS MSL port 6.88 (+0.67 %) |
 | same | line impedance, low-frequency limit | | 48.64 Ω | Hammerstad–Jensen static 49.05 Ω (−0.85 %) |
 | same | largest \|S11\|, 6 to 14 GHz | 0.375 | 0.030 | 0 for a matched line |

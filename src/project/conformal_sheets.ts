@@ -1,9 +1,11 @@
 import { CONFORMAL_SOLID_COURANT, COVERAGE_SNAP } from '../engine/conformal';
 import type { MeshLines } from '../engine/mesh';
+import { rimBetaRange, rimGrowCells, rimTieScale, type SheetRimTable } from '../engine/sheet_rim';
+import RIM_TABLE from '../engine/sheet_rim_table.json';
 import { GHOST, packRows, type ThinSheetUpdate } from '../engine/thin_sheets';
 import { materialSignature, sheetFaceLoss, type VoxelModel } from '../engine/voxelize';
 import type { Segment } from './coverage';
-import { slice, trianglesByLine, weldMesh, type TriangleMesh } from './conformal_solids';
+import { joinMeshes, slice, trianglesByLine, weldMesh, type TriangleMesh } from './conformal_solids';
 import type { Vec2 } from './resolve';
 
 /**
@@ -33,6 +35,31 @@ import type { Vec2 } from './resolve';
  * arrays (thin_sheets.ts). A trace that ends inside a face (the edge of a
  * strip) splits nothing there: the field goes round the end.
  *
+ * Rims. A free edge of the sheet that ends inside a face splits nothing
+ * there, so on its own the update sees the sheet only up to the last edge it
+ * crosses: whole cells, blind to where the rim lies inside the next one. In
+ * the cross-section across a rim the update is a 5-point problem in which
+ * each crossed edge ties its two ends to the sheet (its two pieces, 1/s and
+ * 1/(1 - s) for a crossing at fraction s); src/engine/sheet_rim.ts solves it
+ * and finds where its rim sits in the continuum. Scaling the ties of the last
+ * crossed edge by beta moves that rim continuously (beta > 1 out, < 1 in):
+ * the edge's pieces carry beta times their capacitance (curl coefficient /
+ * beta) and the faces along the rim through that edge (the ones whose
+ * regions tie its ends in the other polarisation) beta times less area. The
+ * range of beta is the narrowest in log beta whose rims span one cell
+ * (rimBetaRange: 0.25 to 4 for a sheet mid-cell, 0.045 to 22 at s = 0.01,
+ * where ties of 1/s are stiff), and the sheet is first grown past its rims
+ * (rimGrowthCells: 0.41 cell mid-cell, 0.17 at s = 0.01) so that wherever the
+ * true rim falls in its cell it lies within that reach of the last crossed
+ * edge; beta is then read off the table for each rim face from the true
+ * rim's distance. It follows Railton's modified material parameters for
+ * small structures (IEEE TAP 53(12), 2005) and the use of static edge
+ * solutions in FDTD by Shorthouse and Railton (IEEE MTT 40(5), 1992); here
+ * the static solution is that of the discrete problem, so the correction
+ * moves the discrete rim rather than imposing a field shape. Both are
+ * positive mass changes, so the
+ * stability bound below covers them unchanged.
+ *
  * Stability. The update is leapfrog on the symmetric operator B^T B. Faces
  * the sheet does not touch keep their uncut rows, so their part is at most
  * 12 |y|^2 over the uncrossed edges (the uncut Yee bound, docs/conformal.md).
@@ -44,6 +71,11 @@ import type { Vec2 } from './resolve';
  * area a_eff = max(a_R, m * sum hs es (eCurl_q / Sc) / s_q), m the most
  * regions any of its unknowns borders. A small region bounded by short pieces
  * keeps its own small area; only a sliver along a whole uncut edge is raised.
+ * With sub-cell rims ('snap' keeps the plain rule), each raised region is
+ * then lowered again, one at a time, to the least area
+ * that keeps every one of its unknowns' sums at or below 1 given the others:
+ * the condition still holds after every step, and regions next to slivers or
+ * rim ties keep much more of their own area.
  */
 export interface SheetMeshOptions {
   /**
@@ -52,7 +84,16 @@ export interface SheetMeshOptions {
    * far below any feature; set it to [0, 0, 0] only for meshes known clear.
    */
   nudgeMm?: [number, number, number];
+  /**
+   * 'subcell' (default) places each free edge where it lies inside its cell
+   * (module comment, "Rims"); 'snap' leaves it at the last edge the sheet
+   * crosses, the update before sub-cell rims (for comparison).
+   */
+  rims?: 'subcell' | 'snap';
 }
+
+/** How far sheets are grown past their rims, in cells, for a sheet at fraction s across its cell (rimGrowCells). */
+export const rimGrowthCells = (s: number) => rimGrowCells(RIM_TABLE as SheetRimTable, s);
 
 const TOLERANCE_MM = 1e-9;
 const DEFAULT_NUDGE: [number, number, number] = [1.37e-7, -2.11e-7, 1.73e-7];
@@ -272,7 +313,8 @@ export function addConformalSheets(model: VoxelModel, sheets: readonly TriangleM
   if (model.thinSheets) throw new Error('the model already has thin sheets; pass every sheet in one call');
   if (model.dispersion?.e || model.dispersion?.h) throw new Error('thin sheets do not support frequency-dependent or magnetic materials yet, and a lossy dielectric is frequency-dependent by default; give it dispersion { "model": "conductivity" }');
   const nudge = options.nudgeMm ?? DEFAULT_NUDGE;
-  const moved = sheets.map((s) => {
+  const subcellRims = (options.rims ?? 'subcell') === 'subcell';
+  const placed = sheets.map((s) => {
     const welded = weldMesh(s);
     assertSheetMesh(welded);
     const positions = Float64Array.from(welded.positions, (v, n) => v + nudge[n % 3]);
@@ -288,11 +330,35 @@ export function addConformalSheets(model: VoxelModel, sheets: readonly TriangleM
   const lines: MeshLines = model.mesh;
   const axisLines = [lines.x, lines.y, lines.z];
   const at = (i: number, j: number, k: number) => i + nx * (j + ny * k);
+  // The sheets the grid sees: grown past their rims for the sub-cell correction (module comment).
+  const moved = subcellRims ? growRims(placed, axisLines, rimGrowthCells) : placed;
 
   // Plane traces: segments of every sheet in every mesh plane.
-  const byLine = [0, 1, 2].map((axis) => moved.map((s) => trianglesByLine(s, axisLines[axis], axis)));
-  const traces = (axis: 0 | 1 | 2, n: number): Segment[] =>
-    moved.flatMap((s, m) => (byLine[axis][m][n].length ? slice(s, byLine[axis][m][n], axis, axisLines[axis][n], -1) : []));
+  const tracesOf = (meshes: TriangleMesh[]) => {
+    const byLine = [0, 1, 2].map((axis) => meshes.map((s) => trianglesByLine(s, axisLines[axis], axis)));
+    return (axis: 0 | 1 | 2, n: number): Segment[] =>
+      meshes.flatMap((s, m) => (byLine[axis][m][n].length ? slice(s, byLine[axis][m][n], axis, axisLines[axis][n], -1) : []));
+  };
+  const traces = tracesOf(moved);
+  // Free ends of the true (ungrown) sheets' traces, per plane: where the rims really are.
+  const trueTraces = tracesOf(placed);
+  const trueEndsCache = new Map<number, Vec2[]>();
+  const trueEnds = (axis: 0 | 1 | 2, n: number): Vec2[] => {
+    const key = axis * 1e7 + n;
+    let list = trueEndsCache.get(key);
+    if (!list) {
+      const count = new Map<string, { p: Vec2; n: number }>();
+      for (const s of trueTraces(axis, n)) for (const p of [s.a, s.b]) {
+        const k = `${p[0]},${p[1]}`;
+        const c = count.get(k);
+        if (c) c.n++;
+        else count.set(k, { p, n: 1 });
+      }
+      list = [...count.values()].filter((c) => c.n === 1).map((c) => c.p);
+      trueEndsCache.set(key, list);
+    }
+    return list;
+  };
 
   // Crossings of every edge, along its own axis (mm): Ey, Ez read in x planes, Ex in y planes.
   const crossings = new Map<number, number[]>();
@@ -357,6 +423,8 @@ export function addConformalSheets(model: VoxelModel, sheets: readonly TriangleM
   }
 
   // Faces: regions of every face a trace reaches, in all three plane orientations.
+  // Rim faces: a trace enters across a crossed edge and ends inside; t is where the true rim lies past that edge, in cells along the trace.
+  const rimFaces: Array<{ edge: number; axis: number; t: number }> = [];
   let ghostH = 0;
   const regionsOf = new Map<number, Region[]>();
   const baseCurl = (e: number) => eCurl[e];
@@ -416,6 +484,20 @@ export function addConformalSheets(model: VoxelModel, sheets: readonly TriangleM
           }
         });
         regionsOf.set(f, regions);
+        if (subcellRims && polys.length === 1) {
+          const [u0, u1, v0, v1] = [uLines[p], uLines[p + 1], vLines[q], vLines[q + 1]];
+          for (const [P, Q] of danglingChains(list, u0, u1, v0, v1)) {
+            const t = trueRimFraction(P, Q, u0, u1, v0, v1, trueEnds(axis, n));
+            if (t === null) continue;
+            const tol = 1e-6 * Math.max(u1 - u0, v1 - v0);
+            inc.edges.forEach((e, slot) => {
+              const comp = Math.floor(e / N);
+              const far = slot % 2 === 0 ? 1 : 0;
+              const onEdge = comp === uAxis ? Math.abs(P[1] - vLines[q + far]) < tol : Math.abs(P[0] - uLines[p + far]) < tol;
+              if (onEdge && pieces.has(e)) rimFaces.push({ edge: e, axis, t });
+            });
+          }
+        }
       }
     }
   }
@@ -479,8 +561,44 @@ export function addConformalSheets(model: VoxelModel, sheets: readonly TriangleM
     const own = ps.find((p) => p.unknown === e);
     if (own) eCurl[e] *= own.lambda;
   }
+  // Rim ties (module comment): beta per rim face from the true rim; an edge takes the geometric mean over its rim faces,
+  // a face along the rim the mean over the rim edges it holds.
+  const edgeBeta = new Map<number, number>();
+  const faceLogs = new Map<number, number[]>();
+  const edgeLogs = new Map<number, number[]>();
+  const push = (m: Map<number, number[]>, k: number, v: number) => (m.get(k) ?? m.set(k, []).get(k)!).push(v);
+  let clampedRims = 0;
+  for (const { edge: e, axis, t } of rimFaces) {
+    const ps = pieces.get(e)!;
+    // One crossing, both pieces live: the case the half-plane table describes.
+    if (ps.length !== 2 || ps.some((p) => p.unknown === -1)) continue;
+    const [betaLo, betaHi] = rimBetaRange(RIM_TABLE as SheetRimTable, ps[0].lambda);
+    const wanted = rimTieScale(RIM_TABLE as SheetRimTable, ps[0].lambda, t);
+    const beta = Math.min(betaHi, Math.max(betaLo, wanted));
+    if (Math.abs(Math.log(wanted / beta)) > 1e-6) clampedRims++;
+    const logBeta = Math.log(beta);
+    push(edgeLogs, e, logBeta);
+    const comp = Math.floor(e / N);
+    const normal = 3 - axis - comp;
+    const c = e % N;
+    const ijk = [c % nx, Math.floor(c / nx) % ny, Math.floor(c / (nx * ny))];
+    for (const back of [0, 1]) {
+      const cell = ijk.slice();
+      cell[axis] -= back;
+      if (cell[axis] < 0) continue;
+      const f = normal * N + at(cell[0], cell[1], cell[2]);
+      if (regionsOf.get(f)?.length === 2) push(faceLogs, f, logBeta);
+    }
+  }
+  const geometricMean = (logs: number[]) => Math.exp(logs.reduce((a, b) => a + b, 0) / logs.length);
+  for (const [f, logs] of faceLogs) for (const r of regionsOf.get(f)!) r.area /= geometricMean(logs);
+  for (const [e, logs] of edgeLogs) {
+    const beta = geometricMean(logs);
+    edgeBeta.set(e, beta);
+    eCurl[e] /= beta;
+  }
   const lambdaOf = new Map<number, number>();
-  for (const ps of pieces.values()) for (const p of ps) if (p.unknown >= 0) lambdaOf.set(p.unknown, p.lambda);
+  for (const [e, ps] of pieces) for (const p of ps) if (p.unknown >= 0) lambdaOf.set(p.unknown, p.lambda / (edgeBeta.get(e) ?? 1));
   const curlOf = (unknown: number, edge: number) => (base.get(edge) ?? baseCurl(edge)) * (lambdaOf.get(unknown) ?? 1);
 
   // Stability: regions each unknown borders, then effective areas (module comment).
@@ -488,6 +606,7 @@ export function addConformalSheets(model: VoxelModel, sheets: readonly TriangleM
   const borders = new Map<number, number>();
   for (const regions of regionsOf.values()) for (const r of regions) for (const t of r.terms) borders.set(t.unknown, (borders.get(t.unknown) ?? 0) + 1);
   const aEff = new Map<Region, number>();
+  const loadOf = new Map<Region, number>();
   for (const regions of regionsOf.values()) {
     for (const r of regions) {
       let load = 0;
@@ -499,7 +618,22 @@ export function addConformalSheets(model: VoxelModel, sheets: readonly TriangleM
         m = Math.max(m, borders.get(t.unknown)!);
       }
       aEff.set(r, Math.max(r.area, m * load, COVERAGE_SNAP));
+      loadOf.set(r, load);
     }
+  }
+  // Lower each raised region to the least area that keeps its unknowns' sums <= 1, the others as they stand.
+  const sums = new Map<number, number>();
+  for (const [r, a] of aEff) for (const t of r.terms) sums.set(t.unknown, (sums.get(t.unknown) ?? 0) + loadOf.get(r)! / a);
+  for (const [r, a] of subcellRims ? aEff : []) {
+    const floor = Math.max(r.area, COVERAGE_SNAP);
+    if (a <= floor) continue;
+    const load = loadOf.get(r)!;
+    let slack = Infinity;
+    for (const t of r.terms) slack = Math.min(slack, 1 - sums.get(t.unknown)! + load / a);
+    const lowered = Math.max(floor, load / slack);
+    if (!(lowered < a)) continue;
+    for (const t of r.terms) sums.set(t.unknown, sums.get(t.unknown)! + load / lowered - load / a);
+    aEff.set(r, lowered);
   }
 
   // H rows: each region's own Faraday law over its effective area; an own slot first undoes the main kernel's row.
@@ -541,10 +675,173 @@ export function addConformalSheets(model: VoxelModel, sheets: readonly TriangleM
     h: packRows(hRows),
     e: packRows(eRows),
     crossedEdges: Uint32Array.from([...pieces.keys()].filter((e) => eCurl[e] !== 0)).sort(),
+    clampedRims,
   };
   model.thinSheets = update;
   model.signature = materialSignature(eDecay, eCurl, model);
   return model;
+}
+
+/**
+ * The sheet grown past its free edges, within its own surface: every
+ * boundary vertex moves along the outward in-surface normal of its boundary
+ * edges by cells(s) of the local cell size along that direction (mitred, at
+ * most twice that at sharp corners), s being where the vertex sits across
+ * its cell along the axis nearest the sheet's normal. Closed sheets come
+ * back unchanged. Throws where grown rims would meet (a narrow hole, slot or
+ * notch, or two sheets close side by side) or a rim is degenerate.
+ */
+function growRims(sheets: TriangleMesh[], axisLines: Float64Array[], cells: (s: number) => number): TriangleMesh[] {
+  // All sheets at once (vertex sets stay disjoint), so grown rims of different sheets are checked against each other too.
+  const { positions: p, triangles: t } = joinMeshes(sheets);
+  const nv = p.length / 3;
+  const uses = new Map<number, { a: number; b: number; c: number; n: number }>();
+  for (let n = 0; n < t.length; n += 3) {
+    const tri = [t[n], t[n + 1], t[n + 2]];
+    for (let m = 0; m < 3; m++) {
+      const [a, b, c] = [tri[m], tri[(m + 1) % 3], tri[(m + 2) % 3]];
+      const key = Math.min(a, b) * nv + Math.max(a, b);
+      const use = uses.get(key);
+      if (use) use.n++;
+      else uses.set(key, { a, b, c, n: 1 });
+    }
+  }
+  const v = (i: number): number[] => [p[3 * i], p[3 * i + 1], p[3 * i + 2]];
+  const sub = (x: number[], y: number[]) => x.map((q, i) => q - y[i]);
+  const cross = (x: number[], y: number[]) => [x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]];
+  const dot = (x: number[], y: number[]) => x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
+  const degenerate = (): never => {
+    throw new Error("a thin sheet has a degenerate rim (a zero-area triangle on its boundary, or two parts touching at one vertex), so its rims cannot be grown; fix the mesh or use rims: 'snap'");
+  };
+  const unit = (x: number[]) => {
+    const l = Math.hypot(x[0], x[1], x[2]);
+    if (!(l > 0)) degenerate();
+    return x.map((q) => q / l);
+  };
+  const outward = new Map<number, number[][]>();
+  const normalOf = new Map<number, number[]>();
+  const rims: Array<{ a: number; b: number; out: number[] }> = [];
+  for (const { a, b, c, n } of uses.values()) {
+    if (n !== 1) continue;
+    const edge = sub(v(b), v(a));
+    const normal = cross(edge, sub(v(c), v(a)));
+    let out = unit(cross(edge, normal));
+    if (dot(out, sub(v(c), v(a))) > 0) out = out.map((q) => -q);
+    rims.push({ a, b, out });
+    for (const i of [a, b]) {
+      (outward.get(i) ?? outward.set(i, []).get(i)!).push(out);
+      normalOf.set(i, normal);
+    }
+  }
+  if (outward.size === 0) return sheets;
+  const moves = new Map<number, { dir: number[]; step: number }>();
+  for (const [i, outs] of outward) {
+    if (outs.length !== 2) degenerate();
+    const dir = unit(outs.reduce((s, o) => s.map((q, k) => q + o[k]), [0, 0, 0]));
+    const mitre = 1 / Math.max(0.5, Math.min(...outs.map((o) => dot(o, dir))));
+    const dominant = (x: number[]) => [0, 1, 2].reduce((best, k) => (Math.abs(x[k]) > Math.abs(x[best]) ? k : best), 0);
+    const across = dominant(normalOf.get(i)!);
+    const acrossLines = axisLines[across];
+    const at = cellIndex(acrossLines, p[3 * i + across]);
+    const s = Math.min(1 - 1e-6, Math.max(1e-6, (p[3 * i + across] - acrossLines[at]) / (acrossLines[at + 1] - acrossLines[at])));
+    const axis = dominant(dir);
+    const lines = axisLines[axis];
+    const cell = cellIndex(lines, p[3 * i + axis]);
+    moves.set(i, { dir, step: cells(s) * (lines[cell + 1] - lines[cell]) * mitre });
+  }
+  // A hole, slot or notch narrower than the two rims' growth would close or fold over itself: refuse it.
+  for (const [i, { dir, step }] of moves) {
+    for (const { a, b, out } of rims) {
+      if (a === i || b === i || dot(out, dir) > -0.5) continue;
+      const ab = sub(v(b), v(a));
+      const along = Math.max(0, Math.min(1, dot(sub(v(i), v(a)), ab) / dot(ab, ab)));
+      const w = sub(ab.map((q, k) => v(a)[k] + along * q), v(i));
+      const gap = Math.hypot(w[0], w[1], w[2]);
+      // How fast the vertex and that rim close in on each other along the line between them.
+      const otherStep = (1 - along) * moves.get(a)!.step + along * moves.get(b)!.step;
+      const closing = (step * dot(w, dir) - otherStep * dot(w, out)) / gap;
+      if (dot(w, dir) > 0.5 * gap && gap <= closing) {
+        throw new Error(`thin sheets leave a hole, slot, notch or gap ${gap.toFixed(4)} mm across near (${v(i).map((q) => q.toFixed(3)).join(', ')}), narrower than its grown rims need; refine the mesh or use rims: 'snap'`);
+      }
+    }
+  }
+  const positions = Float64Array.from(p);
+  for (const [i, { dir, step }] of moves) for (let k = 0; k < 3; k++) positions[3 * i + k] += step * dir[k];
+  let at = 0;
+  return sheets.map((sheet) => {
+    const grown = { positions: positions.slice(at, at + sheet.positions.length), triangles: sheet.triangles };
+    at += sheet.positions.length;
+    return grown;
+  });
+}
+
+/** Chains of traces in a face that enter across its boundary and end inside it: [entry, end]. */
+function danglingChains(segments: Segment[], u0: number, u1: number, v0: number, v1: number): Array<[Vec2, Vec2]> {
+  const clipped: Segment[] = [];
+  for (const s of segments) {
+    const c = clip(s, u0, u1, v0, v1);
+    if (c) clipped.push(c);
+  }
+  const tol = TOLERANCE_MM * Math.max(1, u1 - u0, v1 - v0) * 10;
+  const onBoundary = ([x, y]: Vec2) => Math.min(Math.abs(x - u0), Math.abs(x - u1), Math.abs(y - v0), Math.abs(y - v1)) <= tol;
+  const key = (p: Vec2) => `${p[0]},${p[1]}`;
+  const ends = new Map<string, number[]>();
+  clipped.forEach((s, n) => {
+    for (const p of [s.a, s.b]) {
+      const list = ends.get(key(p));
+      if (list) list.push(n);
+      else ends.set(key(p), [n]);
+    }
+  });
+  const used = new Uint8Array(clipped.length);
+  const out: Array<[Vec2, Vec2]> = [];
+  for (const [k, list] of ends) {
+    if (list.length !== 1 || used[list[0]]) continue;
+    let seg = list[0];
+    const start = key(clipped[seg].a) === k ? clipped[seg].a : clipped[seg].b;
+    let at = start;
+    while (seg >= 0 && !used[seg]) {
+      used[seg] = 1;
+      const s = clipped[seg];
+      at = key(s.a) === key(at) ? s.b : s.a;
+      seg = (ends.get(key(at)) ?? []).find((m) => !used[m]) ?? -1;
+    }
+    const [a, b] = [onBoundary(start), onBoundary(at)];
+    if (a && !b) out.push([start, at]);
+    else if (b && !a) out.push([at, start]);
+  }
+  return out;
+}
+
+/**
+ * Where the true rim lies along a (grown) trace that enters a face at P and
+ * ends at Q inside it: the distance from P to the true sheet's free end on
+ * that line, over the distance from P across the face along PQ. Growing moves
+ * a rim outwards, so its true end lies on PQ short of Q: of the true ends near
+ * the line, the one nearest Q from behind (the far rim of a narrow strip also
+ * lies on the line, further back). Negative when the true rim is short of P;
+ * null when no true end lies near the line (the grown part of a sheet past an
+ * end rim).
+ */
+function trueRimFraction(P: Vec2, Q: Vec2, u0: number, u1: number, v0: number, v1: number, ends: Vec2[]): number | null {
+  const d: Vec2 = [Q[0] - P[0], Q[1] - P[1]];
+  const len = Math.hypot(d[0], d[1]);
+  const dir: Vec2 = [d[0] / len, d[1] / len];
+  let across = Infinity;
+  for (const [a, lo, hi] of [[0, u0, u1], [1, v0, v1]] as const) {
+    if (dir[a] > 0) across = Math.min(across, (hi - P[a]) / dir[a]);
+    else if (dir[a] < 0) across = Math.min(across, (lo - P[a]) / dir[a]);
+  }
+  if (!(len > 0 && across > 0 && across < Infinity)) throw new Error(`a thin sheet's rim trace is degenerate in a face at (${P.join(', ')}) (zero length, or along the face boundary); move the sheet off the mesh line or use rims: 'snap'`);
+  const ahead = len + 1e-6 * across;
+  let along: number | null = null;
+  for (const e of ends) {
+    const w = [e[0] - P[0], e[1] - P[1]];
+    const a = w[0] * dir[0] + w[1] * dir[1];
+    const off = Math.abs(w[0] * dir[1] - w[1] * dir[0]);
+    if (off < 0.5 * across && a <= ahead && a > -1.5 * across && (along === null || a > along)) along = a;
+  }
+  return along === null ? null : along / across;
 }
 
 /** Index of the cell [lines[n], lines[n+1]) holding value (clamped). */

@@ -40,6 +40,12 @@ export interface ThinSheetUpdate {
   e: SparseRows;
   /** Own E slots of crossed edges, ascending: their eCurl is scaled by their piece's free fraction. */
   crossedEdges: Uint32Array;
+  /**
+   * Rim faces whose tie scale hit the end of its range, so the rim sits short
+   * of where it should (src/project/conformal_sheets.ts, "Rims"): only off-axis
+   * or curved rims, where the growth and the tie range see different fractions.
+   */
+  clampedRims: number;
 }
 
 /** target += rows * source, with GHOST-flagged indices into the ghost arrays. */

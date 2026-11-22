@@ -79,6 +79,91 @@ describe('copper edge placement on graded meshes', () => {
     expect(corrected(mesh!.x, 3, -1)).toBeUndefined();
   });
 
+  it('corrects both edges of a step in width under 1.5 edge cells, which is not a gap', () => {
+    // A 2.5 mm section below the 2 mm feed: its edges are one edge cell beside the feed's, on another span.
+    const json = graded();
+    json.geometry.top.push({ id: 'wide', op: 'add', polygon: rect('-1.25 mm', '-patch / 2 - 2 mm', '1.25 mm', '-patch / 2 - 1 mm') });
+    const { model, warnings } = rasterise(parseProject(json));
+    for (const [v, inward] of [[1, -1], [-1, 1], [1.25, -1], [-1.25, 1]] as const) expect(corrected(model.mesh!.x, v, inward, model)).toBeDefined();
+    expect(warnings.some((w) => /along x keep their drawn line/.test(w))).toBe(false);
+  });
+
+  it.each([0.6, 0.8, 1.2])('corrects and settles both edges of a step %s edge cells wide', (cells) => {
+    const h = 1 + cells * EDGE_CELL;
+    const json = graded();
+    json.geometry.top.push({ id: 'wide', op: 'add', polygon: rect(`${-h} mm`, '-patch / 2 - 2 mm', `${h} mm`, '-patch / 2 - 1 mm') });
+    const { model } = rasterise(parseProject(json));
+    for (const [v, inward] of [[1, -1], [-1, 1], [h, -1], [-h, 1]] as const) expect(corrected(model.mesh!.x, v, inward, model)).toBeDefined();
+  });
+
+  /**
+   * Every edge either keeps a line where it is drawn, or has a corrected line settled tightly on the
+   * offset for its outside cell, with that cell in 0.5 to 1.2 edge cells and over twice the line's
+   * depth (so the copper's midpoint edges stop at the line), and the cell inside at least half an
+   * edge cell. The tight tolerance (0.75 of the settle step, against 2 for the plain helper) is what
+   * a single settle sweep misses when one corrected line bounds another's cell.
+   */
+  const expectHeld = (json: ReturnType<typeof graded>, edges: number[]) => {
+    const { model } = rasterise(parseProject(json));
+    const x = model.mesh!.x;
+    for (const v of edges.flatMap((h) => [h, -h])) {
+      if (hasLine(x, v)) continue;
+      const inward = v > 0 ? -1 : 1;
+      const line = correctedLine(x, model.mesh!.z, 1, v, inward, EDGE_CELL, 0.75 * EDGE_LINE_SETTLE_CELLS);
+      expect(line, `edge x = ${v}: neither drawn nor settled`).toBeDefined();
+      const k = x.findIndex((l) => l === line);
+      const outside = Math.abs(x[k - inward] - x[k]) / EDGE_CELL;
+      expect(outside, `edge x = ${v}: cell outside its line`).toBeGreaterThanOrEqual(0.5);
+      expect(outside, `edge x = ${v}: cell outside its line`).toBeLessThanOrEqual(1.2);
+      expect(outside, `edge x = ${v}: cell outside against twice the depth`).toBeGreaterThan(2 * Math.abs(line! - v) / EDGE_CELL);
+      expect(Math.abs(x[k + inward] - x[k]) / EDGE_CELL, `edge x = ${v}: cell inside its line`).toBeGreaterThanOrEqual(0.5);
+    }
+  };
+  /** The 2 mm feed with two sections below it, `first` then `second` half-wide. */
+  const twoSections = (first: number, second: number) => {
+    const json = graded();
+    json.geometry.top.push(
+      { id: 'first', op: 'add', polygon: rect(`${-first} mm`, '-patch / 2 - 2 mm', `${first} mm`, '-patch / 2 - 1 mm') },
+      { id: 'second', op: 'add', polygon: rect(`${-second} mm`, '-patch / 2 - 3 mm', `${second} mm`, '-patch / 2 - 2 mm') });
+    return json;
+  };
+  // Each layout below broke an invariant on the first version of the settle (one sweep, no re-check
+  // of the inside cell or the depth): 1.15/0.65 needs a second sweep (a single sweep leaves x = 1
+  // off its offset), 0.75/1.2 left a 0.49 edge cell inside x = 0.75, and the others left an outside
+  // cell under twice the depth (0.50 to 0.55 edge cell against depths of 0.27 to 0.28).
+  it.each([[1.15, 0.65], [0.75, 1.2], [0.7, 1.4], [0.8, 1.3], [1.3, 0.75], [1.3, 0.9]])('holds every edge of a 2 mm feed above sections %s then %s mm half-wide: drawn, or settled with both cells in range', (first, second) => {
+    expectHeld(twoSections(first, second), [1, first, second]);
+  });
+
+  // These end the layout passes on a phase whose lines cannot all be settled; an earlier pass with
+  // the same corrections settles, so the edge named keeps its correction instead of its drawn line.
+  it.each([[0.5, 1.4, 1], [0.55, 1.25, 0.55], [0.675, 1.15, 0.675]])('falls back to an earlier pass for sections %s then %s mm half-wide, keeping x = %s corrected', (first, second, edge) => {
+    const json = twoSections(first, second);
+    expectHeld(json, [1, first, second]);
+    const x = rasterise(parseProject(json)).model.mesh!.x;
+    expect(hasLine(x, edge)).toBe(false);
+    expect(hasLine(x, -edge)).toBe(false);
+  });
+
+  it('keeps both sides of a gap under 1.5 edge cells drawn when another edge on the same line is beside it', () => {
+    // A stub ending on the feed's edge line x = 1, facing a trace 0.2 mm (0.8 edge cell) away; the feed's own edge has nothing facing it.
+    const json = graded();
+    json.geometry.top.push({ id: 'stub', op: 'add', polygon: rect('-1 mm', '3.5 mm', '1 mm', '4.6 mm') }, { id: 'trace', op: 'add', polygon: rect('1.2 mm', '3.5 mm', '2.2 mm', '4.6 mm') });
+    const { mesh } = rasterise(parseProject(json)).model;
+    expect(hasLine(mesh!.x, 1)).toBe(true);
+    expect(hasLine(mesh!.x, 1.2)).toBe(true);
+  });
+
+  it('treats copper facing an edge diagonally as a gap, and meshes a mirror-symmetric board symmetrically', () => {
+    // Pieces beside the feed's span, 0.1 mm past each of its edges, copper facing the feed: listed left, feed, right.
+    const json = graded();
+    json.geometry.top.unshift({ id: 'left', op: 'add', polygon: rect('-2.1 mm', '-patch / 2 - 2 mm', '-1.1 mm', '-patch / 2 - 1 mm') });
+    json.geometry.top.push({ id: 'right', op: 'add', polygon: rect('1.1 mm', '-patch / 2 - 2 mm', '2.1 mm', '-patch / 2 - 1 mm') });
+    const x = rasterise(parseProject(json)).model.mesh!.x;
+    for (const v of [1, 1.1, -1, -1.1]) expect(hasLine(x, v)).toBe(true);
+    x.forEach((v, i) => expect(v).toBeCloseTo(-x[x.length - 1 - i], 9));
+  });
+
   it('keeps edges where they are drawn across a gap under 1.5 edge cells', () => {
     // A trace 0.3 mm (1.2 edge cells) above the patch.
     const json = graded();

@@ -25,19 +25,19 @@
     "outline": [
       [
         "-41.0000 mm",
-        "-10.4300 mm"
+        "-12.4300 mm"
       ],
       [
         "41.0000 mm",
-        "-10.4300 mm"
+        "-12.4300 mm"
       ],
       [
         "41.0000 mm",
-        "10.4300 mm"
+        "12.4300 mm"
       ],
       [
         "-41.0000 mm",
-        "10.4300 mm"
+        "12.4300 mm"
       ]
     ]
   },
@@ -49,19 +49,19 @@
         "polygon": [
           [
             "-41.0000 mm",
-            "-10.4300 mm"
+            "-12.4300 mm"
           ],
           [
             "41.0000 mm",
-            "-10.4300 mm"
+            "-12.4300 mm"
           ],
           [
             "41.0000 mm",
-            "10.4300 mm"
+            "12.4300 mm"
           ],
           [
             "-41.0000 mm",
-            "10.4300 mm"
+            "12.4300 mm"
           ]
         ]
       }
@@ -73,19 +73,19 @@
         "polygon": [
           [
             "-41.0000 mm",
-            "-10.4300 mm"
+            "-12.4300 mm"
           ],
           [
             "41.0000 mm",
-            "-10.4300 mm"
+            "-12.4300 mm"
           ],
           [
             "41.0000 mm",
-            "10.4300 mm"
+            "12.4300 mm"
           ],
           [
             "-41.0000 mm",
-            "10.4300 mm"
+            "12.4300 mm"
           ]
         ]
       }
@@ -113,34 +113,70 @@
       "reference_impedance_ohm": 50
     }
   ],
+  "vias": [
+    {
+      "id": "wall1",
+      "x": "-40.5000 mm",
+      "y": "-11.4300 mm",
+      "to": [
+        "40.5000 mm",
+        "-11.4300 mm"
+      ],
+      "pitch": "1.0000 mm",
+      "drill": "0.5000 mm",
+      "between": [
+        "bottom",
+        "top"
+      ]
+    },
+    {
+      "id": "wall2",
+      "x": "-40.5000 mm",
+      "y": "11.4300 mm",
+      "to": [
+        "40.5000 mm",
+        "11.4300 mm"
+      ],
+      "pitch": "1.0000 mm",
+      "drill": "0.5000 mm",
+      "between": [
+        "bottom",
+        "top"
+      ]
+    }
+  ],
   "boundaries": {
     "x_min": {
       "type": "pml",
-      "cells": 20
+      "cells": 8
     },
     "x_max": {
       "type": "pml",
-      "cells": 20
+      "cells": 8
     },
     "y_min": {
-      "type": "pec"
+      "type": "pml",
+      "cells": 8
     },
     "y_max": {
-      "type": "pec"
+      "type": "pml",
+      "cells": 8
     },
     "z_min": {
-      "type": "pec"
+      "type": "pml",
+      "cells": 8
     },
     "z_max": {
-      "type": "pec"
+      "type": "pml",
+      "cells": 8
     }
   },
   "mesh": {
     "cell": "1.0000 mm",
     "air_margin_cells": {
-      "xy": 1,
-      "below": 1,
-      "above": 1
+      "xy": 4,
+      "below": 4,
+      "above": 4
     },
     "graded": {
       "edge_cell": "0.5000 mm",

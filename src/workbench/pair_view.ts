@@ -13,7 +13,7 @@ import { analyseDifferential, constantLossNote, modeTerm, TIMING_ENERGY_DECAY_DB
 import { constantLossDielectrics, resolveProject } from '../project/resolve';
 import { parseProject, type DifferentialPairDef } from '../project/schema';
 import { escapeHtml, withMinus } from '../ui/format';
-import { LineChart, type Trace } from './line_chart';
+import { extent, LineChart, type Trace } from './line_chart';
 import { TRACE_COLORS } from './results';
 import type { WorkbenchResult } from './solve';
 
@@ -123,7 +123,7 @@ export class PairView {
         { name: `Scd${j + 1}${i + 1}`, color: color(2), dashed: true, x: f, y: curve('cd', j, i) },
       ];
     });
-    const lowest = Math.min(...traces.flatMap((t) => Array.from(t.y)));
+    const lowest = extent(traces.flatMap((t) => Array.from(t.y)))[0];
     this.sChart.set({ traces, yUnit: 'dB', yMin: Math.floor(lowest / 10) * 10, yMax: 0, markers: r.zinGHz.map((x) => ({ x, label: `${x} GHz` })) });
     this.renderTdr(report);
     this.renderFacts(r, report);

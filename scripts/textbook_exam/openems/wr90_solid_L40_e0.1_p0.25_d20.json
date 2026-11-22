@@ -1,0 +1,13 @@
+{
+ "case": "wr90",
+ "length_mm": 40.0,
+ "solid": true,
+ "edge_mm": 0.1,
+ "post_cell_mm": 0.25,
+ "dielectric_cells": 20,
+ "cells": 912640,
+ "wall_s": 31.7,
+ "probe_spacing_mm": 10.0,
+ "fc_probe_ghz": 6.5776,
+ "lambda_g_10ghz_probe_mm": 39.688
+}

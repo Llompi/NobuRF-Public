@@ -1,7 +1,7 @@
 {
   "generated_by": "scripts/validate/benchmarks.ts",
   "solver": "CPU reference via solveProjectText (the noburf solve path)",
-  "build": "main 4e2e277 (includes PR #58), run 2026-11-21 on CPU; this key added by hand after the run",
+  "build": "main f612fdd (includes PRs #58 and #83), run 2026-11-21 on CPU in the cloud, one benchmark at a time with --only; this key added by hand after the run",
   "max_minutes_per_solve": 600,
   "mesh": "graded",
   "refine": 1,
@@ -14,21 +14,23 @@
         {
           "project": "balanis-ex14-edge-probe",
           "grid": [
-            87,
-            79,
-            43
+            111,
+            103,
+            51
           ],
-          "cells": 295539,
-          "dx_mm": 0.20000000000000018,
-          "steps": 4000,
+          "cells": 583083,
+          "dx_mm": 0.13704463041655846,
+          "steps": 5900,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.404497344708616,
-          "solve_s": 80,
-          "f_s11_min_ghz": 10.01717638203653,
-          "s11_min_db": -16.63091615202724,
-          "f_re_z_peak_ghz": 9.330401959990818,
-          "re_z_peak_ohm": 180.3582490406156,
-          "warnings": []
+          "energy_decay_db": 50.88056043005022,
+          "solve_s": 148,
+          "f_s11_min_ghz": 10.111393891995373,
+          "s11_min_db": -14.78170493973554,
+          "f_re_z_peak_ghz": 9.429363312783503,
+          "re_z_peak_ohm": 180.49955845671684,
+          "warnings": [
+            "mesh: smallest cell 0.137 mm is below edge_cell (0.2 mm) and sets the time step; look for copper edges, the port or layer interfaces closer together than edge_cell. Copper edge lines sit about a third of edge_cell inside the drawn edge, so gaps between lines are rarely whole cells and the grading may shrink cells near them"
+          ]
         }
       ],
       "comparisons": [
@@ -37,17 +39,17 @@
           "unit": "GHz",
           "reference": 10,
           "reference_kind": "textbook model",
-          "noburf": 9.330401959990818,
-          "difference_percent": -6.695980400091824
+          "noburf": 9.429363312783503,
+          "difference_percent": -5.706366872164974
         },
         {
           "quantity": "R_in at resonance, probe on the first node inside the radiating edge (0.35 mm in)",
           "unit": "ohm",
           "reference": 228.35,
           "reference_kind": "textbook model",
-          "noburf": 180.3582490406156,
+          "noburf": 180.49955845671684,
           "note": "Balanis R_in(edge) = 1 / (2 (G1 + G12)); the probe sits on the first grid node inside the edge (0.35 mm in), where cos^2 reduces the model value by about 1.5 %",
-          "difference_percent": -21.016751022283515
+          "difference_percent": -20.95486820375877
         }
       ]
     },
@@ -59,20 +61,20 @@
         {
           "project": "balanis-ex14-inset-probe",
           "grid": [
-            87,
-            83,
-            43
+            111,
+            106,
+            51
           ],
-          "cells": 310503,
-          "dx_mm": 0.20435742487821118,
-          "steps": 5000,
+          "cells": 600066,
+          "dx_mm": 0.19050476123728988,
+          "steps": 5300,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.85029078071966,
-          "solve_s": 90,
-          "f_s11_min_ghz": 9.530500911316107,
-          "s11_min_db": -2.950977975567445,
-          "f_re_z_peak_ghz": 9.415824132625598,
-          "re_z_peak_ohm": 32.37710271650749,
+          "energy_decay_db": 50.59897318115166,
+          "solve_s": 138,
+          "f_s11_min_ghz": 9.561901737525966,
+          "s11_min_db": -2.968972524017249,
+          "f_re_z_peak_ghz": 9.445843858819295,
+          "re_z_peak_ohm": 32.42272164083052,
           "warnings": []
         }
       ],
@@ -82,16 +84,16 @@
           "unit": "GHz",
           "reference": 10,
           "reference_kind": "textbook model",
-          "noburf": 9.415824132625598,
-          "difference_percent": -5.8417586737440175
+          "noburf": 9.445843858819295,
+          "difference_percent": -5.541561411807052
         },
         {
           "quantity": "R_in at resonance, probe at y0 = 3.126 mm",
           "unit": "ohm",
           "reference": 50,
           "reference_kind": "textbook model",
-          "noburf": 32.37710271650749,
-          "difference_percent": -35.245794566985026
+          "noburf": 32.42272164083052,
+          "difference_percent": -35.15455671833897
         }
       ]
     },
@@ -103,20 +105,20 @@
         {
           "project": "chang1986-57x38",
           "grid": [
-            105,
-            100,
-            48
+            129,
+            125,
+            56
           ],
-          "cells": 504000,
-          "dx_mm": 0.40867605955780384,
-          "steps": 10800,
+          "cells": 903000,
+          "dx_mm": 0.3404918238234096,
+          "steps": 13000,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.305934857904035,
-          "solve_s": 337,
-          "f_s11_min_ghz": 2.4460664811386454,
-          "s11_min_db": -16.11009648092229,
-          "f_re_z_peak_ghz": 2.3500651733703837,
-          "re_z_peak_ohm": 169.94227906581474,
+          "energy_decay_db": 50.10382983170375,
+          "solve_s": 497,
+          "f_s11_min_ghz": 2.4493992883458136,
+          "s11_min_db": -16.67435040245853,
+          "f_re_z_peak_ghz": 2.353517950761482,
+          "re_z_peak_ohm": 170.01726032304379,
           "warnings": []
         }
       ],
@@ -126,17 +128,17 @@
           "unit": "GHz",
           "reference": 2.31,
           "reference_kind": "measured",
-          "noburf": 2.3500651733703837,
-          "difference_percent": 1.7344230896269965
+          "noburf": 2.353517950761482,
+          "difference_percent": 1.8838939723585288
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 2.31,
           "reference_kind": "measured",
-          "noburf": 2.4460664811386454,
-          "note": "S11 minimum -16.1 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 5.890323858815818
+          "noburf": 2.4493992883458136,
+          "note": "S11 minimum -16.7 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 6.0346012270914935
         }
       ]
     },
@@ -148,20 +150,20 @@
         {
           "project": "chang1986-45.5x30.5",
           "grid": [
-            105,
-            100,
-            48
+            131,
+            125,
+            56
           ],
-          "cells": 504000,
-          "dx_mm": 0.40867605955780384,
-          "steps": 7900,
+          "cells": 917000,
+          "dx_mm": 0.3405260489610811,
+          "steps": 9500,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.818288145273485,
-          "solve_s": 228,
-          "f_s11_min_ghz": 3.0062624727066876,
-          "s11_min_db": -25.659604951837125,
-          "f_re_z_peak_ghz": 2.8693614801002765,
-          "re_z_peak_ohm": 164.04513173944295,
+          "energy_decay_db": 50.48378179271948,
+          "solve_s": 364,
+          "f_s11_min_ghz": 3.0113776791320164,
+          "s11_min_db": -28.602180997821847,
+          "f_re_z_peak_ghz": 2.8747138418309035,
+          "re_z_peak_ohm": 164.130641218378,
           "warnings": []
         }
       ],
@@ -171,17 +173,17 @@
           "unit": "GHz",
           "reference": 2.89,
           "reference_kind": "measured",
-          "noburf": 2.8693614801002765,
-          "difference_percent": -0.7141356366686384
+          "noburf": 2.8747138418309035,
+          "difference_percent": -0.5289328086192602
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 2.89,
           "reference_kind": "measured",
-          "noburf": 3.0062624727066876,
-          "note": "S11 minimum -25.7 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 4.022922931027247
+          "noburf": 3.0113776791320164,
+          "note": "S11 minimum -28.6 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 4.199919693149351
         }
       ]
     },
@@ -193,20 +195,20 @@
         {
           "project": "chang1986-29.5x19.5",
           "grid": [
-            105,
-            101,
-            48
+            131,
+            124,
+            56
           ],
-          "cells": 509040,
-          "dx_mm": 0.40867605955780384,
-          "steps": 4500,
+          "cells": 909664,
+          "dx_mm": 0.34009350598631016,
+          "steps": 5400,
           "stopped_on_energy": true,
-          "energy_decay_db": 51.13795999457423,
-          "solve_s": 119,
-          "f_s11_min_ghz": 4.496000820167695,
-          "s11_min_db": -12.615083125414053,
-          "f_re_z_peak_ghz": 4.2594701487736994,
-          "re_z_peak_ohm": 142.53027169247568,
+          "energy_decay_db": 50.52712011603756,
+          "solve_s": 199,
+          "f_s11_min_ghz": 4.508650377487854,
+          "s11_min_db": -11.923747352237092,
+          "f_re_z_peak_ghz": 4.273948133309314,
+          "re_z_peak_ohm": 142.37292386544377,
           "warnings": []
         }
       ],
@@ -216,17 +218,17 @@
           "unit": "GHz",
           "reference": 4.24,
           "reference_kind": "measured",
-          "noburf": 4.2594701487736994,
-          "difference_percent": 0.4592016220212084
+          "noburf": 4.273948133309314,
+          "difference_percent": 0.800663521446072
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 4.24,
           "reference_kind": "measured",
-          "noburf": 4.496000820167695,
-          "note": "S11 minimum -12.6 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 6.037755192634313
+          "noburf": 4.508650377487854,
+          "note": "S11 minimum -11.9 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 6.336093808675789
         }
       ]
     },
@@ -238,20 +240,20 @@
         {
           "project": "chang1986-19.5x13",
           "grid": [
-            105,
-            102,
-            48
+            129,
+            124,
+            56
           ],
-          "cells": 514080,
-          "dx_mm": 0.40867605955780384,
-          "steps": 2900,
+          "cells": 895776,
+          "dx_mm": 0.34027119852960563,
+          "steps": 3500,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.28094870452992,
-          "solve_s": 125,
-          "f_s11_min_ghz": 6.358686800244948,
-          "s11_min_db": -6.481953324386951,
-          "f_re_z_peak_ghz": 6.0338355347642,
-          "re_z_peak_ohm": 120.91890131209095,
+          "energy_decay_db": 51.24439920972601,
+          "solve_s": 130,
+          "f_s11_min_ghz": 6.392471416154892,
+          "s11_min_db": -6.1859099613317605,
+          "f_re_z_peak_ghz": 6.069584209566691,
+          "re_z_peak_ohm": 120.31717062472242,
           "warnings": []
         }
       ],
@@ -261,17 +263,17 @@
           "unit": "GHz",
           "reference": 5.84,
           "reference_kind": "measured",
-          "noburf": 6.0338355347642,
-          "difference_percent": 3.319101622674658
+          "noburf": 6.069584209566691,
+          "difference_percent": 3.9312364651830674
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 5.84,
           "reference_kind": "measured",
-          "noburf": 6.358686800244948,
-          "note": "S11 minimum -6.5 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 8.881623291865553
+          "noburf": 6.392471416154892,
+          "note": "S11 minimum -6.2 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 9.460126988953638
         }
       ]
     },
@@ -283,20 +285,20 @@
         {
           "project": "chang1986-17x11",
           "grid": [
-            109,
-            107,
-            48
+            133,
+            128,
+            55
           ],
-          "cells": 559824,
-          "dx_mm": 0.40867605955780384,
-          "steps": 2500,
+          "cells": 936320,
+          "dx_mm": 0.3402480889216548,
+          "steps": 3000,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.317225977024485,
-          "solve_s": 82,
-          "f_s11_min_ghz": 7.241953707434237,
-          "s11_min_db": -4.234950055308117,
-          "f_re_z_peak_ghz": 6.893676618023017,
-          "re_z_peak_ohm": 97.62583585275873,
+          "energy_decay_db": 50.69286342900004,
+          "solve_s": 114,
+          "f_s11_min_ghz": 7.291127232188663,
+          "s11_min_db": -4.025492817845689,
+          "f_re_z_peak_ghz": 6.943152877757531,
+          "re_z_peak_ohm": 96.7229309231432,
           "warnings": []
         }
       ],
@@ -306,17 +308,17 @@
           "unit": "GHz",
           "reference": 6.8,
           "reference_kind": "measured",
-          "noburf": 6.893676618023017,
-          "difference_percent": 1.3775973238678982
+          "noburf": 6.943152877757531,
+          "difference_percent": 2.1051893787872245
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 6.8,
           "reference_kind": "measured",
-          "noburf": 7.241953707434237,
-          "note": "S11 minimum -4.2 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 6.499319226974077
+          "noburf": 7.291127232188663,
+          "note": "S11 minimum -4.0 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 7.222459296892111
         }
       ]
     },
@@ -328,20 +330,20 @@
         {
           "project": "chang1986-14x9",
           "grid": [
-            113,
-            111,
-            46
+            135,
+            132,
+            53
           ],
-          "cells": 576978,
-          "dx_mm": 0.40867605955780384,
-          "steps": 2600,
+          "cells": 944460,
+          "dx_mm": 0.34017618065205246,
+          "steps": 3100,
           "stopped_on_energy": true,
-          "energy_decay_db": 51.25990147151643,
-          "solve_s": 93,
-          "f_s11_min_ghz": 8.481783025287266,
-          "s11_min_db": -3.1467364790009866,
-          "f_re_z_peak_ghz": 8.183963488522771,
-          "re_z_peak_ohm": 87.04139738987004,
+          "energy_decay_db": 51.07374466857393,
+          "solve_s": 111,
+          "f_s11_min_ghz": 8.533528940427834,
+          "s11_min_db": -2.9757462667984553,
+          "f_re_z_peak_ghz": 8.243352135456638,
+          "re_z_peak_ohm": 86.53411638042763,
           "warnings": []
         }
       ],
@@ -351,17 +353,17 @@
           "unit": "GHz",
           "reference": 7.7,
           "reference_kind": "measured",
-          "noburf": 8.183963488522771,
-          "difference_percent": 6.2852401106853355
+          "noburf": 8.243352135456638,
+          "difference_percent": 7.056521239696591
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 7.7,
           "reference_kind": "measured",
-          "noburf": 8.481783025287266,
-          "note": "S11 minimum -3.1 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 10.15302630243202
+          "noburf": 8.533528940427834,
+          "note": "S11 minimum -3.0 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 10.825051174387449
         }
       ]
     },
@@ -373,20 +375,20 @@
         {
           "project": "chang1986-12x8",
           "grid": [
-            113,
-            111,
-            46
+            135,
+            131,
+            53
           ],
-          "cells": 576978,
-          "dx_mm": 0.40867605955780384,
-          "steps": 2600,
+          "cells": 937305,
+          "dx_mm": 0.3400174530408573,
+          "steps": 3100,
           "stopped_on_energy": true,
-          "energy_decay_db": 51.51004714017441,
-          "solve_s": 86,
-          "f_s11_min_ghz": 9.287711230488977,
-          "s11_min_db": -2.553562907198094,
-          "f_re_z_peak_ghz": 9.014683529143687,
-          "re_z_peak_ohm": 77.16856234792944,
+          "energy_decay_db": 51.495895389845586,
+          "solve_s": 116,
+          "f_s11_min_ghz": 9.343864234917206,
+          "s11_min_db": -2.4047339740290123,
+          "f_re_z_peak_ghz": 9.086615594083288,
+          "re_z_peak_ohm": 76.71084507312982,
           "warnings": []
         }
       ],
@@ -396,17 +398,17 @@
           "unit": "GHz",
           "reference": 8.27,
           "reference_kind": "measured",
-          "noburf": 9.014683529143687,
-          "difference_percent": 9.004637595449665
+          "noburf": 9.086615594083288,
+          "difference_percent": 9.874432818419445
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 8.27,
           "reference_kind": "measured",
-          "noburf": 9.287711230488977,
-          "note": "S11 minimum -2.6 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 12.30606082816176
+          "noburf": 9.343864234917206,
+          "note": "S11 minimum -2.4 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 12.98505725413792
         }
       ]
     },
@@ -418,20 +420,20 @@
         {
           "project": "chang1986-10.5x7",
           "grid": [
-            123,
-            122,
-            46
+            143,
+            139,
+            52
           ],
-          "cells": 690276,
-          "dx_mm": 0.40867605955780384,
-          "steps": 2700,
+          "cells": 1033604,
+          "dx_mm": 0.33984472409898947,
+          "steps": 3300,
           "stopped_on_energy": true,
-          "energy_decay_db": 51.65560182716811,
-          "solve_s": 124,
-          "f_s11_min_ghz": 10.332223748114156,
-          "s11_min_db": -1.8740112923450676,
-          "f_re_z_peak_ghz": 10.183557941809719,
-          "re_z_peak_ohm": 66.81713964804472,
+          "energy_decay_db": 51.81051247689755,
+          "solve_s": 130,
+          "f_s11_min_ghz": 10.657952747349455,
+          "s11_min_db": -1.812114528894564,
+          "f_re_z_peak_ghz": 10.589760034612022,
+          "re_z_peak_ohm": 67.18966592836092,
           "warnings": []
         }
       ],
@@ -441,17 +443,17 @@
           "unit": "GHz",
           "reference": 9.14,
           "reference_kind": "measured",
-          "noburf": 10.183557941809719,
-          "difference_percent": 11.41748295196628
+          "noburf": 10.589760034612022,
+          "difference_percent": 15.861707162057122
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 9.14,
           "reference_kind": "measured",
-          "noburf": 10.332223748114156,
-          "note": "S11 minimum -1.9 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 13.04402350234306
+          "noburf": 10.657952747349455,
+          "note": "S11 minimum -1.8 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 16.60779811104436
         }
       ]
     },
@@ -463,18 +465,18 @@
         {
           "project": "chang1986-9x6",
           "grid": [
-            123,
-            121,
-            46
+            141,
+            138,
+            52
           ],
-          "cells": 684618,
-          "dx_mm": 0.40867605955780384,
-          "steps": 3000,
+          "cells": 1011816,
+          "dx_mm": 0.3400706149228796,
+          "steps": 3400,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.68109556254346,
-          "solve_s": 114,
-          "f_s11_min_ghz": 11.46208343714649,
-          "s11_min_db": -1.5601900505550705,
+          "energy_decay_db": 50.63732437088595,
+          "solve_s": 133,
+          "f_s11_min_ghz": 11.486113322272578,
+          "s11_min_db": -1.4675156226873076,
           "f_re_z_peak_ghz": null,
           "re_z_peak_ohm": null,
           "warnings": []
@@ -486,17 +488,17 @@
           "unit": "GHz",
           "reference": 10.25,
           "reference_kind": "measured",
-          "noburf": 11.383638377882958,
-          "difference_percent": 11.059886613492276
+          "noburf": 11.416227060448543,
+          "difference_percent": 11.377824979985787
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 10.25,
           "reference_kind": "measured",
-          "noburf": 11.46208343714649,
-          "note": "S11 minimum -1.6 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 11.8252042648438
+          "noburf": 11.486113322272578,
+          "note": "S11 minimum -1.5 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 12.059642168512957
         }
       ]
     },
@@ -508,20 +510,20 @@
         {
           "project": "chang1986-17x11-h1.524",
           "grid": [
-            113,
-            111,
-            49
+            125,
+            121,
+            51
           ],
-          "cells": 614607,
+          "cells": 771375,
           "dx_mm": 0.254,
           "steps": 4300,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.61737666856472,
-          "solve_s": 148,
-          "f_s11_min_ghz": 8.026629880560405,
-          "s11_min_db": -17.54918946707468,
-          "f_re_z_peak_ghz": 7.679234792733085,
-          "re_z_peak_ohm": 114.39180206167289,
+          "energy_decay_db": 50.81673814449595,
+          "solve_s": 135,
+          "f_s11_min_ghz": 8.06593682761589,
+          "s11_min_db": -16.82054401895424,
+          "f_re_z_peak_ghz": 7.716287798182916,
+          "re_z_peak_ohm": 114.99618303975053,
           "warnings": [
             "mesh: smallest cell 0.254 mm is below edge_cell (0.4 mm) and sets the time step; look for copper edges, the port or layer interfaces closer together than edge_cell. Copper edge lines sit about a third of edge_cell inside the drawn edge, so gaps between lines are rarely whole cells and the grading may shrink cells near them"
           ]
@@ -533,17 +535,17 @@
           "unit": "GHz",
           "reference": 7.87,
           "reference_kind": "measured",
-          "noburf": 7.679234792733085,
-          "difference_percent": -2.4239543490078206
+          "noburf": 7.716287798182916,
+          "difference_percent": -1.9531410650201326
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 7.87,
           "reference_kind": "measured",
-          "noburf": 8.026629880560405,
-          "note": "S11 minimum -17.5 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 1.9902144925083192
+          "noburf": 8.06593682761589,
+          "note": "S11 minimum -16.8 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 2.489667441116763
         }
       ]
     },
@@ -555,20 +557,20 @@
         {
           "project": "chang1986-17x11-h9.525",
           "grid": [
-            105,
-            101,
-            52
+            159,
+            147,
+            81
           ],
-          "cells": 551460,
-          "dx_mm": 0.4189199132113668,
-          "steps": 3900,
+          "cells": 1893213,
+          "dx_mm": 0.34020392020913715,
+          "steps": 4700,
           "stopped_on_energy": true,
-          "energy_decay_db": 51.43864044039362,
-          "solve_s": 116,
-          "f_s11_min_ghz": 5.471325591634347,
-          "s11_min_db": -1.0252101249611045,
-          "f_re_z_peak_ghz": 5.40559801689762,
-          "re_z_peak_ohm": 112.42134330845325,
+          "energy_decay_db": 50.001818181108995,
+          "solve_s": 332,
+          "f_s11_min_ghz": 5.474141086697011,
+          "s11_min_db": -0.9488803256605094,
+          "f_re_z_peak_ghz": 5.415734750164045,
+          "re_z_peak_ohm": 111.04963284920333,
           "warnings": []
         }
       ],
@@ -578,17 +580,17 @@
           "unit": "GHz",
           "reference": 4.73,
           "reference_kind": "measured",
-          "noburf": 5.40559801689762,
-          "difference_percent": 14.283256171197023
+          "noburf": 5.415734750164045,
+          "difference_percent": 14.49756342841532
         },
         {
           "quantity": "f at the S11 minimum",
           "unit": "GHz",
           "reference": 4.73,
           "reference_kind": "measured",
-          "noburf": 5.471325591634347,
-          "note": "S11 minimum -1.0 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
-          "difference_percent": 15.672845489098236
+          "noburf": 5.474141086697011,
+          "note": "S11 minimum -0.9 dB; not the paper's definition of f_r, which is the Re(Z_in) peak",
+          "difference_percent": 15.732369697611212
         }
       ]
     },
@@ -600,20 +602,20 @@
         {
           "project": "sheen1990-patch",
           "grid": [
-            84,
-            78,
-            40
+            102,
+            90,
+            43
           ],
-          "cells": 262080,
-          "dx_mm": 0.18926453832264212,
-          "steps": 8100,
+          "cells": 394740,
+          "dx_mm": 0.1828838394987624,
+          "steps": 8400,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.62252165380429,
-          "solve_s": 134,
-          "f_s11_min_ghz": 7.485142464284099,
-          "s11_min_db": -16.300279442917276,
-          "f_re_z_peak_ghz": 4.7000634547373945,
-          "re_z_peak_ohm": 4145.870062249835,
+          "energy_decay_db": 51.13889455028658,
+          "solve_s": 138,
+          "f_s11_min_ghz": 7.50134403064138,
+          "s11_min_db": -16.332611652799763,
+          "f_re_z_peak_ghz": 4.701300817861994,
+          "re_z_peak_ohm": 4130.451828857489,
           "warnings": []
         }
       ],
@@ -623,9 +625,9 @@
           "unit": "GHz",
           "reference": 7.5,
           "reference_kind": "measured",
-          "noburf": 7.485142464284099,
+          "noburf": 7.50134403064138,
           "note": "NobuRF S11 minimum -16.3 dB. Sheen's text: the operating resonance at 7.5 GHz is shown by both measurement and FDTD (Fig. 5)",
-          "difference_percent": -0.19810047621201457
+          "difference_percent": 0.0179204085517289
         }
       ]
     },
@@ -637,20 +639,20 @@
         {
           "project": "sheen1990-lowpass-filter",
           "grid": [
-            99,
-            86,
-            40
+            127,
+            107,
+            43
           ],
-          "cells": 340560,
-          "dx_mm": 0.1859533404967344,
-          "steps": 6100,
+          "cells": 584327,
+          "dx_mm": 0.1832613908262979,
+          "steps": 6200,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.347522355495336,
-          "solve_s": 122,
-          "f_s11_min_ghz": 4.892599675167482,
-          "s11_min_db": -33.638481999766285,
-          "f_re_z_peak_ghz": 6.299239955417178,
-          "re_z_peak_ohm": 2354.430839188358,
+          "energy_decay_db": 50.73046651252402,
+          "solve_s": 151,
+          "f_s11_min_ghz": 4.895689700504762,
+          "s11_min_db": -35.32154290968433,
+          "f_re_z_peak_ghz": 6.300465263366037,
+          "re_z_peak_ohm": 2336.421010242108,
           "warnings": []
         }
       ],
@@ -660,36 +662,36 @@
           "unit": "GHz",
           "reference": 5.45,
           "reference_kind": "read from a plot",
-          "noburf": 5.428259306368872,
+          "noburf": 5.429570913771586,
           "note": "Measured curve of Fig. 10 read at this level by pixel position on a 400 dpi scan; reading uncertainty about 0.05 GHz",
-          "difference_percent": -0.39891180974546714
+          "difference_percent": -0.37484561886997747
         },
         {
           "quantity": "S21 falls through -10 dB",
           "unit": "GHz",
           "reference": 5.98,
           "reference_kind": "read from a plot",
-          "noburf": 5.964857596240647,
+          "noburf": 5.968503216076694,
           "note": "Measured curve of Fig. 10 read at this level by pixel position on a 400 dpi scan; reading uncertainty about 0.05 GHz",
-          "difference_percent": -0.2532174541697835
+          "difference_percent": -0.19225391176096984
         },
         {
           "quantity": "first S11 dip",
           "unit": "GHz",
           "reference": 5,
           "reference_kind": "read from a plot",
-          "noburf": 4.892599675167482,
-          "note": "NobuRF -33.6 dB. Measured dip read off Fig. 9 to about 0.1 GHz",
-          "difference_percent": -2.1480064966503676
+          "noburf": 4.895689700504761,
+          "note": "NobuRF -35.3 dB. Measured dip read off Fig. 9 to about 0.1 GHz",
+          "difference_percent": -2.0862059899047836
         },
         {
           "quantity": "second S11 dip",
           "unit": "GHz",
           "reference": 10.8,
           "reference_kind": "read from a plot",
-          "noburf": 10.972826827480974,
-          "note": "NobuRF -17.1 dB. Measured dip read off Fig. 9 to about 0.1 GHz",
-          "difference_percent": 1.6002484026016037
+          "noburf": 10.982734788289493,
+          "note": "NobuRF -17.0 dB. Measured dip read off Fig. 9 to about 0.1 GHz",
+          "difference_percent": 1.6919887804582618
         }
       ]
     },
@@ -701,20 +703,20 @@
         {
           "project": "sheen1990-branch-line-coupler",
           "grid": [
-            100,
-            107,
-            40
+            115,
+            137,
+            43
           ],
-          "cells": 428000,
-          "dx_mm": 0.18238716041260172,
+          "cells": 677465,
+          "dx_mm": 0.18324326717141215,
           "steps": 7000,
           "stopped_on_energy": true,
-          "energy_decay_db": 50.18540469857769,
-          "solve_s": 176,
-          "f_s11_min_ghz": 5.969220341741256,
-          "s11_min_db": -20.26457074644697,
-          "f_re_z_peak_ghz": 3.956018562700711,
-          "re_z_peak_ohm": 233.77402971992097,
+          "energy_decay_db": 50.1037756780896,
+          "solve_s": 195,
+          "f_s11_min_ghz": 5.937018114033358,
+          "s11_min_db": -20.038770951650875,
+          "f_re_z_peak_ghz": 3.950009213491221,
+          "re_z_peak_ohm": 233.68924859559124,
           "warnings": []
         }
       ],
@@ -724,27 +726,27 @@
           "unit": "GHz",
           "reference": 6.5,
           "reference_kind": "measured",
-          "noburf": 5.9732343027838235,
-          "note": "Sheen gives the operating point as about 6.5 GHz in both calculation and measurement (text). NobuRF |S31| = -3.21 dB and |S41| = -3.15 dB there; ideal -3.01 dB",
-          "difference_percent": -8.10408764947964
+          "noburf": 5.94136299269049,
+          "note": "Sheen gives the operating point as about 6.5 GHz in both calculation and measurement (text). NobuRF |S31| = -3.20 dB and |S41| = -3.18 dB there; ideal -3.01 dB",
+          "difference_percent": -8.59441549706939
         },
         {
           "quantity": "S11 null",
           "unit": "GHz",
           "reference": 6.5,
           "reference_kind": "measured",
-          "noburf": 5.969220341741256,
-          "note": "NobuRF -20.3 dB. Sheen: the S11 and S21 nulls sit at the operating point (text). The lumped ports are not de-embedded, so their own reflection adds to S11 and can move a deep null",
-          "difference_percent": -8.165840896288374
+          "noburf": 5.937018114033359,
+          "note": "NobuRF -20.0 dB. Sheen: the S11 and S21 nulls sit at the operating point (text). The lumped ports are not de-embedded, so their own reflection adds to S11 and can move a deep null",
+          "difference_percent": -8.661259784102171
         },
         {
           "quantity": "S21 (isolation) null",
           "unit": "GHz",
           "reference": 6.5,
           "reference_kind": "measured",
-          "noburf": 6.003203087422741,
-          "note": "NobuRF -19.9 dB. Port 2 is the isolated port: it sits across the narrow branch from port 1",
-          "difference_percent": -7.643029424265522
+          "noburf": 5.972668243031667,
+          "note": "NobuRF -19.7 dB. Port 2 is the isolated port: it sits across the narrow branch from port 1",
+          "difference_percent": -8.112796261051272
         }
       ]
     },
@@ -756,18 +758,18 @@
         {
           "project": "pozar-ex3.7-z0-lossy-line",
           "grid": [
-            73,
+            93,
             95,
-            47
+            59
           ],
-          "cells": 325945,
-          "dx_mm": 0.05022545572783632,
-          "steps": 6500,
+          "cells": 521265,
+          "dx_mm": 0.0465500274974987,
+          "steps": 7000,
           "stopped_on_energy": true,
-          "energy_decay_db": 40.91222376401361,
-          "solve_s": 143,
-          "f_s11_min_ghz": 7.078517782428332,
-          "s11_min_db": -12.77809139561089,
+          "energy_decay_db": 40.35848831140704,
+          "solve_s": 152,
+          "f_s11_min_ghz": 7.073490110013361,
+          "s11_min_db": -12.706774912240673,
           "f_re_z_peak_ghz": null,
           "re_z_peak_ohm": null,
           "warnings": []
@@ -779,9 +781,9 @@
           "unit": "ohm",
           "reference": 46.67488010364548,
           "reference_kind": "closed-form",
-          "noburf": 49.16432171908464,
+          "noburf": 49.57681903584304,
           "note": "Hammerstad-Jensen at W/h = 1, dispersion by Kirschning-Jansen, loss by Pozar eq. 3.198. Lossless H-J Z0 at this width: 49.05 ohm (Pozar's 50 ohm width is 0.483 mm)",
-          "difference_percent": 5.333579025615381
+          "difference_percent": 6.21734630223701
         }
       ]
     },
@@ -793,51 +795,51 @@
         {
           "project": "pozar-ex3.7-eeff-line-a",
           "grid": [
-            73,
-            70,
-            47
+            93,
+            96,
+            59
           ],
-          "cells": 240170,
-          "dx_mm": 0.05022545572783632,
-          "steps": 7600,
+          "cells": 526752,
+          "dx_mm": 0.0465500274974987,
+          "steps": 8700,
           "stopped_on_energy": true,
-          "energy_decay_db": 70.02454593520488,
-          "solve_s": 110,
-          "f_s11_min_ghz": 11.445384947884769,
-          "s11_min_db": -2.3823171191386496,
-          "f_re_z_peak_ghz": 9.278479900736492,
-          "re_z_peak_ohm": 594.8335021605244,
+          "energy_decay_db": 70.86249651073925,
+          "solve_s": 195,
+          "f_s11_min_ghz": 11.460279769820925,
+          "s11_min_db": -2.431746000965939,
+          "f_re_z_peak_ghz": 9.292111161394839,
+          "re_z_peak_ohm": 600.0530233264761,
           "warnings": []
         },
         {
           "project": "pozar-ex3.7-eeff-line-b",
           "grid": [
-            73,
-            82,
-            47
+            93,
+            108,
+            59
           ],
-          "cells": 281342,
-          "dx_mm": 0.05022545572783632,
-          "steps": 12000,
+          "cells": 592596,
+          "dx_mm": 0.0465500274974987,
+          "steps": 13100,
           "stopped_on_energy": true,
-          "energy_decay_db": 70.74163731382848,
-          "solve_s": 206,
-          "f_s11_min_ghz": 10.628809309952958,
-          "s11_min_db": -4.179349783387733,
-          "f_re_z_peak_ghz": 9.539499650479085,
-          "re_z_peak_ohm": 314.81113178428717,
+          "energy_decay_db": 70.58718833056288,
+          "solve_s": 312,
+          "f_s11_min_ghz": 10.637455354916083,
+          "s11_min_db": -4.276539456749503,
+          "f_re_z_peak_ghz": 9.546866987262812,
+          "re_z_peak_ohm": 316.97539371016245,
           "warnings": []
         }
       ],
       "comparisons": [
         {
-          "quantity": "eps_eff at 9.41 GHz, two-resonator method",
+          "quantity": "eps_eff at 9.42 GHz, two-resonator method",
           "unit": "",
-          "reference": 6.883836896427395,
+          "reference": 6.884188541618785,
           "reference_kind": "closed-form",
-          "noburf": 6.932486548176279,
-          "note": "Resonances 9.278 GHz (n = 1, 5.8 mm) and 9.539 GHz (n = 2, 11.6 mm). Static H-J eps_eff at W/h = 1: 6.642; Pozar's quasi-static value at W = 0.483 mm: 6.665",
-          "difference_percent": 0.7067229000462341
+          "noburf": 6.931984892307673,
+          "note": "Resonances 9.292 GHz (n = 1, 5.8 mm) and 9.547 GHz (n = 2, 11.6 mm). Static H-J eps_eff at W/h = 1: 6.642; Pozar's quasi-static value at W = 0.483 mm: 6.665",
+          "difference_percent": 0.6942917149919976
         }
       ]
     }

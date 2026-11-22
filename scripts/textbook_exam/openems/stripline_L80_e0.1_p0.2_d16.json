@@ -1,0 +1,22 @@
+{
+ "case": "stripline",
+ "length_mm": 80.0,
+ "solid": false,
+ "edge_mm": 0.1,
+ "post_cell_mm": 0.2,
+ "dielectric_cells": 16,
+ "cells": 2487936,
+ "wall_s": 363.6,
+ "probe_spacing_mm": 20.0,
+ "eps_eff_probe_mean": 1.8439,
+ "eps_eff_probe_range": [
+  2.2026,
+  0.4381
+ ],
+ "z0_probe_mean": 50.15,
+ "z0_probe_at_1_4_7_ghz": [
+  49.75,
+  49.82,
+  50.61
+ ]
+}

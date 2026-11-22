@@ -50,7 +50,7 @@ Notes on each case:
   probe-fed patches on thick substrates (εr 2.33). The uniform files are the
   first three rows of their Table I (h 3.175 mm); `graded/` has all eleven,
   nine sizes on 3.175 mm and the 17 × 11 mm patch on 1.524 and 9.525 mm as
-  well. From the paper's section II: the probe is on the centre line 1.5 mm
+  well. From the paper's section II: the probe is on the center line 1.5 mm
   in from the radiating edge, and the ground is 10 × 10 cm. f_r is the
   frequency of maximum input resistance (section III-B), read here as the
   lowest Re(Z_in) maximum in the band; the S11 minimum is reported too, but
@@ -71,7 +71,7 @@ Notes on each case:
 - **Sheen 1990 low-pass filter and branch-line coupler** (`graded/` only,
   two and four lumped ports, port 1 excited). Filter (Fig. 7): a 20.32 ×
   2.54 mm stub with 2.413 mm lines 5.65 mm in from each end, on opposite
-  sides. Coupler (Fig. 11): 9.75 mm centre to centre, 3.96 mm wide through
+  sides. Coupler (Fig. 11): 9.75 mm center to center, 3.96 mm wide through
   arms, 2.413 mm branches and port lines. References: the filter's measured
   S21 at −3 and −10 dB, read off Fig. 10 by pixel; the S11 dips read off
   Fig. 9; the coupler's 6.5 GHz operating point, from the text.
@@ -131,7 +131,7 @@ npx tsx scripts/validate/benchmarks.ts --mesh graded --refine 2 --max-minutes 60
 
 The uniform files mostly read the patches low: zero-thickness copper on a
 cubic grid behaves as if it reached a little past its drawn edge, and the
-edges snap. Balanis' patch moves from 8.99 GHz (uniform 0.397 mm) to 9.40 GHz
+edges snap. Balanis' patch moves from 8.99 GHz (uniform 0.397 mm) to 9.44 GHz
 (graded, 0.1 mm edge cells). The Pozar Example 3.7 lines keep the 0.5 mm
 strip width so the closed-form comparison is unchanged; their εeff gap to
 Hammerstad–Jensen is +1.6 % uniform and +0.7 % on both graded meshes, with

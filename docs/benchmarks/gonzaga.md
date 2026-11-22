@@ -146,8 +146,8 @@ solves it on the CPU reference engine with the same port, CPML, Huygens box
 and near-to-far transform the CLI uses.
 
 - **Arms.** Copper on the cylinder r = R. A cell face between a cell whose
-  centre is inside the cylinder and its outside neighbour is copper when its
-  centre lies on an arm, so the curved sheet is a closed staircase in x and y
+  center is inside the cylinder and its outside neighbour is copper when its
+  center lies on an arm, so the curved sheet is a closed staircase in x and y
   with no gaps. Each arm is a strip 14.6 mm wide (measured across the strip)
   climbing at α while wrapping 170° round the axis, with ends cut along the
   axis. The lower arm is the upper arm turned 180° about the x axis, which keeps the

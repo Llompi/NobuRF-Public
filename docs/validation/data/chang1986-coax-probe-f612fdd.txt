@@ -1,0 +1,47 @@
+# Chang 1986 coax_probe rerun: scripts/validate/chang_probe_pin.ts examples/benchmarks/graded/<file> --coax
+# Build: main f612fdd (includes PR #83: graded copper edge offset on coax_probe meshes), CPU, 2026-11-21 16:04 to 17:17 UTC, four at a time.
+# stdout of each run, unedited:
+
+## chang1986-10.5x7.json
+chang1986-10.5x7-graded: 187x178x76 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 9.6973 GHz
+
+## chang1986-12x8.json
+chang1986-12x8-graded: 179x171x77 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 8.6626 GHz
+
+## chang1986-14x9.json
+chang1986-14x9-graded: 183x173x77 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 7.9420 GHz
+
+## chang1986-17x11-h1.524.json
+chang1986-17x11-h1.524-graded: 179x170x70 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 7.7303 GHz
+
+## chang1986-17x11-h9.525.json
+chang1986-17x11-h9.525-graded: 201x177x102 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 4.1968 GHz
+
+## chang1986-17x11.json
+chang1986-17x11-graded: 183x171x78 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 6.7260 GHz
+
+## chang1986-19.5x13.json
+chang1986-19.5x13-graded: 181x167x77 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 5.9234 GHz
+
+## chang1986-29.5x19.5.json
+chang1986-29.5x19.5-graded: 187x169x77 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 4.2151 GHz
+
+## chang1986-45.5x30.5.json
+chang1986-45.5x30.5-graded: 187x169x77 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 2.8517 GHz
+
+## chang1986-57x38.json
+chang1986-57x38-graded: 187x169x77 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 2.3402 GHz
+
+## chang1986-9x6.json
+chang1986-9x6-graded: 183x178x76 cells, up to 40000 steps
+coax probe: lowest Re(Z_in) peak 11.0785 GHz

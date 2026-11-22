@@ -1,4 +1,5 @@
 {
+ "sheet_rims": "subcell (the default; closed sheets have no rims, so the only change from 'snap' is the lowering of raised areas)",
  "references": {
   "inner": "Harrington 6-4, TM101 ka = 2.743707",
   "shell": "Harrington 6-4, TM11 between PEC spheres (Riccati-Bessel cross product)"
@@ -28,8 +29,8 @@
    "closed_form_ghz": 21.818621854690857,
    "cell_mm": 1.5,
    "method": "sheet",
-   "f0_ghz": 21.61242143652282,
-   "error": -0.0094506618952061
+   "f0_ghz": 21.627834156414785,
+   "error": -0.008744259813781676
   },
   {
    "case": "concentric",
@@ -37,8 +38,8 @@
    "closed_form_ghz": 8.268332298973533,
    "cell_mm": 1.5,
    "method": "sheet",
-   "f0_ghz": 8.250398982049775,
-   "error": -0.0021689158436440656
+   "f0_ghz": 8.254981096254436,
+   "error": -0.0016147394947774668
   },
   {
    "case": "concentric",
@@ -64,8 +65,8 @@
    "closed_form_ghz": 21.818621854690857,
    "cell_mm": 1,
    "method": "sheet",
-   "f0_ghz": 21.72248797035922,
-   "error": -0.004406047502535883
+   "f0_ghz": 21.73379463446294,
+   "error": -0.0038878358492509943
   },
   {
    "case": "concentric",
@@ -73,8 +74,8 @@
    "closed_form_ghz": 8.268332298973533,
    "cell_mm": 1,
    "method": "sheet",
-   "f0_ghz": 8.264083034733519,
-   "error": -0.0005139203513315503
+   "f0_ghz": 8.263255751761816,
+   "error": -0.0006139747446225536
   },
   {
    "case": "concentric",
@@ -100,8 +101,8 @@
    "closed_form_ghz": 21.818621854690857,
    "cell_mm": 0.75,
    "method": "sheet",
-   "f0_ghz": 21.756847391842296,
-   "error": -0.002831272445160414
+   "f0_ghz": 21.76647870804257,
+   "error": -0.00238984602215272
   },
   {
    "case": "concentric",
@@ -109,8 +110,8 @@
    "closed_form_ghz": 8.268332298973533,
    "cell_mm": 0.75,
    "method": "sheet",
-   "f0_ghz": 8.261578785180584,
-   "error": -0.0008167927399081091
+   "f0_ghz": 8.262159565339466,
+   "error": -0.0007465512283333102
   },
   {
    "case": "concentric",
@@ -136,8 +137,8 @@
    "closed_form_ghz": 21.818621854690857,
    "cell_mm": 0.5,
    "method": "sheet",
-   "f0_ghz": 21.78541072538534,
-   "error": -0.001522146060676921
+   "f0_ghz": 21.791631313141096,
+   "error": -0.001237041538623042
   },
   {
    "case": "concentric",
@@ -145,8 +146,8 @@
    "closed_form_ghz": 8.268332298973533,
    "cell_mm": 0.5,
    "method": "sheet",
-   "f0_ghz": 8.262508941373827,
-   "error": -0.0007042965121792089
+   "f0_ghz": 8.264366222369636,
+   "error": -0.0004796706833358719
   }
  ]
 }

@@ -8,6 +8,7 @@ import type { Vec2 } from '../project/resolve';
 import type { Project } from '../project/schema';
 import { dxfLayerOutline, dxfLayerShapes, parseDxf } from '../import/dxf';
 import { boundingBox, translatePolygon, type ImportedShape } from '../import/geometry';
+import { drillVias, parseExcellon } from '../import/excellon';
 import { gerberOutline, parseGerber } from '../import/gerber';
 import { mergeImported } from '../import/project';
 import { resolveProject, type ResolvedProject } from '../project/resolve';
@@ -18,10 +19,12 @@ import { escapeHtml } from '../ui/format';
 import { portlessView } from './portless_view';
 import type { ProjectStore } from './store';
 
-type Kind = 'gerber' | 'dxf' | 'step';
+type Kind = 'gerber' | 'dxf' | 'step' | 'drill';
 const OUTLINE = '@outline';
+const DRILL = '@drill';
 
 function kindOf(name: string): Kind {
+  if (/\.(drl|xln|exc|drd)$/i.test(name)) return 'drill';
   if (/\.dxf$/i.test(name)) return 'dxf';
   if (/\.(step|stp)$/i.test(name)) return 'step';
   return 'gerber';
@@ -96,7 +99,8 @@ export class ImportDialog {
     const copper = (doc.stackup ?? []).filter((l) => l?.type === 'copper').map((l) => l.name).reverse();
     byId<HTMLSelectElement>('import-target').innerHTML =
       copper.map((name) => `<option value="${escapeHtml(name)}">Copper layer ${escapeHtml(name)}</option>`).join('') +
-      `<option value="${OUTLINE}">Board outline</option>`;
+      `<option value="${OUTLINE}">Board outline</option>` +
+      `<option value="${DRILL}">Plated holes (Excellon drill file)</option>`;
     // Each import starts clean: a file or error from the last one must not carry over.
     this.file = null;
     this.reading = false;
@@ -124,7 +128,9 @@ export class ImportDialog {
     }
     if (superseded()) return;
     this.reading = false;
-    this.file = file ? { name: file.name, text, kind: kindOf(file.name) } : null;
+    // A .txt may be an NC drill file (Altium, EAGLE) or a Gerber: an Excellon file starts with its M48 header.
+    const detected: Kind = file && /\.txt$/i.test(file.name) && /^\s*(;[^\n]*\n\s*)*M48\b/.test(text) ? 'drill' : file ? kindOf(file.name) : 'gerber';
+    this.file = file ? { name: file.name, text, kind: detected } : null;
     const kind = this.file?.kind;
     byId('import-dxf-row').hidden = kind !== 'dxf';
     byId('import-step-row').hidden = kind !== 'step';
@@ -150,6 +156,51 @@ export class ImportDialog {
     }
   }
 
+  /**
+   * Plated holes as vias through the whole stackup, added to the project's vias: a board may come as several
+   * drill files (Altium writes round holes and slots apart). Undo takes an import back.
+   */
+  private applyDrill(name: string, text: string, origin: string): void {
+    try {
+      if (origin !== 'keep') return this.showError('Import plated holes with Position set to keep the file\'s coordinates, so they land on the copper imported the same way.');
+      const doc = this.store.document as Project;
+      const copper = (doc.stackup ?? []).filter((l) => l?.type === 'copper').map((l) => l.name);
+      if (copper.length < 2) return this.showError('Plated holes need at least two copper layers to join.');
+      // Number on from the highest drill-<n> name in use anywhere, so no id clashes with an earlier import or a part.
+      const names = [...doc.ports, ...(doc.components ?? []), ...(doc.vias ?? [])].map((p) => /^drill-(\d+)$/.exec(p.id)).filter((m) => m !== null);
+      const firstNumber = Math.max(0, ...names.map((m) => Number(m[1]))) + 1;
+      const made = drillVias(parseExcellon(text, name), [copper[0], copper.at(-1)!], copper.length, name, firstNumber);
+      // A hole already in the project (the same file imported again) is not added twice: two barrels on one
+      // place would share grid edges and stop the solve.
+      const place = (v: { x: string; y: string; drill: string; to?: [string, string] }) => JSON.stringify([v.x, v.y, v.drill, v.to ?? null]);
+      const present = new Set((doc.vias ?? []).map(place));
+      const vias = made.vias.filter((v) => !present.has(place(v))).map((v, n) => ({ ...v, id: `drill-${firstNumber + n}` }));
+      const repeated = made.vias.length - vias.length;
+      if (vias.length === 0) return this.showError(`Every plated hole in ${name} is already in the project.`);
+      const skipped = made.skipped;
+      const earlier = (doc.vias ?? []).filter((v) => /^drill-\d+$/.test(v.id)).length;
+      const project = { ...doc, vias: [...(doc.vias ?? []), ...vias] };
+      // The same checks as a copper import: only a missing port (a new board) may pass, and with ports the resolver
+      // must accept the vias too (it refuses them alongside SMA and coax-probe ports, for one).
+      try {
+        const parsed = parseProject(project);
+        resolveProject(parsed);
+      } catch (error) {
+        if (!(project.ports.length === 0 && /^\$\.ports: needs at least one port/.test((error as Error).message))) throw error;
+      }
+      this.store.update(() => project);
+      byId<HTMLDialogElement>('import-dialog').close();
+      const slots = vias.filter((v) => v.to).length;
+      this.report('info', `Imported ${plural(vias.length, 'plated hole', 'plated holes')} from ${name} as vias from ${copper[0]} to ${copper.at(-1)}` +
+        `${slots ? `, ${plural(slots, 'slot', 'slots')} as a via at each end` : ''}` +
+        `${skipped ? `; left out ${plural(skipped, 'non-plated hole', 'non-plated holes')}` : ''}` +
+        `${repeated ? `; ${plural(repeated, 'hole was', 'holes were')} already in the project` : ''}` +
+        `${earlier ? `. They are added to the ${plural(earlier, 'plated hole', 'plated holes')} imported before; Undo takes this import back` : ''}.`);
+    } catch (error) {
+      this.showError((error as Error).message);
+    }
+  }
+
   private showError(text: string): void {
     const el = byId('import-error');
     el.textContent = text;
@@ -161,6 +212,12 @@ export class ImportDialog {
     if (!file) return this.showError(this.reading ? 'Still reading the file. Try again in a moment.' : 'Choose a file first.');
     const target = byId<HTMLSelectElement>('import-target').value;
     const origin = byId<HTMLSelectElement>('import-origin').value;
+    if ((file.kind === 'drill') !== (target === DRILL)) {
+      return this.showError(file.kind === 'drill'
+        ? `${file.name} is a drill file: choose "Plated holes" as what it imports into.`
+        : 'Plated holes come from an Excellon drill file (.drl), not a copper or outline file.');
+    }
+    if (file.kind === 'drill') return this.applyDrill(file.name, file.text, origin);
     try {
       const asOutline = target === OUTLINE;
       let shapes: ImportedShape[] = [];

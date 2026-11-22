@@ -1,0 +1,78 @@
+{
+ "cell_mm": 1,
+ "slide_reference_ghz": 8.42946636815427,
+ "slide": [
+  {
+   "shift_mm": 0,
+   "snap_ghz": 8.728136008037568,
+   "subcell_ghz": 8.413304922723249
+  },
+  {
+   "shift_mm": 0.1,
+   "snap_ghz": 8.728136009971532,
+   "subcell_ghz": 8.410785093954939
+  },
+  {
+   "shift_mm": 0.2,
+   "snap_ghz": 8.728136009971532,
+   "subcell_ghz": 8.404156062792177
+  },
+  {
+   "shift_mm": 0.3,
+   "snap_ghz": 9.153663333046609,
+   "subcell_ghz": 8.382141078038595
+  },
+  {
+   "shift_mm": 0.4,
+   "snap_ghz": 9.153663333046609,
+   "subcell_ghz": 8.236571343840424
+  },
+  {
+   "shift_mm": 0.5,
+   "snap_ghz": 9.153663333046609,
+   "subcell_ghz": 8.237959605223105
+  },
+  {
+   "shift_mm": 0.6,
+   "snap_ghz": 9.153663333046609,
+   "subcell_ghz": 8.235996868924031
+  },
+  {
+   "shift_mm": 0.7,
+   "snap_ghz": 9.153663333046609,
+   "subcell_ghz": 8.37661424252622
+  },
+  {
+   "shift_mm": 0.8,
+   "snap_ghz": 8.720993464978026,
+   "subcell_ghz": 8.398523324304346
+  },
+  {
+   "shift_mm": 0.9,
+   "snap_ghz": 8.720993464978026,
+   "subcell_ghz": 8.404472338398717
+  }
+ ],
+ "turn": [
+  {
+   "turn": "along x",
+   "snap_ghz": 8.900176552610272,
+   "subcell_ghz": 8.431190199183305
+  },
+  {
+   "turn": "along y, normal x",
+   "snap_ghz": 8.963936896319415,
+   "subcell_ghz": 8.466709966329955
+  },
+  {
+   "turn": "turned 30 deg about z",
+   "snap_ghz": 8.553993045432437,
+   "subcell_ghz": 8.380168153854852
+  },
+  {
+   "turn": "along (1, 0.6, 0.8)",
+   "snap_ghz": 8.406959805392574,
+   "subcell_ghz": 8.271621832312087
+  }
+ ]
+}

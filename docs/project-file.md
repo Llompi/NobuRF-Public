@@ -156,7 +156,7 @@ PTFE, with the wave launched and read on the coax line itself:
 ```
 
 - `sma_edge` is an edge-launch SMA on the board edge `edge` (`x_min`,
-  `x_max`, `y_min` or `y_max`), centred on `x` along a y edge or on `y` along
+  `x_max`, `y_min` or `y_max`), centered on `x` along a y edge or on `y` along
   an x edge. Its pin rests 1.5 mm onto the trace on the first layer of
   `between` (the top copper layer), and its body bonds to the second, the
   ground. The trace must reach the board edge there. Boards up to 2.54 mm
@@ -230,7 +230,7 @@ the parts come to circuit theory.
 ## Vias
 
 A via is a plated hole from one copper layer to another. It has an `id`
-(unique across ports, components and vias), a centre, a `drill` diameter and
+(unique across ports, components and vias), a center, a `drill` diameter and
 the two layers it joins:
 
 ```json
@@ -261,9 +261,9 @@ ground.)
 
 On the grid, every mesh node inside the drill is a column of metal edges
 between the two layers, joined to its neighbours. A graded mesh puts lines
-on the via's centre, on its rim when the drill is at least one
+on the via's center, on its rim when the drill is at least one
 `edge_cell` wide (so the barrel's width is exact along x and y), and on its
-antipad's rim; a fence's vias get centre lines only. A drill
+antipad's rim; a fence's vias get center lines only. A drill
 that holds only one mesh node is that one column, whose width follows the
 cells around it, not the drill (on a graded 0.2 mm mesh it read like a post
 0.6 of a cell wide). The solve warns whenever a via is one column; a smaller
@@ -412,8 +412,14 @@ edge, where the layer's z cells are under 0.25 or over 2 times the cell
 beside the edge, where another edge, a port, a component or a
 refinement lies outside the copper within 1.5 edge cells (a narrow gap or a
 port beside the edge) or inside it within half an edge cell of the moved
-line, where another edge at the same place cannot move, and with
-`mesh.conformal`. Uniform meshes are
+line, where another edge at the same place cannot move, where the settled
+cell outside the moved line is outside 0.5 to 1.2 edge cells or no more than
+twice the line's depth inside the drawn edge (the copper would then reach a
+cell past the drawn edge), where the cell inside it is under half an edge
+cell, and with `mesh.conformal`. A step in width (an edge on another line with
+its copper on the same side, whose span lies wholly beside this edge's span)
+only bounds the cell the offset is solved for, so its line needs only 0.5
+edge cell outside the moved line instead of the 1.5-cell clearance. Uniform meshes are
 unchanged. Cells are `edge_cell` at copper edges and copper layers, at most a
 dielectric's thickness over `dielectric_cells` inside it, and grow by at most
 `max_growth` per cell up to `cell`. Every edge that keeps its drawn line is
@@ -632,7 +638,7 @@ coordinates, so a board can sit at (150 mm, -80 mm); `--origin` moves the
 files so that one point becomes (0, 0): `--origin "150 mm, -80 mm"` names
 the point (lengths with units), `--origin outline-min` uses the lower-left
 corner of the imported outline's bounding box and `--origin outline-center`
-its centre. Copper and outline move together; the template does not, so type
+its center. Copper and outline move together; the template does not, so type
 the port in the moved coordinates. The command prints which file point became
 (0, 0). Coordinates are written as `"<mm> mm"` strings
 rounded to 1 nm; shapes are named `<layer>-1`, `<layer>-2`, ... Every

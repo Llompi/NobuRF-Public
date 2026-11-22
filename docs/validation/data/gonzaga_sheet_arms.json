@@ -1,5 +1,5 @@
 {
- "note": "Gonzaga open helix (docs/benchmarks/gonzaga.md geometry), PEC copper, Courant 1/3, arms staircased vs thin conformal sheets (scripts/validate/gonzaga_helix.ts --copper 0 --courant 0.3333333333333333 --sheet 0|1 --cell 1.0|0.7)",
+ "note": "Gonzaga open helix (docs/benchmarks/gonzaga.md geometry), PEC copper, Courant 1/3, arms staircased vs thin conformal sheets (scripts/validate/gonzaga_helix.ts --copper 0 --courant 0.3333333333333333 --sheet 0|1 --cell 1.0|0.7); sheet rows marked rims \"snap\" ran before sub-cell rims (conformal_sheets.ts rims option), the \"subcell\" row with the default",
  "rows": [
   {
    "arms": "staircase",
@@ -51,7 +51,8 @@
     "0.915": 3.5422,
     "0.93": 3.293,
     "0.95": 2.9648
-   }
+   },
+   "rims": "snap"
   },
   {
    "arms": "staircase",
@@ -103,6 +104,34 @@
     "0.915": 3.4799,
     "0.93": 3.2413,
     "0.95": 2.9197
+   },
+   "rims": "snap"
+  },
+  {
+   "arms": "sheet",
+   "rims": "subcell",
+   "cell_mm": 1.0,
+   "cells": 1585584,
+   "steps": 19200,
+   "solve_s": 1663,
+   "f0_ghz": 0.939,
+   "s11_min_db": -22.114,
+   "band_10db_ghz": [
+    0.911,
+    0.968
+   ],
+   "at_915_mhz": {
+    "rhcp_azimuth_gain_dbi": 1.43,
+    "ripple_db": 0.7399,
+    "axial_ratio_db": 3.3131,
+    "efficiency": 0.9647
+   },
+   "axial_ratio_db_by_ghz": {
+    "0.88": 3.8776,
+    "0.9": 3.5509,
+    "0.915": 3.3131,
+    "0.93": 3.0776,
+    "0.95": 2.7603
    }
   }
  ]

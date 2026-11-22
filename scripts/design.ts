@@ -46,7 +46,7 @@ const USAGE = `usage: design new --target <GHz> --board <W>x<L> [--s11 dB] [--ba
        design sensitivity <design or project file> [--variables a,b] [--rank f0_mhz|s11_target_db|zin_target_ohm|s11_min_db]
                          [--fidelity search|confirm] [--step-pct 2] [--check-step] [--target GHz] [--gpu | --cpu] [--workers N] [--out report.json]`;
 
-/** Lifetime cap per provider for this tool, under the owner's $5 credit with room for the other tools that use the same key. */
+/** Lifetime cap per provider for this tool, under the $5 credit with room for the other tools that use the same key. */
 const DEFAULT_PROVIDER_CAP_USD = MAX_PROVIDER_CAP_USD;
 /**
  * The largest reply a call may ask for, by reasoning effort; the spend guard reserves it in full before each call.

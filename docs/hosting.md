@@ -22,7 +22,11 @@ npm run build:site   # writes dist-site/
 | Node version | from `.node-version` (22) |
 | Custom domain | `noburf.llom.party` |
 
-`site/_headers` sets the Markdown content type and long caching for the hashed app files.
+`site/_headers` sets security headers on every response (HSTS, no framing, a minimal CSP that blocks
+`<object>`, foreign `<base>` and off-site form posts, and a Permissions-Policy that turns off the
+camera, microphone, location, payment and USB APIs), the Markdown content type, and long caching
+for the hashed app files. A full script CSP is left out on purpose: the landing page uses inline
+scripts. Preview branch deployments are off in the Pages project, so only `main` is published.
 
 ## Why traffic does not bill
 

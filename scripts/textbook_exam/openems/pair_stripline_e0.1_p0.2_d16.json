@@ -1,0 +1,8 @@
+{
+ "pair": "stripline",
+ "lengths_mm": [
+  20,
+  32
+ ],
+ "eps_eff_two_line_mean": 2.1951
+}

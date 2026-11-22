@@ -31,6 +31,7 @@ import type { AccuracyMode } from '../verify/accuracy';
 import { portsOffCopper } from './port_check';
 import { SolveProgressMeter } from './progress';
 import { portlessView } from './portless_view';
+import { describeRemoved, sectionProject } from '../import/section';
 import { ProjectStore } from './store';
 import { ProjectTree } from './tree';
 
@@ -73,7 +74,9 @@ const sensitivityView = new SensitivityView({
 });
 new ImportDialog(store, message);
 const materialDialog = new MaterialDialog(store, (name) => tree.select(selectionKey({ kind: 'material', name })));
-new NewProjectDialog((project) => openText(JSON.stringify(project), `${project.name}.json`));
+new NewProjectDialog((project, note) => {
+  if (openText(JSON.stringify(project), `${project.name}.json`) && note) message('info', note);
+});
 (window as unknown as { __workbench: unknown }).__workbench = { store, modelView };
 
 /* -------------------------------------------------------------- messages */
@@ -703,21 +706,25 @@ function mayReplaceProject(replacement: string): boolean {
   return !store.dirty || confirm(`Open ${replacement}? Your unsaved changes to ${store.fileName} will be lost.`);
 }
 
-function openText(text: string, fileName: string): void {
+/** Opens a project from its text; false when it was not opened (bad file, or the user kept unsaved changes). */
+function openText(text: string, fileName: string): boolean {
   let doc: unknown;
   try {
     doc = JSON.parse(text);
   } catch (error) {
     message('error', `${fileName} is not a project file: it is not valid JSON (${(error as Error).message}).`);
-    return;
+    return false;
   }
   if (typeof doc !== 'object' || doc === null || Array.isArray(doc)) {
     message('error', `${fileName} is not a project file: it holds JSON, but not a project object.`);
-    return;
+    return false;
   }
   // A dropped file can arrive while the video is encoding; the buttons that open files are held then.
-  if (recording) return message('info', `${fileName} was not opened: the field video is still encoding.`);
-  if (!mayReplaceProject(fileName)) return;
+  if (recording) {
+    message('info', `${fileName} was not opened: the field video is still encoding.`);
+    return false;
+  }
+  if (!mayReplaceProject(fileName)) return false;
   solving?.cancel(); // Its results would land on the new project.
   result = null;
   updateResultTabs();
@@ -735,6 +742,7 @@ function openText(text: string, fileName: string): void {
       ? `Opened ${fileName}. It has a problem to fix before solving: ${problem.path}: ${problem.message}`
       : `Opened ${fileName}.`);
   }
+  return true;
 }
 
 function wireFiles(): void {
@@ -800,6 +808,7 @@ const DRAW_HINTS: Record<DrawToolKind, string> = {
   rectangle: 'Drag on the board to draw a rectangle. Edges line up with nearby copper and the board edge; hold Shift to turn that off. Esc to stop.',
   polygon: 'Click each corner; corners line up with nearby copper and the board edge (hold Shift to turn that off). Double-click, Enter or a click on the first corner finishes; Backspace removes a corner, Esc stops.',
   port: 'Click on copper where the port goes. It runs down to the next copper layer, or up from the bottom one. Esc to stop.',
+  section: 'Drag a rectangle around the area to keep. Copper and the board outline are cut to it on every layer; ports, parts and vias outside it are removed. Undo brings the whole board back.',
 };
 
 function setDrawTool(kind: DrawToolKind): void {
@@ -844,6 +853,17 @@ function onDrawn(drawn: Drawn): boolean {
       store.update(() => next);
       tree.select(selectionKey({ kind: 'port', index }));
       setDrawTool('select');
+    } else if (drawn.kind === 'section') {
+      const [[x0, y0], , [x1, y1]] = drawn.points;
+      const { doc: next, summary } = sectionProject(doc, { x0, y0, x1, y1 });
+      store.update(() => next);
+      setDrawTool('select');
+      const size = `${withMinus((x1 - x0).toFixed(1))} × ${withMinus((y1 - y0).toFixed(1))} mm`;
+      const split = summary.shapesSplit ? ` (${summary.shapesSplit} of them into separate pieces)` : '';
+      const removed = summary.removed.length ? ` Removed ${describeRemoved(summary.removed)}.` : '';
+      const fences = summary.fencesTrimmed.length ? ` Cut via fence${summary.fencesTrimmed.length === 1 ? '' : 's'} ${summary.fencesTrimmed.join(', ')} to the vias inside.` : '';
+      message('info', `Sectioned to ${size}: kept ${summary.shapesKept} shapes whole, cut ${summary.shapesClipped} at the edge${split}, dropped ${summary.shapesRemoved} outside.${removed}${fences} Undo brings the whole board back.`);
+      for (const note of summary.notes) message('warning', note);
     } else {
       const { doc: next, index } = actions.addDrawnShape(doc, drawn.layer, drawn.points);
       store.update(() => next);
@@ -851,7 +871,7 @@ function onDrawn(drawn: Drawn): boolean {
       tree.select(selectionKey({ kind: 'shape', layer: drawn.layer, index }));
     }
   } catch (error) {
-    message('error', `Could not add it: ${(error as Error).message}`);
+    message('error', `${drawn.kind === 'section' ? 'Could not section the board' : 'Could not add it'}: ${(error as Error).message}`);
     return false;
   }
   return true;
@@ -873,7 +893,7 @@ function wireDrawing(): void {
       if (!modelView.draw.active) setDrawTool('select');
       return;
     }
-    const tool = ({ r: 'rectangle', p: 'polygon', t: 'port' } as Record<string, DrawToolKind>)[e.key.toLowerCase()];
+    const tool = ({ r: 'rectangle', p: 'polygon', t: 'port', x: 'section' } as Record<string, DrawToolKind>)[e.key.toLowerCase()];
     if (tool) {
       e.preventDefault();
       // Pressing the key of the tool in use keeps the shape in progress.

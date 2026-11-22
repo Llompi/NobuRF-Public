@@ -119,10 +119,35 @@ export function locateInPolygon(polygon: Vec2[], x: number, y: number): Where {
   for (let n = 0, prev = polygon.length - 1; n < polygon.length; prev = n++) {
     const a = polygon[prev];
     const b = polygon[n];
-    if (distanceToSegment(x, y, a, b) <= EDGE_TOLERANCE_MM) return 'edge';
+    // Only a point inside the edge's box (grown by the tolerance) can be on the edge.
+    const nearEdge = x >= Math.min(a[0], b[0]) - EDGE_TOLERANCE_MM && x <= Math.max(a[0], b[0]) + EDGE_TOLERANCE_MM &&
+      y >= Math.min(a[1], b[1]) - EDGE_TOLERANCE_MM && y <= Math.max(a[1], b[1]) + EDGE_TOLERANCE_MM;
+    if (nearEdge && distanceToSegment(x, y, a, b) <= EDGE_TOLERANCE_MM) return 'edge';
     if (a[1] > y !== b[1] > y && x < a[0] + ((y - a[1]) * (b[0] - a[0])) / (b[1] - a[1])) inside = !inside;
   }
   return inside ? 'inside' : 'outside';
+}
+
+const boxes = new WeakMap<Vec2[], [number, number, number, number]>();
+
+/** The polygon's bounding box grown by EDGE_TOLERANCE_MM, [minX, minY, maxX, maxY], computed once per polygon. */
+function boxOf(polygon: Vec2[]): [number, number, number, number] {
+  let box = boxes.get(polygon);
+  if (!box) {
+    box = [Infinity, Infinity, -Infinity, -Infinity];
+    for (const [x, y] of polygon) {
+      box[0] = Math.min(box[0], x);
+      box[1] = Math.min(box[1], y);
+      box[2] = Math.max(box[2], x);
+      box[3] = Math.max(box[3], y);
+    }
+    box[0] -= EDGE_TOLERANCE_MM;
+    box[1] -= EDGE_TOLERANCE_MM;
+    box[2] += EDGE_TOLERANCE_MM;
+    box[3] += EDGE_TOLERANCE_MM;
+    boxes.set(polygon, box);
+  }
+  return box;
 }
 
 /**
@@ -137,7 +162,10 @@ export function paint(shapes: ResolvedShape[], x: number, y: number): boolean {
   let copper = false;
   let onAddRim = false;
   for (const s of shapes) {
-    const where = locateInPolygon(s.polygon, x, y);
+    // A point beyond the polygon's box (and the edge tolerance) is outside it: an imported board has thousands
+    // of pads and tracks, and testing every edge of each at every mesh node took minutes.
+    const box = boxOf(s.polygon);
+    const where = x < box[0] || x > box[2] || y < box[1] || y > box[3] ? 'outside' : locateInPolygon(s.polygon, x, y);
     if (s.op === 'add') {
       if (where !== 'outside') copper = true;
       if (where === 'edge') onAddRim = true;
@@ -216,6 +244,20 @@ const MOVED_EDGE_CLEARANCE_CELLS = 1.5;
  */
 const OUTSIDE_CELL_RANGE: [min: number, max: number] = [0.5, 1.2];
 /**
+ * The smallest cell, in edge cells, allowed just inside a corrected edge's line: a cell over half
+ * of edge_cell there moves the offset by under 0.01 cell (yee_edge.ts), so only a narrower sliver
+ * of copper behind the line blocks the correction.
+ */
+const INSIDE_CELL_MIN = 0.5;
+/**
+ * Copper is marked by the drawn polygon at each edge's midpoint, so a
+ * corrected line whose outside cell is no more than twice its depth inside the drawn edge has that
+ * cell's edges marked copper: the copper then ends a whole cell past the line it was moved to. Such
+ * an edge keeps its drawn line. With z cells of one edge cell the depth is about 0.35 edge cell, so
+ * outside cells under about 0.7 edge cell reach it; taller z cells put the line deeper.
+ */
+const OUTSIDE_CELL_MIN_DEPTHS = 2;
+/**
  * Cells stay at most edge_cell (uniform) around a corrected copper edge line,
  * along the board and in z at its copper layer, for the layer's distance to
  * the nearest other copper layer (the region where the field is the edge's
@@ -288,7 +330,11 @@ interface CopperEdge { at: number; from: number; to: number; inward: -1 | 1 | nu
  *    not on the edge lies outside the copper within MOVED_EDGE_CLEARANCE_CELLS
  *    edge cells of its position along the axis (a gap, a nearby trace or a
  *    port beside it would put a line inside the cell the offset assumes), or
- *    inside the copper within half an edge cell of the moved line (a sliver);
+ *    inside the copper within half an edge cell of the moved line (a sliver).
+ *    An edge on a span wholly beside those of every edge on this line, with its
+ *    copper on the same side (a step in width), faces nothing across the cell:
+ *    its line, moved if it is corrected too, only has to stay
+ *    OUTSIDE_CELL_RANGE[0] edge cells outside the moved line;
  *  - another edge at the same position is not corrected, faces the other way,
  *    or is on a layer with different z cells;
  *  - the copper is conformal, which places edges by coverage.
@@ -343,6 +389,18 @@ function copperEdgeLines(
   }
   const clearance = MOVED_EDGE_CLEARANCE_CELLS * edgeCellMm;
   const onEdge = (port: Vec2, e: CopperEdge) => same(port[axis], e.at) && port[1 - axis] >= e.from - EDGE_TOLERANCE_MM && port[1 - axis] <= e.to + EDGE_TOLERANCE_MM;
+  /**
+   * Where the line for the edges at drawn coordinate v goes if they are corrected (every edge there
+   * correctable, on one side, with one shift, and not kept drawn), else v. Crowding is judged against
+   * these, not the drawn coordinates: a neighbouring edge that is itself corrected has no line at its
+   * drawn place. This makes the check the same whichever edge comes first.
+   */
+  const tentativeLine = (v: number): number => {
+    const here = edges.filter((f) => same(f.at, v));
+    const [f] = here;
+    if (!f || keepDrawn.some((c) => same(c, v)) || here.some((h) => h.inward === null || h.inward !== f.inward || h.shiftMm !== f.shiftMm)) return v;
+    return v + f.inward! * f.shiftMm;
+  };
   const lines: number[] = [];
   const followers = new Map<number, number>();
   const corrected = new Set<number>();
@@ -355,17 +413,30 @@ function copperEdgeLines(
       uncorrected.push({ at: e.at, why: `the grading cannot keep the cell outside it within ${OUTSIDE_CELL_RANGE.join(' to ')} edge cells` });
       continue;
     }
+    const atSamePlace = edges.filter((f) => same(f.at, e.at));
+    // Lines of copper edges that lie wholly beside the spans of every edge on this line, with their
+    // copper on the same side (a step in width, a section ending): no copper faces this line across
+    // them, so they only bound the cell its offset is solved for. Everything else (a gap to facing
+    // copper, copper facing it diagonally, the outline, a port, a refinement) is a feature the
+    // half-plane offset does not model, and needs the clearance.
+    const beside = (v: number) => {
+      const there = edges.filter((f) => same(f.at, v));
+      return there.length > 0 && there.every((f) => f.inward === e.inward
+        && atSamePlace.every((h) => f.to <= h.from + EDGE_TOLERANCE_MM || f.from >= h.to - EDGE_TOLERANCE_MM));
+    };
+    const steps = plainLines.filter((v) => !same(v, e.at) && beside(v)).map(tentativeLine);
     const others = [
-      ...obstacles, ...plainLines.filter((v) => !same(v, e.at)),
+      ...obstacles, ...plainLines.filter((v) => !same(v, e.at) && !beside(v)),
       ...ports.filter((port) => !edges.some((f) => same(f.at, e.at) && onEdge(port, f))).map((port) => port[axis]),
     ];
-    const atSamePlace = edges.filter((f) => same(f.at, e.at));
     const copperLine = e.at + e.inward * e.shiftMm;
     // Outside the copper the offset needs a clear cell of about edge_cell; inside, a cell over half
     // of edge_cell moves it by under 0.01 cell (yee_edge.ts), so only a sliver blocks it there.
-    const crowds = (v: number) => ((v - e.at) * e.inward! > EDGE_TOLERANCE_MM
-      ? Math.abs(v - copperLine) < edgeCellMm / 2
-      : Math.abs(v - e.at) < clearance);
+    const inside = (v: number) => (v - e.at) * e.inward! > EDGE_TOLERANCE_MM;
+    const crowds = (v: number) => (inside(v) ? Math.abs(v - copperLine) < INSIDE_CELL_MIN * edgeCellMm : Math.abs(v - e.at) < clearance);
+    // A step's line outside only has to leave the cell the offset is solved for at least
+    // OUTSIDE_CELL_RANGE[0] edge cells (checked again on the graded mesh).
+    const stepCrowds = (v: number) => Math.abs(v - copperLine) < (inside(v) ? INSIDE_CELL_MIN : OUTSIDE_CELL_RANGE[0]) * edgeCellMm;
     // Edges at one place with copper on the other side, or on layers with different z cells, would want different lines.
     const conflict = atSamePlace.find((f) => f.inward !== e.inward || f.shiftMm !== e.shiftMm);
     if (conflict) {
@@ -377,6 +448,11 @@ function copperEdgeLines(
     const crowding = others.find(crowds);
     if (crowding !== undefined) {
       uncorrected.push({ at: e.at, why: `another line (${roundMicron(crowding)} mm) is within ${MOVED_EDGE_CLEARANCE_CELLS} edge cells outside it or half an edge cell inside` });
+      continue;
+    }
+    const step = steps.find(stepCrowds);
+    if (step !== undefined) {
+      uncorrected.push({ at: e.at, why: `the line of a step in width beside it (${roundMicron(step)} mm) is within ${OUTSIDE_CELL_RANGE[0]} edge cell outside it or half an edge cell inside` });
       continue;
     }
     corrected.add(e.at);
@@ -492,12 +568,17 @@ function gradedBoardAxis(
   // Each pass either drops a correction or updates the cells the offsets are solved for. The cells
   // usually settle in two or three passes, but moving a line can add or drop a whole cell in a
   // neighbouring interval, which flips the cell between two values (0.250 / 0.223 mm at a 2 mm
-  // strip); the last step below settles those.
+  // strip); the last step below settles those. Two corrected lines about an edge cell apart can
+  // instead flip their gap between one and two whole cells every pass, with no fixed point, and the
+  // passes end on whichever phase the count lands on; with two cells, neither line can be settled.
+  // The passes seen with the final set of corrections are kept, so that another phase can be used.
+  const seen: Array<{ pass: typeof pass; drawn: number }> = [{ pass, drawn: keepDrawn.length }];
   for (let n = 0; n < LOCAL_CELL_PASSES; n++) {
     if (pass.unserved.length > 0) keepDrawn.push(...pass.unserved);
     else if ([...pass.outsideCells].every(([at, cell]) => Math.abs(cell - (localCell.get(at) ?? g.edgeCellMm)) <= EDGE_LINE_SETTLE_CELLS * g.edgeCellMm)) break;
     else localCell = pass.outsideCells;
     pass = layout(keepDrawn, localCell);
+    seen.push({ pass, drawn: keepDrawn.length });
   }
   // Each of these passes drops at least one correction, so this ends.
   while (pass.unserved.length > 0) {
@@ -506,28 +587,77 @@ function gradedBoardAxis(
   }
   // Settle each corrected line on the cell actually outside it, moving only that line. The offset
   // is about a third of the cell and the cell changes by what the line moves, so each step shrinks
-  // the change about threefold, to EDGE_LINE_SETTLE_CELLS in a few steps.
-  const lines = pass.lines;
-  const followers = new Map(pass.followers);
-  const unsettled: number[] = [];
-  for (const { at, line, inward, layer } of pass.corrections) {
-    const k = lines.findIndex((v) => Math.abs(v - line) <= EDGE_TOLERANCE_MM);
-    for (let step = 0; ; step++) {
-      if (step === 60) throw new Error(`mesh: the line for the copper edge at ${name} = ${roundMicron(at)} mm does not settle on its cell`);
-      const shift = shiftFor(new Map([[at, Math.abs(lines[k - inward] - lines[k])]]))(layer, at);
-      if (shift === undefined) { unsettled.push(at); break; }
-      const moved = at + inward * shift;
-      const done = Math.abs(moved - lines[k]) <= EDGE_LINE_SETTLE_CELLS * g.edgeCellMm;
-      lines[k] = moved;
-      if (done) break;
+  // the change about threefold, to EDGE_LINE_SETTLE_CELLS in a few steps. A corrected line can
+  // bound the cell outside another (a step in width), so the lines are swept until none moves.
+  const settle = (p: typeof pass) => {
+    const lines = p.lines.slice();
+    const at = p.corrections.map(({ line }) => lines.findIndex((v) => Math.abs(v - line) <= EDGE_TOLERANCE_MM));
+    const unsettled = new Set<number>();
+    for (let sweep = 0; ; sweep++) {
+      if (sweep === 60) throw new Error(`mesh: the corrected copper edge lines along ${name} do not settle together`);
+      let moved = false;
+      p.corrections.forEach((c, n) => {
+        const k = at[n];
+        if (unsettled.has(c.at)) return;
+        for (let step = 0; ; step++) {
+          if (step === 60) throw new Error(`mesh: the line for the copper edge at ${name} = ${roundMicron(c.at)} mm does not settle on its cell`);
+          const shift = shiftFor(new Map([[c.at, Math.abs(lines[k - c.inward] - lines[k])]]))(c.layer, c.at);
+          if (shift === undefined) { unsettled.add(c.at); return; }
+          const target = c.at + c.inward * shift;
+          const done = Math.abs(target - lines[k]) <= EDGE_LINE_SETTLE_CELLS * g.edgeCellMm;
+          if (step === 0 && !done) moved = true;
+          lines[k] = target;
+          if (done) return;
+        }
+      });
+      if (!moved) break;
     }
-    for (const [port, followed] of followers) if (Math.abs(followed - line) <= EDGE_TOLERANCE_MM) followers.set(port, lines[k]);
+    const followers = new Map(p.followers);
+    p.corrections.forEach(({ line }, n) => {
+      for (const [port, followed] of followers) if (Math.abs(followed - line) <= EDGE_TOLERANCE_MM) followers.set(port, lines[at[n]]);
+    });
+    // Settling moves lines (and a step's neighbour may not have been corrected as the crowding
+    // check assumed), so the cells either side of each line are checked again. A line that fails
+    // keeps its drawn edge: it is neither drawn nor at the offset for its cell otherwise.
+    const rejected = new Map<number, string>();
+    p.corrections.forEach((c, n) => {
+      const outside = Math.abs(lines[at[n] - c.inward] - lines[at[n]]) / g.edgeCellMm;
+      const inside = Math.abs(lines[at[n] + c.inward] - lines[at[n]]) / g.edgeCellMm;
+      const depth = Math.abs(c.at - lines[at[n]]) / g.edgeCellMm;
+      if (unsettled.has(c.at)) rejected.set(c.at, `the z cells are outside ${EDGE_OFFSET_CELL_RATIO.join(' to ')} of the cell beside its line`);
+      else if (outside < OUTSIDE_CELL_RANGE[0] || outside > OUTSIDE_CELL_RANGE[1]) rejected.set(c.at, `the grading cannot keep the cell outside it within ${OUTSIDE_CELL_RANGE.join(' to ')} edge cells`);
+      else if (outside <= OUTSIDE_CELL_MIN_DEPTHS * depth) rejected.set(c.at, `the cell outside its line is under ${OUTSIDE_CELL_MIN_DEPTHS} times its depth, so its copper would reach a cell past the drawn edge`);
+      else if (inside < INSIDE_CELL_MIN) rejected.set(c.at, `the cell inside its line would be under ${INSIDE_CELL_MIN} edge cell`);
+    });
+    return { lines, followers, rejected };
+  };
+  let settled = settle(pass);
+  // The last pass leaves a line it cannot settle or keep in range: try the other phases with the
+  // same corrections, nearest edge_cell beside their lines first, and take the first that holds.
+  if (settled.rejected.size > 0) {
+    const spread = (p: typeof pass) => Math.max(0, ...[...p.outsideCells.values()].map((cell) => Math.abs(Math.log(cell / g.edgeCellMm))));
+    const others = seen.filter((c) => c.drawn === keepDrawn.length && c.pass !== pass && c.pass.unserved.length === 0).map((c) => c.pass).sort((a, b) => spread(a) - spread(b));
+    for (const other of others) {
+      const attempt = settle(other);
+      if (attempt.rejected.size === 0) { [pass, settled] = [other, attempt]; break; }
+    }
   }
+  // Each round drops at least one correction, so this ends.
+  const keptWhy = new Map<number, string>();
+  while (settled.rejected.size > 0) {
+    for (const [at, why] of settled.rejected) { keepDrawn.push(at); keptWhy.set(at, why); }
+    pass = layout(keepDrawn, localCell);
+    while (pass.unserved.length > 0) {
+      keepDrawn.push(...pass.unserved);
+      pass = layout(keepDrawn, localCell);
+    }
+    settled = settle(pass);
+  }
+  const { lines, followers } = settled;
   warnings.push(...pass.passWarnings);
   // Every copper edge left on its drawn line is named (the board's rim is not a copper edge to correct).
   const named = new Map<number, string>();
-  for (const { at, why } of pass.uncorrected) if (!named.has(at)) named.set(at, why);
-  for (const at of unsettled) named.set(at, `its line is at the offset for a nearby cell: the z cells are outside ${EDGE_OFFSET_CELL_RATIO.join(' to ')} of the cell beside it`);
+  for (const { at, why } of pass.uncorrected) if (!named.has(at)) named.set(at, keptWhy.get(at) ?? why);
   if (named.size > 0) {
     warnings.push(`mesh: ${named.size} copper edge(s) along ${name} keep their drawn line, so the grid acts about 0.35 edge cell wider there and lines through them read Z0 low ` +
       `(a first-order error that refining shrinks only slowly): ${[...named].map(([at, why]) => `${name} = ${roundMicron(at)} mm (${why})`).join('; ')}`);

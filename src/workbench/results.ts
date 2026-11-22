@@ -6,7 +6,7 @@ import { interp } from '../engine/port_dft';
 import { escapeHtml, fmtDuration, fmtOhms, withMinus } from '../ui/format';
 import { patternCutsSvg } from '../viewer/pattern_plot';
 import { drawSmith } from '../viewer/smith_chart';
-import { LineChart, type Trace } from './line_chart';
+import { extent, LineChart, type Trace } from './line_chart';
 import { BAND_SCOPE, BEHAVIOUR_TEXT, lastChange } from '../verify/accuracy';
 import type { FarFieldSummary, WorkbenchResult } from './solve';
 
@@ -155,7 +155,7 @@ export class ResultViews {
     this.farFieldIndex = 0;
     const markerGHz = this.designFrequency();
     const sTraces = sParameterTraces(r);
-    const lowest = Math.min(...sTraces.flatMap((t) => Array.from(t.y)));
+    const lowest = extent(sTraces.flatMap((t) => Array.from(t.y)))[0];
     this.sChart.set({
       traces: sTraces, yUnit: 'dB', yMin: Math.max(CHART_FLOOR_DB, Math.floor(lowest / 10) * 10), yMax: 0,
       rules: [{ y: MATCH_LEVEL_DB, label: '−10 dB' }],

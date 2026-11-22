@@ -81,7 +81,7 @@ python scripts/validate/mixed_mode_skrf.py runs/my-pair.results/sparams.s4p --zd
 
 ## Checked against openEMS
 
-The same lossless pair (PEC copper, εr 4.4, no dielectric loss, lumped ports at the line centres) in
+The same lossless pair (PEC copper, εr 4.4, no dielectric loss, lumped ports at the line centers) in
 openEMS 0.37 ([`validation/openems/diff_pair_openems.py`](../validation/openems/diff_pair_openems.py),
 0.1 mm cells across the lines, 10 mm of air to an 8-cell PML, 60 dB energy stop, about 400,000 cells,
 82 minutes for four runs on a laptop CPU). Both Touchstone files go through `noburf pair` with the
@@ -102,7 +102,7 @@ within 0.08 dB across the band (0.02 dB at 5 GHz). The return losses differ by u
 −20 dB level): the two solvers model the lumped port's own cell differently, and those parasitics sit
 inside the reference planes. A port as wide as the strip instead of one edge (openEMS, lines on the
 edges) leaves the line impedance where it was (93.0 against 93.3 Ω) and shortens the delay to 111.2 ps,
-since the wide port's current enters the strip at once rather than spreading from its centre. The data
+since the wide port's current enters the strip at once rather than spreading from its center. The data
 is in `docs/validation/data/openems_diffpair_*`.
 
 ## Two solved pairs
@@ -124,7 +124,7 @@ explained under [The substrate's loss model](#the-substrates-loss-model).
 Mode conversion on the symmetric pair sits at the noise floor, as symmetry requires. On the detour
 pair the two skew figures agree to 0.3 ps; they match exactly only when the lines differ in delay alone,
 and a detour also changes the negative line's impedance at its corners. The detour adds 3 mm to the
-centre line, which at the pair's εeff would be about 18 ps; the four right-angle corners shorten the
+center line, which at the pair's εeff would be about 18 ps; the four right-angle corners shorten the
 electrical path, so the smaller figure is expected, but no independent solver has checked the detour.
 
 **The energy stop matters.** With the default 40 dB energy stop the detour pair read −6.5 ps TDT skew
@@ -180,7 +180,7 @@ part of its loss to a conductivity).
 ## Limits
 
 - The ports are lumped. Their parasitics are inside the reference planes, which is why the TDR shows
-  bumps at both ends; on the four-port Sheen branch-line coupler lumped ports read 7 to 9 % low
+  bumps at both ends; on the four-port Sheen branch-line coupler lumped ports read 8.6 to 9.4 % low
   ([validation.md](validation.md)).
 - The openEMS check above is one lossless pair, solver against solver. Both model the copper as a
   zero-thickness sheet, which understates the coupling between trace sidewalls on real 35 µm copper,

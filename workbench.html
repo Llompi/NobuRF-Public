@@ -133,6 +133,7 @@
                 <button type="button" data-tool="rectangle" aria-pressed="false" title="Drag to draw a rectangle (R)">Rectangle</button>
                 <button type="button" data-tool="polygon" aria-pressed="false" title="Click each corner, double-click or Enter to finish (P)">Polygon</button>
                 <button type="button" data-tool="port" aria-pressed="false" title="Click to place a lumped port (T)">Port</button>
+                <button type="button" data-tool="section" aria-pressed="false" title="Drag a rectangle to keep only that area of the board, on every layer (X)">Section</button>
               </div>
               <label class="select-label toggle">On <select id="draw-layer" aria-label="Copper layer to draw on"></select></label>
               <output id="draw-cursor" class="draw-cursor" aria-live="off"></output>
@@ -246,7 +247,7 @@
         <h2 id="new-title">New project</h2>
         <fieldset class="choice">
           <legend>Start from</legend>
-          <label><input type="radio" name="new-template" value="patch" checked /> <span><strong>Patch antenna</strong> Edge-fed rectangular patch, sized for the frequency. One port.</span></label>
+          <label><input type="radio" name="new-template" value="patch" checked /> <span><strong>Patch antenna</strong> Rectangular patch sized from the textbook formulas, with an inset feed for 50 Ω. One port.</span></label>
           <label><input type="radio" name="new-template" value="line" /> <span><strong>Microstrip line</strong> A 50 Ω line between two ports, to check a laminate and a mesh.</span></label>
           <label><input type="radio" name="new-template" value="pair" /> <span><strong>Differential pair</strong> Two coupled 50 Ω lines with four ports, paired at each end, for differential S-parameters, impedance and skew.</span></label>
           <label><input type="radio" name="new-template" value="blank" /> <span><strong>Blank board</strong> Ground, the laminate and an empty top layer. Draw or import copper, then add ports.</span></label>
@@ -286,7 +287,7 @@
     <dialog id="import-dialog" class="app-dialog" aria-labelledby="import-title">
       <form id="import-form" method="dialog">
         <h2 id="import-title">Import into this project</h2>
-        <label class="field">File <input type="file" id="import-file" accept=".gbr,.ger,.gtl,.gbl,.gko,.gm1,.art,.pho,.dxf,.step,.stp" /></label>
+        <label class="field">File <input type="file" id="import-file" accept=".gbr,.ger,.gtl,.gbl,.g1,.g2,.g3,.g4,.gko,.gm1,.drl,.xln,.exc,.drd,.txt,.art,.pho,.dxf,.step,.stp" /></label>
         <label class="field">Replace <select id="import-target"></select></label>
         <label class="field" id="import-dxf-row" hidden>DXF layer <select id="import-dxf-layer"></select></label>
         <label class="field" id="import-step-row" hidden>STEP bodies

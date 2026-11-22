@@ -142,7 +142,7 @@ Roache's Fs = 3.
 
 **Resonance and depth.** f_res and |S11| are taken at the dip, refined
 between frequency samples by a parabola in dB. The sample spacing (0.5 % of
-the band centre on the examples) is larger than the mesh error being
+the band center on the examples) is larger than the mesh error being
 measured, so the nearest sample would hide it. On every level the dip used is
 the one nearest the finest level's deepest, so two different modes are never
 compared. The depth's bar is on linear |S11|, not dB. In dB a deep dip moves
@@ -224,8 +224,8 @@ with their reference, nothing wider. Design equations (Balanis 14.1 and
 | Feature | Validated | Bounded by |
 | --- | --- | --- |
 | Substrate layers | one | every measured benchmark has one substrate |
-| ε_r | 2.2 to 2.33 | Sheen 1990 patch (2.2, −0.4 %), Chang 1986 patches (2.33, −0.7 to +1.8 % on the three in §7.1, −2.2 to +3.5 % on all six up to h/λd 0.11) |
-| Substrate thickness / λ_d at f_max | up to 0.10 | Chang 1986: within 3.5 % up to 0.11. Above that NobuRF reads high: +6.6 % at 0.125, rising to +14.5 % at 0.23 with a lumped feed |
+| ε_r | 2.2 to 2.33 | Sheen 1990 patch (2.2, −0.3 %), Chang 1986 patches (2.33, −0.5 to +1.9 % on the three in §7.1, −1.8 to +4.0 % on all six up to h/λd 0.11) |
+| Substrate thickness / λ_d at f_max | up to 0.10 | Chang 1986: within 4.0 % up to 0.11 (1.8 % with the coax probe). Above that NobuRF reads high with a lumped feed: +7.1 % at 0.125 and +10 to +16 % from 0.134 to 0.23 |
 | Band | 2 to 8 GHz | measured resonances from 2.31 GHz (Chang) to 7.5 GHz (Sheen) |
 | Ports | one, lumped | the agreeing benchmarks are one-port patches; SMA edge launch and coax probe are checked against openEMS only |
 | Copper | perfect conductor | copper loss matches the Pozar 6.3 cavity wall Q within 0.3 %, but has no measured strip-loss benchmark yet |

@@ -6,6 +6,20 @@
  */
 import { withMinus } from '../ui/format';
 
+/**
+ * Smallest and largest of the values, by a loop: a chart can hold traces x frequencies points (160k for a
+ * 4-port at 10,000 frequencies), more arguments than Math.min(...values) can take. NaN values are skipped.
+ */
+export function extent(values: ArrayLike<number>): [number, number] {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (let n = 0; n < values.length; n++) {
+    if (values[n] < lo) lo = values[n];
+    if (values[n] > hi) hi = values[n];
+  }
+  return [lo, hi];
+}
+
 export interface Trace {
   name: string;
   color: string;
@@ -78,8 +92,9 @@ export class LineChart {
 
     const xs = spec.traces.flatMap((t) => Array.from(t.x));
     const ys = spec.traces.flatMap((t) => Array.from(t.y)).filter(Number.isFinite);
-    const [x0, x1] = [Math.min(...xs), Math.max(...xs)];
-    let [y0, y1] = [spec.yMin ?? Math.min(...ys), spec.yMax ?? Math.max(...ys)];
+    const [x0, x1] = extent(xs);
+    const [yLo, yHi] = extent(ys);
+    let [y0, y1] = [spec.yMin ?? yLo, spec.yMax ?? yHi];
     if (y1 - y0 < 1e-9) [y0, y1] = [y0 - 1, y1 + 1];
     const yStep = niceStep(y1 - y0, 6);
     if (spec.yMin === undefined) y0 = Math.floor(y0 / yStep) * yStep;

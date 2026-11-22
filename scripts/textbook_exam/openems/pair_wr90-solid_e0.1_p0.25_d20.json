@@ -1,0 +1,9 @@
+{
+ "pair": "wr90-solid",
+ "lengths_mm": [
+  40,
+  52
+ ],
+ "fc_two_line_ghz": 6.5657,
+ "lambda_g_10ghz_two_line_mm": 39.81
+}

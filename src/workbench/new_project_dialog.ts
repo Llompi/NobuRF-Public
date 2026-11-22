@@ -7,12 +7,12 @@ import { BUILTIN_MATERIALS, type Project } from '../project/schema';
 import { byId } from '../ui/dom';
 import { escapeHtml } from '../ui/format';
 import { isConductor, MATERIAL_LIBRARY } from './material_library';
-import { defaultBoardMm, newProject, type Template } from './new_project';
+import { defaultBoardMm, newProject, patchNote, type Template } from './new_project';
 
 export class NewProjectDialog {
   private readonly dialog = byId<HTMLDialogElement>('new-dialog');
 
-  constructor(private readonly open: (project: Project) => void) {
+  constructor(private readonly open: (project: Project, note: string | null) => void) {
     const builtin = Object.entries(BUILTIN_MATERIALS).filter(([n, m]) => m.kind === 'dielectric' && n !== 'air').map(([n]) => n);
     const library = MATERIAL_LIBRARY.filter((m) => !isConductor(m));
     byId<HTMLSelectElement>('new-substrate').innerHTML =
@@ -67,7 +67,7 @@ export class NewProjectDialog {
       if (problem) throw new Error(problem);
       const project = newProject(spec);
       this.dialog.close();
-      this.open(project);
+      this.open(project, spec.template === 'patch' ? patchNote(spec) : null);
     } catch (e) {
       error.textContent = (e as Error).message;
       error.hidden = false;

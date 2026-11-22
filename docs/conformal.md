@@ -55,7 +55,7 @@ each piece is tested with the staircase rasteriser's own point test. A face's
 covered area is the integral of the covered length of vertical lines across
 it; cut at every vertex, every crossing with its top and bottom, and every
 crossing of two segments, that length is linear on each piece and the midpoint
-rule is exact. Faces no segment reaches are decided by their centre.
+rule is exact. Faces no segment reaches are decided by their center.
 
 ## Stability
 
@@ -119,7 +119,7 @@ on 1.5 mm of lossless eps_r 2.2 with PEC copper, resonance at the peak of
 Re(Z_in). Raw results: [`docs/validation/data/conformal.json`](validation/data/conformal.json).
 
 **Turned rectangle.** A 12 x 9 mm patch (TM01 near 9.4 GHz), turned about
-its centre. Turning changes nothing physical, so every angle should give the
+its center. Turning changes nothing physical, so every angle should give the
 unturned patch, whose edges lie on mesh lines. The graded mesh (lines on every
 edge, half-size cells at the copper) is the reference.
 
@@ -133,7 +133,7 @@ Staircased, the turned patch reads 2.2 % low at 0.5 mm and 1.3 % low at
 Conformal, it is within 0.3 % of the graded reference at 0.5 mm and 0.05 % at
 0.25 mm, and the three angles agree within 0.15 %.
 
-**Circular patch.** Radius 8 mm (TM11), its centre at (0, 0) and moved by
+**Circular patch.** Radius 8 mm (TM11), its center at (0, 0) and moved by
 (0.21, 0.37) mm against the mesh, probe on the node at (3, 0) mm. Closed form
 (Balanis eqs. 14-67 and 14-69): 6.726 GHz.
 
@@ -220,13 +220,13 @@ faster model. The update is stable at any Courant number; only the accuracy
 needs the slack.
 
 **Validation.** `scripts/validate/conformal_solids.ts`, CPU engine, air
-cavities with PEC walls, resonance from the ring-down (the pulse is centred
+cavities with PEC walls, resonance from the ring-down (the pulse is centered
 on the closed form only to pick the mode; the frequency comes from the phase
-slope). Staircase: a cell is metal when its centre is, the usual rule. Both
+slope). Staircase: a cell is metal when its center is, the usual rule. Both
 at the same Courant number. Raw results:
 [`docs/validation/data/conformal_solids.json`](validation/data/conformal_solids.json).
 
-Sphere, radius 10 mm, centre off the nodes by (0.23, -0.31, 0.17) mm. TM101,
+Sphere, radius 10 mm, center off the nodes by (0.23, -0.31, 0.17) mm. TM101,
 k a = 2.743707 (first root of [x j1(x)]' = 0): 13.0912 GHz.
 
 | cell | cells per radius | staircase | conformal |
@@ -238,7 +238,7 @@ k a = 2.743707 (first root of [x j1(x)]' = 0): 13.0912 GHz.
 | 0.5 mm | 20 | 13.187 GHz (+0.73 %) | 13.082 GHz (-0.07 %) |
 
 Cylinder, radius 6 mm, length 5 mm, axis along (1, 0.6, 0.8), turned against
-all three mesh axes, centre off the nodes. TM010, k a = 2.404826 (first zero
+all three mesh axes, center off the nodes. TM010, k a = 2.404826 (first zero
 of J0), for any length: 19.1238 GHz.
 
 | cell | cells per radius | staircase | conformal |
@@ -297,7 +297,9 @@ sphere's TM101 triplet by 0.4 % and is caught by it). And a closed sheet
 isolates: field started inside stays inside to 1e-12 in energy.
 
 **Validation.** `scripts/validate/conformal_sheets.ts`, CPU engine, Courant
-1/3, ring-down as above. Raw results:
+1/3, ring-down as above, default `rims: 'subcell'`. Closed sheets have no
+rims, so the only difference from `'snap'` here is the lowering of raised
+areas described under Rims below. Raw results:
 [`docs/validation/data/conformal_sheets.json`](validation/data/conformal_sheets.json).
 The staircase it is compared with makes every edge the sheet crosses PEC: a
 simple way to put a zero-thickness surface on a grid that closes it, but a
@@ -305,7 +307,7 @@ pessimistic one, since it turns the sheet into a wall about a cell thick.
 (The helix model's staircase paints cell faces instead.)
 
 A sphere sheet of radius 6 mm inside a PEC sphere cavity of radius 11 mm
-(centre off the nodes). The sheet has a cavity on each side: inside, TM101 at
+(center off the nodes). The sheet has a cavity on each side: inside, TM101 at
 21.8186 GHz; between the spheres, TM11 at 8.2683 GHz, the first root of
 `jh1'(ka) yh1'(kb) - jh1'(kb) yh1'(ka) = 0` with `jh1 = x j1(x)`,
 `yh1 = x y1(x)` (Harrington 6-4; the script checks the thin-gap limit
@@ -313,10 +315,10 @@ A sphere sheet of radius 6 mm inside a PEC sphere cavity of radius 11 mm
 
 | cell | inner TM101, staircase | inner TM101, sheet | shell TM11, staircase | shell TM11, sheet |
 |---|---|---|---|---|
-| 1.5 mm | 21.649 GHz (-0.78 %) | 21.612 GHz (-0.95 %) | 8.196 GHz (-0.88 %) | 8.250 GHz (-0.22 %) |
-| 1 mm | 22.184 GHz (+1.67 %) | 21.723 GHz (-0.44 %) | 8.295 GHz (+0.33 %) | 8.264 GHz (-0.05 %) |
-| 0.75 mm | 22.044 GHz (+1.03 %) | 21.757 GHz (-0.28 %) | 8.536 GHz (+3.23 %) | 8.262 GHz (-0.08 %) |
-| 0.5 mm | 22.339 GHz (+2.38 %) | 21.785 GHz (-0.15 %) | 8.186 GHz (-0.99 %) | 8.263 GHz (-0.07 %) |
+| 1.5 mm | 21.649 GHz (-0.78 %) | 21.628 GHz (-0.87 %) | 8.196 GHz (-0.88 %) | 8.255 GHz (-0.16 %) |
+| 1 mm | 22.184 GHz (+1.67 %) | 21.734 GHz (-0.39 %) | 8.295 GHz (+0.33 %) | 8.263 GHz (-0.06 %) |
+| 0.75 mm | 22.044 GHz (+1.03 %) | 21.766 GHz (-0.24 %) | 8.536 GHz (+3.23 %) | 8.262 GHz (-0.07 %) |
+| 0.5 mm | 22.339 GHz (+2.38 %) | 21.792 GHz (-0.12 %) | 8.186 GHz (-0.99 %) | 8.264 GHz (-0.05 %) |
 
 The sheet is within 0.1 % of the closed form on the outside from 1 mm down
 and converges on the inside like the solid sphere above (the inner sphere has
@@ -335,18 +337,102 @@ review found it.) Meshes are welded by position first, so a surface given as
 one vertex per triangle (an STL) still closes.
 
 **Rims.** A sheet's free edge (a strip's end or side) that falls inside a
-face splits nothing there and is seen only at the last edge the sheet
-crosses, so a rim between mesh lines snaps by up to a cell, as on a
-staircase. Where a mesh line runs through the rim it is exact (the rule
-above). Curved surfaces and the surface's position between planes
-are what sheets get right; rims need mesh lines (the helix model puts lines
-through the arm ends). How much this matters: a 12 x 2 mm strip centred in a
-PEC sphere cavity (radius 12 mm), turned four ways at 1 mm cells, gives its
-lowest strip mode between 8.27 and 8.90 GHz (one-off runs), a 7.4 % spread that rotating a
-strip in a sphere should not make at all. That spread is the rims: the
-strip's ends and sides land differently against the edges in each
-orientation. (The script for this was dropped from the validation set: no
-closed form, and its staircase runs locked onto a sphere mode instead.)
+face splits nothing there, so the plain update sees the sheet only up to the
+last edge it crosses: a rim anywhere inside a cell gives the same fields to
+four digits, and the rim snaps by up to a cell, as on a staircase. On the two-cell-wide
+strip below that is a 5 % jump in its resonance as an end crosses an edge. The fix
+(`rims: 'subcell'`, the default; `'snap'` keeps the plain update) works from
+the discrete problem at the rim rather than from a fitted constant.
+
+Near a rim the quasi-static field is that of a half-plane, `Re sqrt(z)`.
+In the cross-section a crossed column ties its two nodes to the sheet through
+the edge's two pieces (conductances `1/s` and `1/(1 - s)` for a sheet at
+fraction `s` across the cell). [`sheet_rim.ts`](../src/engine/sheet_rim.ts)
+solves that 5-point problem with the ties of the last column scaled by
+`beta` and reads off where the discrete rim sits in the continuum: with
+`beta = 1` it is 0.146 cell past the last crossed edge at `s = 0.5` and
+0.270 at `s = 0.1`, tending to the Yee edge's 0.354 as `s -> 0`; `beta`
+moves it monotonically over about a cell. The table
+(`sheet_rim_table.json`, `s` by `beta`, regenerated by
+`scripts/validate/sheet_rim_table.ts` and checked by a test) is inverted per
+rim face for the `beta` that puts the discrete rim on the true one. Scaling a
+column's ties by `beta` is the pieces' capacitance times `beta` and the tie
+faces' area over `beta`: a local `eps = beta`, `mu = 1 / beta`, so the update
+stays a FIT scheme with positive masses and the stability bound above still
+holds (power iteration below 4 with sub-cell rims anywhere in their cells, a
+test). The range of `beta` a rim may use is derived, not set: as the true
+rim moves through a cell its distance past the last crossed edge sweeps one
+cell, so the range must reach exactly one cell, and of those ranges the one
+symmetric in `ln beta` changes the material least. That is 0.25 to 4 for a
+sheet mid-cell and 0.045 to 22 at `s = 0.01`, where ties of `1/s` are stiff
+(`rimBetaRange`; the table spans `beta` 0.01 to 100 to cover it). Each sheet
+is first grown past its rims by 0.17 to 0.41 cell (depending on `s`) to center
+that window on the true rim; the grown sheet is what must clear other
+objects. The window is exactly one cell only for a rim along a mesh axis: the
+growth reads `s` at each boundary vertex across the axis nearest the sheet's
+normal, the tie range reads it from the crossed edge, and on a tilted or
+curved sheet the two differ, so a rim can land just outside its window. Its
+`beta` is then clamped and the rim sits short; `thinSheets.clampedRims`
+counts such rim faces (in the turned-strip test below: none for the two
+axis-aligned turns, 3 and 9 for the other two at 1 mm, 13 and 22 at 0.5 mm). The approach follows Railton's modified material parameters for
+small structures [6] and the use of static edge solutions in FDTD by
+Shorthouse and Railton [7]; here the static solution is that of the discrete
+update itself, so the correction moves the discrete rim rather than imposing
+a field shape. After the area rule above, each raised region is lowered as far as
+the slack its unknowns have left allows, which keeps the bound and undoes
+fewer ties.
+
+`scripts/validate/sheet_rims.ts` checks it two ways (CPU, Courant 1/3,
+broadband pulse, strongest spectral peak; raw results in
+[`validation/data/sheet_rims_1mm.json`](validation/data/sheet_rims_1mm.json)
+and [`sheet_rims_0.5mm.json`](validation/data/sheet_rims_0.5mm.json)).
+
+A 12.5 x 2.17 mm strip 1.37 mm over the floor of a 40 x 8 x 8 mm PEC channel,
+slid along its length through one cell in ten steps, should barely move. The
+reference is the same strip with `rims: 'snap'` on a graded mesh whose lines
+sit the plain rim shift inside each rim. That puts its rims where the
+half-plane model says they are, so it is built from the same model as the
+correction: a check that the tie scaling reproduces what mesh lines would
+do, not an independent reference. The turned strip below is the independent
+test.
+
+| rims | 1 mm cells, over the slide | 0.5 mm cells, over the slide |
+|---|---|---|
+| reference (rim lines) | 8.429 GHz | 8.692 GHz |
+| snap | 8.721 to 9.154 GHz (+3.5 to +8.6 %) | 8.954 to 8.957 GHz (+3.0 %) |
+| subcell | 8.236 to 8.413 GHz (-2.3 to -0.2 %) | 8.640 to 8.712 GHz (-0.6 to +0.2 %) |
+
+Snapped, the strip jumps by 5 % as an end crosses an edge at 1 mm; at 0.5 mm
+both ends cross at the same shift, so the length stays put and the error is a
+steady +3 %. With sub-cell rims every position stays within 2.3 % of the
+reference at 1 mm and 0.6 % at 0.5 mm. The dip at 1 mm (shifts 0.4 to
+0.6 mm) is not explained yet: it is not the range of `beta` (it did not move
+when that range was widened to a full cell), and the end rims there are only
+three edges long.
+
+A 12 x 2 mm strip at the center of a PEC sphere cavity (radius 12 mm) turned
+four ways should not move at all:
+
+| turn | snap, 1 mm | subcell, 1 mm | snap, 0.5 mm | subcell, 0.5 mm |
+|---|---|---|---|---|
+| along x | 8.900 GHz | 8.431 GHz | 8.838 GHz | 8.641 GHz |
+| along y, normal x | 8.964 GHz | 8.467 GHz | 8.849 GHz | 8.586 GHz |
+| turned 30 deg about z | 8.554 GHz | 8.380 GHz | 8.702 GHz | 8.536 GHz |
+| along (1, 0.6, 0.8) | 8.407 GHz | 8.272 GHz | 8.563 GHz | 8.498 GHz |
+| spread (max - min) / mean | 6.4 % | 2.3 % | 3.3 % | 1.7 % |
+
+Sub-cell rims cut the spread from 6.4 % to 2.3 % at 1 mm and from 3.3 % to
+1.7 % at 0.5 mm, but do not remove it. The
+correction is two-dimensional: it treats each rim as a long straight edge
+along a mesh axis on its own. This strip is only two to four cells wide, so
+its side rims are close together, its ends are two to four edges long, and
+two of the turns put every rim at an angle to the axes; there the correction
+is only partly right. The table also assumes uniform cells around the rim,
+so on a mesh graded right at a rim it is approximate.
+
+What remains of the "5 % low at 1 mm" reading is the coarse mesh, not the
+rims: the rim-line reference itself moves from 8.429 to 8.692 GHz (+3.1 %)
+from 1 to 0.5 mm, as a two-cell-wide strip does on any Yee grid.
 
 **Gonzaga helix with sheet arms.** The open helix of
 [`benchmarks/gonzaga.md`](benchmarks/gonzaga.md) has four wide arms wrapped on
@@ -361,8 +447,9 @@ carry no copper loss yet) at Courant 1/3; raw results:
 |---|---|---|---|---|---|
 | staircase | 1 mm | 925 MHz | 898 to 954 MHz | 1.41 dBi | 3.10 / 2.85 / 2.52 dB |
 | staircase | 0.7 mm | 930 MHz | 902 to 958 MHz | 1.41 dBi | 3.13 / 2.89 / 2.56 dB |
-| sheet | 1 mm | 941 MHz | 914 to 969 MHz | 1.45 dBi | 3.54 / 3.29 / 2.96 dB |
-| sheet | 0.7 mm | 944 MHz | 917 to 973 MHz | 1.45 dBi | 3.48 / 3.24 / 2.92 dB |
+| sheet, rims snapped | 1 mm | 941 MHz | 914 to 969 MHz | 1.45 dBi | 3.54 / 3.29 / 2.96 dB |
+| sheet, rims snapped | 0.7 mm | 944 MHz | 917 to 973 MHz | 1.45 dBi | 3.48 / 3.24 / 2.92 dB |
+| sheet, sub-cell rims | 1 mm | 939 MHz | 911 to 968 MHz | 1.43 dBi | 3.31 / 3.08 / 2.76 dB |
 
 From 1 to 0.7 mm f0 moves +0.3 % with sheets and +0.5 % with the staircase
 (two cell sizes only, so no convergence order). The two agree on bandwidth
@@ -370,10 +457,14 @@ From 1 to 0.7 mm f0 moves +0.3 % with sheets and +0.5 % with the staircase
 axial ratio is 0.4 dB higher at the same frequency, most of which the
 16 MHz shift accounts for (the axial ratio falls by about 0.3 dB per 20 MHz). Neither is the reference: the
 staircase grows the copper by up to half a cell at every outline, which
-lengthens the arms, and the sheet's helical side rims snap inwards to the
-last crossed edge (the rim rule above), which narrows them. The sheet model
-also carries its trace up to a cell past the arm's foot. So the true
-resonance most likely lies between the two. Neither model brings the axial ratio
+lengthens the arms, and with snapped rims the sheet's helical side rims sit
+at the last crossed edge (the rim rule above), which narrows them. The sheet
+model also carries its trace up to a cell past the arm's foot. So the true
+resonance most likely lies between the two. Sub-cell rims place the side rims
+where they really are and move f0 2 MHz towards the staircase, to 939 MHz
+(-10 dB band 911 to 968 MHz against 914 to 969, gain 0.02 dB lower), with an axial
+ratio 0.2 dB lower. The arm ends sit on mesh lines, so they move little, but
+they are re-tied too. (One run at 1 mm.) Neither model brings the axial ratio
 near 0 dB at 10.5 degrees (the paper's optimum): with smooth arms it stays
 about 3 dB, so that open question does not come from the staircase.
 
@@ -386,7 +477,10 @@ about 3 dB, so that open question does not come from the staircase.
   on the edges they cross, may not meet, cross or branch, and stay clear of
   the PML, ports, lumped components and conformal copper or solids (a cell
   apart: the bound takes the faces a sheet leaves alone as uncut); each of
-  these throws. Add solids before sheets. The energy stop does not count the ghost fields. Solids are PEC, must stay clear of the PML, ports and lumped
+  these throws. With sub-cell rims (the default) a sheet is grown up to 0.41
+  cell past its free edges, and that grown sheet is what must keep clear; a
+  hole, slot or gap narrower than the growth of its two rims throws too
+  (refine, or pass `rims: 'snap'`). Add solids before sheets. The energy stop does not count the ghost fields. Solids are PEC, must stay clear of the PML, ports and lumped
   components, may not share a cut face or a free edge of a cut face with
   conformal copper planes, and do not yet combine with frequency-dependent or
   magnetic materials; each of these throws. Pass all solids in one
@@ -416,3 +510,9 @@ about 3 dB, so that open question does not come from the staircase.
 5. W. Yu and R. Mittra, "A conformal FDTD algorithm for modeling perfectly
    conducting objects with curve-shaped surfaces and edges," Microwave and
    Optical Technology Letters, 27(2), pp. 136-138, 2000.
+6. C. J. Railton, "The treatment of geometrically small structures in FDTD by
+   the modification of assigned material parameters," IEEE Trans. Antennas
+   Propag., 53(12), 2005.
+7. D. B. Shorthouse and C. J. Railton, "The incorporation of static field
+   solutions into the finite difference time domain algorithm," IEEE Trans.
+   Microwave Theory Tech., 40(5), 1992.

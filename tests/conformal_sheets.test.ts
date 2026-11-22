@@ -6,7 +6,9 @@ import { CpuFdtd, vacuumModel } from '../src/engine/fdtd_cpu';
 import { uniformLines, type MeshLines } from '../src/engine/mesh';
 import { GHOST } from '../src/engine/thin_sheets';
 import type { VoxelModel } from '../src/engine/voxelize';
-import { addConformalSheets, assertSheetMesh, faceRegions } from '../src/project/conformal_sheets';
+import { rimBetaRange, sheetRimShiftCells, type SheetRimTable } from '../src/engine/sheet_rim';
+import RIM_TABLE from '../src/engine/sheet_rim_table.json';
+import { addConformalSheets, assertSheetMesh, faceRegions, rimGrowthCells } from '../src/project/conformal_sheets';
 import { boxModel, ringDown } from '../scripts/validate/conformal_solids';
 import { addConformalSolids, boxMesh, joinMeshes, ribbonMesh, sphereMesh, type TriangleMesh } from '../src/project/conformal_solids';
 
@@ -193,6 +195,76 @@ describe('addConformalSheets', () => {
     const strip = ribbonMesh([[-5.3, -3.1, -2.2], [5.1, 4.3, 3.9]], [[0.8, -0.36, -0.48], [0.8, -0.36, -0.48]], 2.3);
     const model = addConformalSheets(airModel(cube(17, -8, 1)), [sphereMesh([-3.4, 3.2, -3.3], 2.6, 96), strip]);
     expect(largestEigenvalue(model, 200)).toBeLessThan(4);
+  });
+
+  it('places a strip side inside its cell: the last crossed edge\'s tie scale puts the discrete rim on the true one', () => {
+    const N = 17 ** 3;
+    const at = (i: number, j: number, k: number) => i + 17 * (j + 17 * k);
+    const plain = airModel(cube(17, -8, 1)).eCurl[2 * N + at(8, 8, 8)];
+    const z = 0.37; // the sheet crosses the Ez edges from 0 to 1 at s = 0.37
+    // Narrow strips too: there the far rim's end also lies on the trace, behind the near one.
+    const cases = [1.02, 1.2, 1.4, 1.6, 1.85, 2.05].map((top) => [top, 2.17]).concat([[0.79, 1], [1.09, 1.3], [1.39, 1.6]]);
+    for (const [top, width] of cases) {
+      const yc = top - width / 2;
+      const model = addConformalSheets(airModel(cube(17, -8, 1)), [ribbonMesh([[-5.13, yc, z], [5.21, yc, z]], [[0, 1, 0], [0, 1, 0]], width)]);
+      // The grown sheet's last crossed y line at or below top + RIM_GROW_CELLS.
+      const line = Math.floor(top + rimGrowthCells(0.37));
+      const e = 2 * N + at(8 + 0, 8 + line, 8);
+      const beta = (plain * 0.63) / model.eCurl[e];
+      const rim = line + sheetRimShiftCells(0.37, beta);
+      expect(Math.abs(rim - top)).toBeLessThan(0.08);
+    }
+  });
+
+  it('places rims near a plane at both ends of their tie-scale window without clamping', () => {
+    const N = 17 ** 3;
+    const at = (i: number, j: number, k: number) => i + 17 * (j + 17 * k);
+    const plain = airModel(cube(17, -8, 1)).eCurl[2 * N + at(8, 8, 8)];
+    const s = 0.02; // the sheet crosses the Ez edges from 0 to 1 at s = 0.02, where ties are stiff and beta reaches furthest
+    const grow = rimGrowthCells(s);
+    const [lo, hi] = rimBetaRange(RIM_TABLE as SheetRimTable, s);
+    // The true rim 0.02 cell inside each end of the window (-grow, 1 - grow] past the last crossed edge.
+    for (const top of [1 - grow + 0.02, 2 - grow - 0.02]) {
+      const yc = top - 2.17 / 2;
+      const model = addConformalSheets(airModel(cube(17, -8, 1)), [ribbonMesh([[-5.13, yc, s], [5.21, yc, s]], [[0, 1, 0], [0, 1, 0]], 2.17)]);
+      const line = Math.floor(top + grow);
+      const beta = (plain * (1 - s)) / model.eCurl[2 * N + at(8, 8 + line, 8)];
+      expect(beta / lo).toBeGreaterThan(1.001);
+      expect(hi / beta).toBeGreaterThan(1.001);
+      expect(Math.abs(line + sheetRimShiftCells(s, beta) - top)).toBeLessThan(0.08);
+      expect(model.thinSheets!.clampedRims).toBe(0);
+    }
+  });
+
+  it('stays below the leapfrog limit with sub-cell rims anywhere in their cells', () => {
+    for (const shift of [0, 0.21, 0.47, 0.73, 0.96]) {
+      const flat = ribbonMesh([[-5.1 + shift, -0.9, 0.37], [4.7 + shift, -0.9, 0.37]], [[0, 1, 0], [0, 1, 0]], 2.3 + shift);
+      const turned = ribbonMesh([[-4.3, -3.1 + shift, -2.2], [4.1, 4.3, 2.9 - shift]], [[0.8, -0.36, -0.48], [0.8, -0.36, -0.48]], 1.7 + shift);
+      expect(largestEigenvalue(addConformalSheets(airModel(cube(17, -8, 1)), [flat]), 150)).toBeLessThan(4);
+      expect(largestEigenvalue(addConformalSheets(airModel(cube(17, -8, 1)), [turned]), 150)).toBeLessThan(4);
+      // Near a plane, where the tie scales reach their extremes (0.045 to 22 at s = 0.01).
+      for (const z of [0.02, 0.03, 0.98]) {
+        const nearPlane = ribbonMesh([[-5.1 + shift, -0.9, z], [4.7 + shift, -0.9, z]], [[0, 1, 0], [0, 1, 0]], 2.3 + shift);
+        expect(largestEigenvalue(addConformalSheets(airModel(cube(17, -8, 1)), [nearPlane]), 150)).toBeLessThan(4);
+      }
+    }
+  });
+
+  it('refuses rims it cannot grow: a narrow slot, sheets side by side and a bowtie', () => {
+    const z = 0.37;
+    const slotted = (width: number): TriangleMesh => {
+      const corners = [[-4.1, -2.1], [4.2, -2.1], [4.2, 3.1], [-4.1, 3.1], [-2.1, 0.2], [2.2, 0.2], [2.2, 0.2 + width], [-2.1, 0.2 + width]];
+      const triangles: number[] = [];
+      for (let k = 0; k < 4; k++) triangles.push(k, (k + 1) % 4, 4 + ((k + 1) % 4), k, 4 + ((k + 1) % 4), 4 + k);
+      return { positions: Float64Array.from(corners.flatMap(([x, y]) => [x, y, z])), triangles: Uint32Array.from(triangles) };
+    };
+    expect(() => addConformalSheets(airModel(cube(17, -8, 1)), [slotted(0.6)])).toThrow(/slot/);
+    expect(() => addConformalSheets(airModel(cube(17, -8, 1)), [slotted(0.6)], { rims: 'snap' })).not.toThrow();
+    expect(() => addConformalSheets(airModel(cube(17, -8, 1)), [slotted(1)])).not.toThrow();
+    const strip = (y: number, width: number) => ribbonMesh([[-4.13, y, z], [4.21, y, z]], [[0, 1, 0], [0, 1, 0]], width);
+    expect(() => addConformalSheets(airModel(cube(17, -8, 1)), [strip(-1.2, 1.8), strip(0.6, 1.4)])).toThrow(/gap/);
+    const bowtie = { positions: Float64Array.of(0.1, 0.2, z, 2.1, 2.2, z, 2.1, -1.8, z, -1.9, 2.2, z, -1.9, -1.8, z), triangles: Uint32Array.of(0, 1, 2, 0, 4, 3) };
+    expect(() => addConformalSheets(airModel(cube(17, -8, 1)), [bowtie])).toThrow(/degenerate rim/);
   });
 
   it('refuses a fast time step, the PML, a port and a lossy edge', () => {

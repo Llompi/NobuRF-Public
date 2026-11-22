@@ -24,6 +24,52 @@ export function patchEstimateMm(fGhz: number, epsR: number, hMm: number): { w: n
   return { w, l: C_MM_GHZ / (2 * fGhz * Math.sqrt(epsEff)) - 2 * dl };
 }
 
+/**
+ * Input resistance at the radiating edge of a rectangular patch, from the
+ * transmission-line model with mutual coupling: R = 1 / (2 (G1 + G12)),
+ * Balanis, Antenna Theory, 4th ed., eq. 14-12 to 14-18. G1 and G12 are the
+ * slot integrals, done numerically. Like the model it comes from, it ignores
+ * the feed line and the finite ground.
+ */
+export function patchEdgeResistanceOhm(fGhz: number, wMm: number, lMm: number): number {
+  const k0 = (2 * Math.PI * fGhz) / C_MM_GHZ; // rad/mm
+  const steps = 2000;
+  let i1 = 0;
+  let i12 = 0;
+  for (let n = 0; n <= steps; n++) {
+    const theta = (Math.PI * n) / steps;
+    const weight = n === 0 || n === steps ? 1 : n % 2 ? 4 : 2; // Simpson
+    const c = Math.cos(theta);
+    const sinTheta = Math.sin(theta);
+    // sin(k0 W/2 cos θ) / cos θ, whose limit at cos θ = 0 is k0 W / 2.
+    const slot = Math.abs(c) < 1e-12 ? (k0 * wMm) / 2 : Math.sin(((k0 * wMm) / 2) * c) / c;
+    const term = slot * slot * sinTheta ** 3;
+    i1 += weight * term;
+    i12 += weight * term * besselJ0(k0 * lMm * sinTheta);
+  }
+  const h = Math.PI / steps / 3;
+  const g1 = (i1 * h) / (120 * Math.PI ** 2);
+  const g12 = (i12 * h) / (120 * Math.PI ** 2);
+  return 1 / (2 * (g1 + g12));
+}
+
+/** Inset depth that brings the edge resistance down to `targetOhm`: R(y0) = R(0) cos²(π y0 / L), Balanis eq. 14-20a. */
+export function insetDepthMm(edgeOhm: number, lMm: number, targetOhm: number): number | null {
+  if (!(edgeOhm > targetOhm)) return null;
+  return (lMm / Math.PI) * Math.acos(Math.sqrt(targetOhm / edgeOhm));
+}
+
+/** J0(x) = (1/π) ∫ cos(x sin τ) dτ over [0, π], by Simpson's rule; ample for the x < 10 a patch needs. */
+function besselJ0(x: number): number {
+  const steps = 200;
+  let sum = 0;
+  for (let n = 0; n <= steps; n++) {
+    const weight = n === 0 || n === steps ? 1 : n % 2 ? 4 : 2;
+    sum += weight * Math.cos(x * Math.sin((Math.PI * n) / steps));
+  }
+  return sum / steps / 3;
+}
+
 /** Microstrip width for an impedance (Hammerstad's synthesis, as in Pozar, Microwave Engineering, 3.198). */
 export function microstripWidthMm(z0: number, epsR: number, hMm: number): number {
   const a = (z0 / 60) * Math.sqrt((epsR + 1) / 2) + ((epsR - 1) / (epsR + 1)) * (0.23 + 0.11 / epsR);

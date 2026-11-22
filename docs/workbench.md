@@ -40,9 +40,19 @@ messages, newest first, and shows a progress bar while a solve runs.
 New offers four starting points. Each one is an ordinary project, so you can change any of it
 afterwards.
 
-- Patch antenna: an edge-fed rectangular patch sized from the textbook formulas for your design
-  frequency, laminate and thickness, with one port. It will not be matched yet. Add an inset or move
-  the feed, then solve.
+- Patch antenna: a rectangular patch for your design frequency, laminate and thickness, with one
+  port. W and L come from the transmission-line model, and the edge resistance from the same model with
+  mutual coupling (Balanis, Antenna Theory, 14.2). A 50 Ω line feeds the patch through an inset cut to
+  the depth that model gives for 50 Ω, with notches 1 mm wide, or narrower on a small patch. When the
+  patch is too narrow for an inset, the feed meets the edge instead and the patch is not matched. A
+  board you set smaller than the patch the formulas ask for shrinks the patch, and the console says so.
+  The console lists the numbers. The model ignores the feed line and the
+  finite ground, so treat the sizes and the inset as starting points. For Balanis Example 14.1, NobuRF
+  and openEMS both put the inset patch at about 10.4 GHz, but with a shallow dip: R at the port is
+  near 30 Ω, not 50, so the inset needs adjusting. In NobuRF about 1.75 mm matches to −23 dB, but the
+  notches move the resonance to near 11.8 GHz, so 10 GHz also needs a longer patch. With a plain edge
+  feed both solvers put it near 8.5 GHz.
+  Solve, then adjust patch_l and inset_d.
 - Microstrip line: a 50 Ω line between two ports, the usual first check of a laminate and a mesh.
   After a solve, the Line tab reports its Z0 and εeff.
 - Differential pair: two of those 50 Ω lines side by side, a gap of two line widths apart, with
