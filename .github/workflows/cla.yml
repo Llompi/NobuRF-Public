@@ -29,4 +29,4 @@ jobs:
           path-to-document: https://github.com/Llompi/NobuRF-Public/blob/main/CLA.md
           path-to-signatures: signatures/cla.json
           branch: cla-signatures
-          allowlist: Llompi,Claude,dependabot[bot],github-actions[bot]
+          allowlist: Llompi,dependabot[bot],github-actions[bot]
