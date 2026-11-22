@@ -5,10 +5,16 @@ on:
   push:
     branches: [main]
 
+# A newer push to the same PR cancels its older run, so superseded pushes don't keep running full suites.
+# Each push to main gets a group of its own (its run id), so every merge commit gets a result.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,5 +26,7 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       # The full suite, slow tests included; the GPU CLI test runs on lavapipe.
-      - run: npx vitest run
+      # Half the vCPUs as workers (2 of 4), not the default cpus - 1: with three CPU-heavy files at once,
+      # the full FDTD solves in physics.test.ts blew past their timeouts.
+      - run: npx vitest run --maxWorkers=50%
       - run: npm run test:gpu:node

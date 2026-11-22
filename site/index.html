@@ -7,11 +7,12 @@
 <meta name="description" content="A 3D field solver for antennas, PCB traces and near-field emissions that runs on your own GPU through WebGPU, in Chrome or Edge.">
 <meta property="og:title" content="NobuRF: Maxwell's equations, solved in a browser tab">
 <meta property="og:description" content="A 3D field solver for antennas, PCB traces and near-field emissions, running on your own GPU in the browser.">
-<meta property="og:image" content="https://noburf.llom.party/assets/og.jpg">
+<meta property="og:image" content="https://noburf.com/assets/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Current on the copper of a patch antenna for the 5.8 GHz band, and the line: Maxwell's equations, solved in a browser tab.">
-<meta property="og:url" content="https://noburf.llom.party/">
+<meta property="og:url" content="https://noburf.com/">
+<link rel="canonical" href="https://noburf.com/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="color-scheme" content="light dark">
@@ -534,7 +535,7 @@ npm run dev</code></pre>
   showToggleLabel();
 
   // The setup prompt points an AI agent at agent-setup.md on whichever address served this page.
-  const SITE_ORIGIN = 'https://noburf.llom.party';
+  const SITE_ORIGIN = 'https://noburf.com';
   const setupPromptRow = document.getElementById('setup-prompt-row');
   const setupPromptToast = document.getElementById('setup-prompt-toast');
   const pageOrigin = location.protocol.startsWith('http') ? location.origin : SITE_ORIGIN;
