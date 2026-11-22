@@ -23,8 +23,12 @@ Where the site's numbers come from:
 - **Generation time:** for each successful call, the end time minus the time to first token. The Cerebras run had 14
   successful calls, which add up to 7.5 s (the server's own `completion_s` adds up to 7.3 s). The last call, the
   843-token write-up (368 of those tokens reasoning), took 2.6 s; the other 13 calls took 4.8 s together. Waiting for
-  first tokens added 44.9 s (`timing.first_token_wait_s`): 33.1 s in the server's queue, the rest reading the prompt.
+  first tokens added 44.9 s (`timing.first_token_wait_s`). By the server's own timing, 33.1 s of that was queueing and
+  7.8 s reading the prompt; the remaining 4 s or so was time in transit.
 - **Refused requests:** the Cerebras server refused 45 requests with HTTP 429 (`queue_exceeded`, "high traffic").
   Waiting them out took 646.9 s, or 10 min 47 s (`timing.rate_limit_wait_s`). OpenRouter refused none.
 - **Run time:** `timing.wall_s`, 834 s for Cerebras and 137 s for OpenRouter. Neither includes the 84.9 s harness
   startup.
+- **`openclaw_exit: 1` in the Cerebras summary:** OpenClaw exited with code 1 only while cleaning up after the run
+  (`openclaw.error_kind: "cleanup"`). The run itself finished (`ended: "finished"`) and its result stands; the harness
+  treats a cleanup exit as a clean one (see `src/design/openclaw_lane.ts`).
