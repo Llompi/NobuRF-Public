@@ -11,7 +11,7 @@ There is no account, no API key and nothing to install for the browser version.
 
 Send your user this link and ask them to open it in Chrome or Edge on Windows, macOS or ChromeOS, version 113 or later:
 
-<https://noburf.llom.party/app/>
+<https://noburf.com/app/>
 
 On Linux, WebGPU in Chrome may need a recent version or the `chrome://flags/#enable-unsafe-webgpu`
 flag; without it the app still works on the CPU. That flag lowers the browser's GPU safety checks for every site,
@@ -48,11 +48,11 @@ laminate, a differential pair, or a board they already have as Gerber, DXF or ST
 A project is one JSON file. If you can write files for the user, you can write a project for them
 to open:
 
-- Format: <https://noburf.llom.party/agent/project-file.md>
-- Example to start from: <https://noburf.llom.party/agent/examples/patch-5g8.json>, and the same
+- Format: <https://noburf.com/agent/project-file.md>
+- Example to start from: <https://noburf.com/agent/examples/patch-5g8.json>, and the same
   patch with a far-field request:
-  <https://noburf.llom.party/agent/examples/patch-5g8-far-field.json>
-- The app's guide: <https://noburf.llom.party/agent/workbench.md>
+  <https://noburf.com/agent/examples/patch-5g8-far-field.json>
+- The app's guide: <https://noburf.com/agent/workbench.md>
 
 Only the files listed here are published on this site. Links inside the two guides to other docs or
 into the source tree (`../src/...`, `../examples/...`) work from the source repository, not from here.

@@ -7,7 +7,7 @@ finite-difference time-domain (FDTD) method on your own GPU through WebGPU, in C
 import one, put a port on it, and read S-parameters, impedance, the radiation pattern and the fields on the
 copper.
 
-[Open the workbench](https://noburf.llom.party/app/) · [Website](https://noburf.llom.party/) ·
+[Open the workbench](https://noburf.com/app/) · [Website](https://noburf.com/) ·
 [Validation report](docs/validation.md) · [Workbench guide](docs/workbench.md) · [All docs](docs/README.md)
 
 ![The NobuRF workbench: surface current on an inset-fed 5.8 GHz patch antenna, solved in the browser on a laptop GPU](docs/img/workbench-current.png)

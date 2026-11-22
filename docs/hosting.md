@@ -20,13 +20,27 @@ npm run build:site   # writes dist-site/
 | Build command | `npm run build:site` |
 | Build output directory | `dist-site` |
 | Node version | from `.node-version` (22) |
-| Custom domain | `noburf.llom.party` |
+| Custom domains | `noburf.com` (primary), `www.noburf.com`, `noburf.llom.party` |
 
 `site/_headers` sets security headers on every response (HSTS, no framing, a minimal CSP that blocks
 `<object>`, foreign `<base>` and off-site form posts, and a Permissions-Policy that turns off the
 camera, microphone, location, payment and USB APIs), the Markdown content type, and long caching
 for the hashed app files. A full script CSP is left out on purpose: the landing page uses inline
 scripts. Preview branch deployments are off in the Pages project, so only `main` is published.
+
+## Domains
+
+`https://noburf.com` is the site's address. Every link in the repo, the share tags and the agent setup prompt
+use it. Two other names reach the same Pages project and answer with a permanent (301) redirect that keeps the
+path and query string:
+
+| Host | Where the redirect lives |
+| --- | --- |
+| `www.noburf.com` | Redirect Rule "www.noburf.com to noburf.com" in the `noburf.com` zone |
+| `noburf.llom.party` | Redirect Rule "noburf.llom.party to noburf.com" in the `llom.party` zone |
+
+Keep `noburf.llom.party` attached and redirecting: the launch posts on X, Reddit and Discord link to it.
+Redirect Rules are free (10 per zone on the Free plan) and run before Pages, so they don't add a Function.
 
 ## Why traffic does not bill
 
