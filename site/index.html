@@ -353,14 +353,15 @@
       out of solves. You can type a correction while it works, and it reads that with its next solve.
     </p>
     <p>
-      I gave that sentence, plus a request for a short write-up of the final design, to the same model on Cerebras and on a
-      GPU-based provider, one lane after the other on the same solver. Both met the goal: a resonance within 1&nbsp;% of the
-      5.8&nbsp;GHz target, with S11 below −10&nbsp;dB. The Cerebras lane tried 28 designs and settled at 5.83&nbsp;GHz and
-      −10.6&nbsp;dB. Its 14 model calls generated for 7.5&nbsp;s in all, 2.6&nbsp;s of that for the write-up. The other lane
-      tried 20 and settled at 5.82&nbsp;GHz with a deeper match, −19.1&nbsp;dB. Under hackathon traffic the Cerebras lane
-      also spent 10&nbsp;min&nbsp;47&nbsp;s waiting on rate limits and 45&nbsp;s in the server's queue, so the other lane
-      finished first. The <a href="https://github.com/Llompi/NobuRF-Public/tree/main/launch/runs/race-2026-11-22T10-19-23">run logs</a>
-      have every model call and design.
+      I gave that sentence, plus a request for a short write-up of the final design, to Kimi K3.1 Pro on Cerebras, and then
+      to the same model through OpenRouter, on the same solver. Both met the goal: a resonance within 1&nbsp;% of the
+      5.8&nbsp;GHz target, with S11 below −10&nbsp;dB. The Cerebras run tried 28 designs and settled at 5.83&nbsp;GHz and
+      −10.6&nbsp;dB. Generating took 7.5&nbsp;s across its 14 successful model calls, 2.6&nbsp;s of it for the write-up.
+      The OpenRouter run tried 20 designs and settled at 5.82&nbsp;GHz with a deeper match, −19.1&nbsp;dB. The Cerebras server
+      was busy during the hackathon and turned away 45 requests. Waiting those out took 10&nbsp;min&nbsp;47&nbsp;s, so that run
+      took 834&nbsp;s against 137&nbsp;s for the OpenRouter one. The
+      <a href="https://github.com/Llompi/NobuRF-Public/tree/main/launch/runs/race-2026-11-22T10-19-23">run logs</a> have
+      every model request and both final designs.
     </p>
     <p>My <a href="videos/">hackathon video</a> shows the Cerebras run, from the sentence to the tuned antenna.</p>
 
