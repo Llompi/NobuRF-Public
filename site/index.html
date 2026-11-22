@@ -347,17 +347,20 @@
   <section id="agent" aria-labelledby="agent-heading">
     <h2 id="agent-heading">From one sentence to an antenna</h2>
     <p>
-      For the Kimi K3.1 Pro hackathon on November 21 and 22, the solver becomes a tool for an AI agent. You type one line,
-      such as "a 2.4&nbsp;GHz patch on a 50&nbsp;mm FR-4 board". Kimi, running inside OpenClaw, reads it, sets up the design,
-      runs NobuRF solves, changes the geometry between them, and stops when S11 meets the goal it read or when it runs out of
-      solves. You can type a correction while it works, and it reads that with its next solve.
+      For the Kimi K3.1 Pro hackathon on November 21 and 22, 2026, I made the solver a tool for an AI agent. You type one line,
+      such as "a 5.8&nbsp;GHz patch on a 24&nbsp;mm FR-4 board". Kimi K3.1 Pro, running inside OpenClaw, reads it, sets up the
+      design, runs NobuRF solves, changes the geometry between them, and stops when S11 meets the goal it read or when it runs
+      out of solves. You can type a correction while it works, and it reads that with its next solve.
     </p>
     <p>
-      I'll give the same sentence to the same model on Cerebras and on a GPU-based provider, one lane after the other on
-      the same solver, and publish the logs. Each lane's clock starts at its first model request, and the logs keep model
-      time and solver time apart. Each lane ends on the 3D radiation pattern of the antenna it settled on.
+      I gave that sentence, plus a request for a short write-up of the final design, to the same model on Cerebras and on a
+      GPU-based provider, one lane after the other on the same solver. Both met the goal: within 1&nbsp;% of 5.8&nbsp;GHz,
+      with S11 below −10&nbsp;dB. The Cerebras lane tried 28 designs and settled at 5.83&nbsp;GHz and −10.6&nbsp;dB, with
+      7.5&nbsp;s of model generation across the whole run. The other lane tried 20 and settled at 5.82&nbsp;GHz with a deeper
+      match, −19.1&nbsp;dB. Under hackathon traffic the Cerebras lane also spent 10&nbsp;min&nbsp;47&nbsp;s waiting on rate
+      limits, so the other lane finished first.
     </p>
-    <p>My <a href="videos/">hackathon video</a> shows one of the runs, from a one-line request to a tuned 5.8&nbsp;GHz patch.</p>
+    <p>My <a href="videos/">hackathon video</a> shows the Cerebras run, from the sentence to the tuned antenna.</p>
 
   <figure>
     <div class="plate">
