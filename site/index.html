@@ -21,91 +21,8 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet" media="(prefers-color-scheme: dark)">
 <link rel="preload" as="image" href="assets/wave-poster.jpg">
+<link rel="stylesheet" href="assets/site.css">
 <style>
-  :root {
-    --page: #fbfbfa;
-    --ink: #16181d;
-    --ink-muted: #545a66;
-    --rule: #dcdde0;
-    --accent: #0b5cad;
-    --plate: #070b14;
-
-    --font-heading: "Source Serif 4", Georgia, serif;
-    --font-body: "IBM Plex Sans", system-ui, sans-serif;
-    --font-data: "IBM Plex Mono", ui-monospace, monospace;
-
-    --measure: 68ch;
-    --figure-width: 1120px;
-    --radius: 6px;
-    --space-1: 0.5rem;
-    --space-2: 1rem;
-    --space-3: 1.5rem;
-    --space-4: 2.5rem;
-    --space-5: 4.5rem;
-  }
-  /* Dark mode is the posters' look, not just inverted colors: warm near-black under a fine grain,
-     Jost capitals for headings, serif reading text, and figures that sit straight on the page. */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --page: #141413;
-      --ink: #e8e8e8;
-      --ink-muted: #b3b3ad;
-      --rule: #34342f;
-      --accent: #62cde8;
-      --plate: #141413;
-      --font-display: "Jost", "Futura", system-ui, sans-serif;
-      --font-reading: "Source Serif 4", Georgia, serif;
-      --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.6' intercept='-0.9'/%3E%3CfeFuncG type='linear' slope='2.6' intercept='-0.9'/%3E%3CfeFuncB type='linear' slope='2.6' intercept='-0.9'/%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    }
-  }
-
-  *, *::before, *::after { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    background: var(--page);
-    color: var(--ink);
-    font: 1.0625rem/1.6 var(--font-body);
-    text-rendering: optimizeLegibility;
-  }
-  img, video { display: block; max-width: 100%; height: auto; }
-  a { color: var(--accent); text-underline-offset: 0.18em; }
-  a:hover { text-decoration-thickness: 2px; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
-
-  .skip-link { position: absolute; left: var(--space-2); top: -3rem; padding: var(--space-1) var(--space-2); background: var(--ink); color: var(--page); z-index: 1; }
-  .skip-link:focus { top: var(--space-2); }
-
-  .page { max-width: calc(var(--figure-width) + 2 * var(--space-2)); margin-inline: auto; padding-inline: var(--space-2); }
-  .page :is(h1, h2, p, ol, pre) { max-width: var(--measure); }
-
-  .site-header { border-bottom: 1px solid var(--rule); }
-  .site-header .page { display: flex; align-items: baseline; gap: var(--space-3); padding-block: var(--space-2); }
-  .wordmark { font-family: var(--font-heading); font-weight: 600; font-size: 1.25rem; color: var(--ink); text-decoration: none; }
-  .site-nav { display: flex; gap: var(--space-3); margin-left: auto; font-size: 0.9375rem; }
-  .site-nav a { color: var(--ink-muted); text-decoration: none; padding-block: 0.6rem; }
-  .site-nav a:hover { color: var(--ink); text-decoration: underline; }
-
-  h1, h2 { font-family: var(--font-heading); font-weight: 600; line-height: 1.15; text-wrap: balance; }
-  h1 { font-size: clamp(2.1rem, 1.4rem + 3vw, 3.4rem); margin: var(--space-5) 0 var(--space-3); letter-spacing: -0.01em; }
-  h2 { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); margin: 0 0 var(--space-2); }
-  p { margin: 0 0 var(--space-2); text-wrap: pretty; }
-  .lede { font-size: 1.25rem; line-height: 1.5; }
-
-  .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-4) 0 var(--space-5); }
-  .button {
-    display: inline-flex; align-items: center; min-height: 44px; padding: 0 1.15rem;
-    border-radius: var(--radius); border: 1px solid var(--ink); color: var(--ink);
-    font-weight: 600; text-decoration: none; transition: background-color 150ms ease-out;
-  }
-  .button:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
-  .button.primary { background: var(--ink); color: var(--page); }
-  .button.primary:hover { background: color-mix(in srgb, var(--ink) 85%, var(--page)); }
-
-  figure { margin: var(--space-4) 0; }
-  .plate { background: var(--plate); border-radius: var(--radius); overflow: hidden; position: relative; }
-  figcaption { max-width: var(--measure); margin-top: var(--space-1); font-size: 0.9375rem; color: var(--ink-muted); }
-  figcaption b { color: var(--ink); font-weight: 600; }
   .motion-toggle {
     position: absolute; right: var(--space-1); bottom: var(--space-1); min-height: 44px; padding: 0 0.9rem;
     font: 500 0.875rem var(--font-body); color: #e7e8eb; background: rgba(7, 11, 20, 0.72);
@@ -138,10 +55,6 @@
   .figure-svg .label-openems { fill: #6fb6e0; }
   .figure-svg .halo { paint-order: stroke; stroke: var(--plate); stroke-width: 6px; stroke-linejoin: round; }
 
-  section { padding-block: var(--space-5) var(--space-3); border-top: 1px solid var(--rule); }
-
-  .data { font-family: var(--font-data); font-size: 0.95em; font-variant-numeric: tabular-nums; }
-
   ol.roadmap { padding-left: 2.1rem; margin: var(--space-3) 0; }
   ol.roadmap li { margin-bottom: var(--space-1); padding-left: 0.25rem; }
   ol.roadmap li::marker { font-family: var(--font-data); color: var(--ink-muted); }
@@ -151,9 +64,6 @@
     background: color-mix(in srgb, var(--ink) 6%, var(--page)); border-radius: var(--radius);
     font: 0.9375rem/1.7 var(--font-data);
   }
-
-  .site-footer { border-top: 1px solid var(--rule); padding-block: var(--space-4) var(--space-5); color: var(--ink-muted); font-size: 0.9375rem; }
-  .site-footer p { margin-bottom: var(--space-1); }
 
   .intro { padding-bottom: var(--space-2); }
 
@@ -182,34 +92,37 @@
   }
   .intro .actions { margin-bottom: 0; }
 
-  @media (max-width: 560px) {
-    .site-header .page { flex-wrap: wrap; row-gap: 0; }
-    .site-nav { margin-left: 0; gap: var(--space-2); }
-    .lede { font-size: 1.125rem; }
+  /* The run button: a play mark, and an accent ring that pulses outward twice after load, then stops.
+     The ring is a box-shadow, so it never takes up space or adds to the page's scroll width. */
+  .run-button { gap: 0.55rem; animation: run-pulse 2s cubic-bezier(0.22, 1, 0.36, 1) 0.6s 2; }
+  .run-icon { flex: none; transition: transform 150ms ease-out; }
+  .run-button:hover .run-icon { transform: translateX(2px); }
+  @keyframes run-pulse {
+    from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+    to { box-shadow: 0 0 0 12px color-mix(in srgb, var(--accent) 0%, transparent); }
   }
+  @media (prefers-reduced-motion: reduce) {
+    .run-button { animation: none; }
+    .run-icon { transition: none; }
+    .run-button:hover .run-icon { transform: none; }
+  }
+  .page .intro p.run-note { margin: var(--space-2) 0 0; font: 0.9375rem/1.5 var(--font-body); color: var(--ink-muted); }
+  @media (max-width: 560px) {
+    .intro .actions .button { flex: 1 1 100%; justify-content: center; }
+  }
+
   /* Dark mode rules, after the base rules so they win. */
   @media (prefers-color-scheme: dark) {
-    /* The posters' grain, behind the content so text and figures stay clean. It never takes a click. */
-    body::after {
-      content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-      background-image: var(--grain); mix-blend-mode: overlay;
-    }
-    .page :is(p, ol):not(.setup-prompt-toast) { font-family: var(--font-reading); font-size: 1.1875rem; line-height: 1.55; }
-    h1, h2 { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0; }
-    /* The posters set Jost at 90 % width. */
-    h2 { transform: scaleX(0.9); transform-origin: left; }
     .page h1 { font-size: clamp(2.4rem, 1rem + 4.8vw, 5rem); line-height: 0.95; text-align: center; max-width: none; transform: scaleX(0.9); }
-    h2 { font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem); line-height: 1; }
     .intro .lede { font-size: 1.3125rem; color: var(--ink); }
     /* Under the centered headline, the lede is a left-aligned column centered on the page. */
     @media (min-width: 900px) {
       .page .intro .lede { max-width: 40rem; margin-inline: auto; }
       .intro .actions { justify-content: center; }
+      .page .intro p.run-note { margin-inline: auto; text-align: center; }
     }
     .setup-prompt-row { justify-content: center; }
-    .button.primary { background: var(--ink); color: #111110; border-color: var(--ink); }
     /* Figures sit on the page itself, as on the posters: no card, and the recording fades out at its edges. */
-    .plate { border-radius: 0; overflow: visible; background: none; }
     .plate video {
       /* The recording's navy background lightens to the page color, and its edges fade out. */
       mix-blend-mode: lighten;
@@ -224,18 +137,12 @@
     .figure-svg .point-earlier { fill: var(--page); }
     .motion-toggle { background: color-mix(in srgb, var(--page) 72%, transparent); }
     .figure-svg .leader { stroke: #5a5a54; }
-    figcaption { font-family: var(--font-body); }
-    .page .data, pre { font-family: var(--font-data); }
-    pre { background: #222220; }
+    pre { font-family: var(--font-data); background: #222220; }
   }
   @media (prefers-color-scheme: dark) and (max-width: 560px) {
     .intro .lede { font-size: 1.1875rem; }
     .page h1 { line-height: 1; }
-    .intro .actions .button { flex: 1 1 100%; justify-content: center; }
     .plate video { --fade-edges: linear-gradient(to bottom, transparent, #000 6%, #000 92%, transparent); }
-  }
-  @media (prefers-color-scheme: dark) and (prefers-contrast: more), (forced-colors: active), print {
-    body::after { display: none; }
   }
 </style>
 </head>
@@ -245,9 +152,10 @@
 <header class="site-header">
   <div class="page">
     <a class="wordmark" href="#main">NobuRF</a>
-    <nav class="site-nav" aria-label="Sections">
+    <nav class="site-nav" aria-label="Site">
       <a href="#accuracy">Accuracy</a>
       <a href="#agent">AI design</a>
+      <a href="videos/">Videos</a>
       <a href="#roadmap">Roadmap</a>
       <a href="https://github.com/Llompi/NobuRF-Public">GitHub</a>
     </nav>
@@ -270,9 +178,13 @@
       NobuRF is a 3D field solver for antennas. It runs on your GPU through WebGPU (tested in Chrome and Edge). On my laptop's GTX&nbsp;1660&nbsp;Ti, a 5.8&nbsp;GHz patch antenna (66&nbsp;×&nbsp;66&nbsp;×&nbsp;48 cells at 0.5&nbsp;mm, run until the field energy has fallen 50&nbsp;dB) solved in 1.9&nbsp;s, about 3&nbsp;s from click to results.
     </p>
     <div class="actions">
-      <a class="button primary" href="app/">Open the workbench</a>
+      <a class="button primary run-button" href="app/">
+        <svg class="run-icon" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 1.8v10.4a.6.6 0 0 0 .9.5l8.4-5.2a.6.6 0 0 0 0-1L3.9 1.3a.6.6 0 0 0-.9.5Z" fill="currentColor"/></svg>
+        Run NobuRF in your browser
+      </a>
       <a class="button" href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">Read the validation report</a>
     </div>
+    <p class="run-note">There's nothing to install. The whole solver runs in this tab, on your own GPU when the browser supports WebGPU.</p>
   </div>
 
   <figure>
@@ -435,17 +347,20 @@
   <section id="agent" aria-labelledby="agent-heading">
     <h2 id="agent-heading">From one sentence to an antenna</h2>
     <p>
-      For the Kimi K3.1 Pro hackathon on November 21 and 22, the solver becomes a tool for an AI agent. You type one line,
-      such as "a 2.4&nbsp;GHz patch on a 50&nbsp;mm FR-4 board". Kimi, running inside OpenClaw, reads it, sets up the design,
-      runs NobuRF solves, changes the geometry between them, and stops when S11 meets the goal it read or when it runs out of
-      solves. You can type a correction while it works, and it reads that with its next solve.
+      For the Kimi K3.1 Pro hackathon on November 21 and 22, 2026, I made the solver a tool for an AI agent. You type one line,
+      such as "a 5.8&nbsp;GHz patch on a 24&nbsp;mm FR-4 board". Kimi K3.1 Pro, running inside OpenClaw, reads it, sets up the
+      design, runs NobuRF solves, changes the geometry between them, and stops when S11 meets the goal it read or when it runs
+      out of solves. You can type a correction while it works, and it reads that with its next solve.
     </p>
     <p>
-      I'll give the same sentence to the same model on Cerebras and on a GPU-based provider, one lane after the other on
-      the same solver, and publish the logs. Each lane's clock starts at its first model request, and the logs keep model
-      time and solver time apart. Each lane ends on the 3D radiation pattern of the antenna it settled on.
+      I gave that sentence, plus a request for a short write-up of the final design, to the same model on Cerebras and on a
+      GPU-based provider, one lane after the other on the same solver. Both met the goal: within 1&nbsp;% of 5.8&nbsp;GHz,
+      with S11 below −10&nbsp;dB. The Cerebras lane tried 28 designs and settled at 5.83&nbsp;GHz and −10.6&nbsp;dB, with
+      7.5&nbsp;s of model generation across the whole run. The other lane tried 20 and settled at 5.82&nbsp;GHz with a deeper
+      match, −19.1&nbsp;dB. Under hackathon traffic the Cerebras lane also spent 10&nbsp;min&nbsp;47&nbsp;s waiting on rate
+      limits, so the other lane finished first.
     </p>
-    <p>The results will be posted here after the runs.</p>
+    <p>My <a href="videos/">hackathon video</a> shows the Cerebras run, from the sentence to the tuned antenna.</p>
 
   <figure>
     <div class="plate">
@@ -565,7 +480,7 @@
   <section id="run" aria-labelledby="run-heading">
     <h2 id="run-heading">Run it</h2>
     <p>
-      The <a href="app/">workbench</a> runs in this browser tab: nothing to install, and your project stays on your machine.
+      The <a href="app/">workbench</a> keeps your project on your machine, in this browser's storage.
       Without WebGPU it solves on the CPU, which is much slower.
     </p>
     <p>To run it from the source instead, with the agent bridge, you need Node.js 20.19 or later, and a browser with WebGPU, such as Chrome or Edge, for GPU solves.</p>
