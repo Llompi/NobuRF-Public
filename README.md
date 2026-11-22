@@ -108,9 +108,30 @@ Never commit a key or paste one into an issue.
 
 ## License
 
-NobuRF is licensed under the [GNU Affero General Public License, version 3](LICENSE). If you run a changed
-version as a service, the AGPL asks you to offer your users its source. Contributions are accepted under a
-[Contributor License Agreement](CLA.md), which lets the owner offer other license terms as well.
+Copyright (C) 2026 Llompi. NobuRF is licensed under the [GNU Affero General Public License, version 3](LICENSE).
+If you distribute NobuRF, or let people use a changed version over a network, the AGPL requires you to offer them
+the source of that version under the AGPL.
+
+### Your designs are yours
+
+The AGPL covers the NobuRF software, not what you make with it. The antenna and board designs, project files,
+field data, S-parameters, plots and exports you create with NobuRF are yours, and the NobuRF project claims no
+rights in them. You can use them in closed hardware and commercial products with no AGPL obligations. The project
+files in `examples/` are also available under [CC0-1.0](examples/LICENSE), so designs you start from them carry no
+AGPL obligations either.
+
+### Why there's a CLA
+
+NobuRF is maintained by one person. Contributions are accepted under a [Contributor License Agreement](CLA.md),
+which lets the owner also sell commercial licenses to companies that want to build NobuRF into closed software or
+can't use AGPL software. That pays for the work, and the AGPL version stays complete and free: buyers get
+different license terms, not extra features. You keep the copyright in your contributions, and a bot asks you to
+sign once, on your first pull request.
+
+### Commercial licenses
+
+To build NobuRF into a closed product or service, or if your company doesn't allow AGPL software, see
+[COMMERCIAL.md](COMMERCIAL.md).
 
 ---
 
