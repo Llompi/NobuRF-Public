@@ -1,0 +1,932 @@
+[
+  {
+    "started_at": 1795342848933,
+    "ended_at": 1795342849263,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795342852141,
+    "ended_at": 1795342852237,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795342854891,
+    "ended_at": 1795342854991,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795342860721,
+    "ended_at": 1795342860858,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795342867050,
+    "ended_at": 1795342867195,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795342881601,
+    "ended_at": 1795342881743,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795342907408,
+    "ended_at": 1795342907566,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795342974170,
+    "ended_at": 1795342974324,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343038512,
+    "ended_at": 1795343038670,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343103384,
+    "ended_at": 1795343109237,
+    "http_status": 200,
+    "time_to_first_token_ms": 5421,
+    "prompt_tokens": 3956,
+    "completion_tokens": 184,
+    "reasoning_tokens": 79,
+    "usage_reported": true,
+    "cost_usd": 0.014076,
+    "tool_calls": [
+      {
+        "name": "noburf__start_design",
+        "arguments": "{\"target_ghz\": 5.8, \"board_w_mm\": 24, \"board_l_mm\": 24, \"substrate\": \"FR-4\"}"
+      }
+    ],
+    "last_token_ms": 5845,
+    "server_timing": {
+      "queue_s": 4.982886649999999,
+      "prompt_s": 0.185833019,
+      "completion_s": 0.423984485,
+      "total_s": 5.594921112060547
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343110416,
+    "ended_at": 1795343110632,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343112209,
+    "ended_at": 1795343112335,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343114857,
+    "ended_at": 1795343114949,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343119354,
+    "ended_at": 1795343119519,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343126386,
+    "ended_at": 1795343126541,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343142349,
+    "ended_at": 1795343142475,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343180840,
+    "ended_at": 1795343185711,
+    "http_status": 200,
+    "time_to_first_token_ms": 4694,
+    "prompt_tokens": 4841,
+    "completion_tokens": 62,
+    "reasoning_tokens": 13,
+    "usage_reported": true,
+    "cost_usd": 0.015267,
+    "tool_calls": [
+      {
+        "name": "noburf__try_design",
+        "arguments": "{\"values\": {}}"
+      }
+    ],
+    "last_token_ms": 4864,
+    "server_timing": {
+      "queue_s": 3.663931539,
+      "prompt_s": 0.7733733079999999,
+      "completion_s": 0.134539225,
+      "total_s": 4.579033136367798
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343194149,
+    "ended_at": 1795343194295,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343195203,
+    "ended_at": 1795343195300,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343196542,
+    "ended_at": 1795343196636,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343199645,
+    "ended_at": 1795343199745,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343204237,
+    "ended_at": 1795343204426,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343215625,
+    "ended_at": 1795343215826,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343237895,
+    "ended_at": 1795343238036,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343301653,
+    "ended_at": 1795343301814,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343361685,
+    "ended_at": 1795343361823,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343420243,
+    "ended_at": 1795343426737,
+    "http_status": 200,
+    "time_to_first_token_ms": 5891,
+    "prompt_tokens": 5092,
+    "completion_tokens": 176,
+    "reasoning_tokens": 107,
+    "usage_reported": true,
+    "cost_usd": 0.017388,
+    "tool_calls": [
+      {
+        "name": "noburf__optimise",
+        "arguments": "{\"free\": [\"patch_l\"], \"max_solves\": 7}"
+      }
+    ],
+    "last_token_ms": 6488,
+    "server_timing": {
+      "queue_s": 4.799683842,
+      "prompt_s": 0.832225247,
+      "completion_s": 0.595384433,
+      "total_s": 6.237519025802612
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343441937,
+    "ended_at": 1795343442106,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343443452,
+    "ended_at": 1795343443589,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343445675,
+    "ended_at": 1795343445791,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343450459,
+    "ended_at": 1795343451097,
+    "http_status": 200,
+    "time_to_first_token_ms": 445,
+    "prompt_tokens": 5466,
+    "completion_tokens": 93,
+    "reasoning_tokens": 9,
+    "usage_reported": true,
+    "cost_usd": 0.017514,
+    "tool_calls": [
+      {
+        "name": "noburf__try_design",
+        "arguments": "{\"enable\": [\"inset\"], \"values\": {\"inset_d\": 2.5, \"inset_gap\": 1}}"
+      }
+    ],
+    "last_token_ms": 630,
+    "server_timing": {
+      "queue_s": 0.008664383000000025,
+      "prompt_s": 0.10309889800000001,
+      "completion_s": 0.178561198,
+      "total_s": 0.30292749404907227
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343454818,
+    "ended_at": 1795343460243,
+    "http_status": 200,
+    "time_to_first_token_ms": 5177,
+    "prompt_tokens": 5843,
+    "completion_tokens": 111,
+    "reasoning_tokens": 35,
+    "usage_reported": true,
+    "cost_usd": 0.018861,
+    "tool_calls": [
+      {
+        "name": "noburf__optimise",
+        "arguments": "{\"free\": [\"patch_l\", \"inset_d\", \"feed_w\"], \"max_solves\": 14}"
+      }
+    ],
+    "last_token_ms": 5418,
+    "server_timing": {
+      "queue_s": 3.255859396,
+      "prompt_s": 1.689452327,
+      "completion_s": 0.229629129,
+      "total_s": 5.181008338928223
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343508541,
+    "ended_at": 1795343508701,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343510287,
+    "ended_at": 1795343510431,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343512968,
+    "ended_at": 1795343513073,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343516544,
+    "ended_at": 1795343516636,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343521321,
+    "ended_at": 1795343521460,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343534838,
+    "ended_at": 1795343540749,
+    "http_status": 200,
+    "time_to_first_token_ms": 5085,
+    "prompt_tokens": 6250,
+    "completion_tokens": 228,
+    "reasoning_tokens": 172,
+    "usage_reported": true,
+    "cost_usd": 0.021486,
+    "tool_calls": [
+      {
+        "name": "noburf__try_design",
+        "arguments": "{\"values\": {\"patch_l\": 11.455}}"
+      }
+    ],
+    "last_token_ms": 5901,
+    "server_timing": {
+      "queue_s": 4.169613277,
+      "prompt_s": 0.663891159,
+      "completion_s": 0.817405307,
+      "total_s": 5.654650688171387
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343543545,
+    "ended_at": 1795343545998,
+    "http_status": 200,
+    "time_to_first_token_ms": 2398,
+    "prompt_tokens": 6763,
+    "completion_tokens": 39,
+    "reasoning_tokens": 6,
+    "usage_reported": true,
+    "cost_usd": 0.020757,
+    "tool_calls": [
+      {
+        "name": "noburf__confirm",
+        "arguments": "{}"
+      }
+    ],
+    "last_token_ms": 2444,
+    "server_timing": {
+      "queue_s": 1.843807593,
+      "prompt_s": 0.348644027,
+      "completion_s": 0.035389238,
+      "total_s": 2.231022596359253
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343558082,
+    "ended_at": 1795343560624,
+    "http_status": 200,
+    "time_to_first_token_ms": 1982,
+    "prompt_tokens": 6948,
+    "completion_tokens": 220,
+    "reasoning_tokens": 132,
+    "usage_reported": true,
+    "cost_usd": 0.023484,
+    "tool_calls": [
+      {
+        "name": "noburf__optimise",
+        "arguments": "{\"free\": [\"patch_l\"], \"max_solves\": 6, \"aim_ghz\": 5.733}"
+      }
+    ],
+    "last_token_ms": 2509,
+    "server_timing": {
+      "queue_s": 1.632949398,
+      "prompt_s": 0.062637572,
+      "completion_s": 0.554987421,
+      "total_s": 2.25297212600708
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343574128,
+    "ended_at": 1795343574267,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343576027,
+    "ended_at": 1795343576129,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343579181,
+    "ended_at": 1795343579272,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343583836,
+    "ended_at": 1795343583979,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343589414,
+    "ended_at": 1795343589556,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343600925,
+    "ended_at": 1795343603284,
+    "http_status": 200,
+    "time_to_first_token_ms": 1800,
+    "prompt_tokens": 7462,
+    "completion_tokens": 154,
+    "reasoning_tokens": 98,
+    "usage_reported": true,
+    "cost_usd": 0.024234,
+    "tool_calls": [
+      {
+        "name": "noburf__try_design",
+        "arguments": "{\"values\": {\"patch_l\": 11.72}}"
+      }
+    ],
+    "last_token_ms": 2350,
+    "server_timing": {
+      "queue_s": 0.6822006939999999,
+      "prompt_s": 0.785779898,
+      "completion_s": 0.55290867,
+      "total_s": 2.0235557556152344
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343607589,
+    "ended_at": 1795343610530,
+    "http_status": 200,
+    "time_to_first_token_ms": 2780,
+    "prompt_tokens": 7903,
+    "completion_tokens": 67,
+    "reasoning_tokens": 34,
+    "usage_reported": true,
+    "cost_usd": 0.024513,
+    "tool_calls": [
+      {
+        "name": "noburf__confirm",
+        "arguments": "{}"
+      }
+    ],
+    "last_token_ms": 2931,
+    "server_timing": {
+      "queue_s": 1.9611802750000003,
+      "prompt_s": 0.57061465,
+      "completion_s": 0.152518856,
+      "total_s": 2.6871378421783447
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343621658,
+    "ended_at": 1795343621812,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343623536,
+    "ended_at": 1795343623630,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343626510,
+    "ended_at": 1795343626611,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343630538,
+    "ended_at": 1795343632385,
+    "http_status": 200,
+    "time_to_first_token_ms": 1444,
+    "prompt_tokens": 8118,
+    "completion_tokens": 152,
+    "reasoning_tokens": 96,
+    "usage_reported": true,
+    "cost_usd": 0.026178,
+    "tool_calls": [
+      {
+        "name": "noburf__try_design",
+        "arguments": "{\"values\": {\"patch_l\": 11.56}}"
+      }
+    ],
+    "last_token_ms": 1839,
+    "server_timing": {
+      "queue_s": 0.008710846999999966,
+      "prompt_s": 1.039335189,
+      "completion_s": 0.397643471,
+      "total_s": 1.448094129562378
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343635358,
+    "ended_at": 1795343636506,
+    "http_status": 200,
+    "time_to_first_token_ms": 1082,
+    "prompt_tokens": 8555,
+    "completion_tokens": 39,
+    "reasoning_tokens": 6,
+    "usage_reported": true,
+    "cost_usd": 0.026133,
+    "tool_calls": [
+      {
+        "name": "noburf__confirm",
+        "arguments": "{}"
+      }
+    ],
+    "last_token_ms": 1113,
+    "server_timing": {
+      "queue_s": 0.13659631799999994,
+      "prompt_s": 0.526702654,
+      "completion_s": 0.03073123,
+      "total_s": 0.7762241363525391
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343645148,
+    "ended_at": 1795343649009,
+    "http_status": 200,
+    "time_to_first_token_ms": 3299,
+    "prompt_tokens": 8740,
+    "completion_tokens": 226,
+    "reasoning_tokens": 26,
+    "usage_reported": true,
+    "cost_usd": 0.028932,
+    "tool_calls": [
+      {
+        "name": "noburf__finish",
+        "arguments": "{\"summary\": \"Confirmed a 5.8 GHz inset-fed rectangular patch on a 24 \\u00d7 24 mm, 1.6 mm FR-4 board. Final dimensions: patch 15.728 \\u00d7 11.56 mm, feed width 2.828 mm, inset depth 3.135 mm, inset gap 1 mm. Fine-mesh result: f0 = 5.831 GHz, S11(5.8 GHz) = \\u221210.6 dB, minimum S11 = \\u221210.6 dB, bandwidth = 222 MHz; goal met with score 0. Shortening and retuning patch length corrected resonance; the inset and feed-width adjustment improved matching. The last length adjustment compensated the coarse/fine mesh frequency offset.\"}"
+      }
+    ],
+    "last_token_ms": 3855,
+    "server_timing": {
+      "queue_s": 2.980374079,
+      "prompt_s": 0.045868675,
+      "completion_s": 0.557465099,
+      "total_s": 3.586980104446411
+    },
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343649086,
+    "ended_at": 1795343649215,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343650623,
+    "ended_at": 1795343650714,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343652249,
+    "ended_at": 1795343652359,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343655934,
+    "ended_at": 1795343656038,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343666052,
+    "ended_at": 1795343666214,
+    "http_status": 429,
+    "time_to_first_token_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "reasoning_tokens": null,
+    "usage_reported": false,
+    "cost_usd": 0,
+    "tool_calls": [],
+    "error": "{\"message\":\"We're experiencing high traffic right now! Please try again soon.\",\"type\":\"too_many_requests_error\",\"param\":\"queue\",\"code\":\"queue_exceeded\"}"
+  },
+  {
+    "started_at": 1795343674539,
+    "ended_at": 1795343680560,
+    "http_status": 200,
+    "time_to_first_token_ms": 3391,
+    "prompt_tokens": 9003,
+    "completion_tokens": 843,
+    "reasoning_tokens": 368,
+    "usage_reported": true,
+    "cost_usd": 0.037125,
+    "tool_calls": [],
+    "last_token_ms": 6012,
+    "server_timing": {
+      "queue_s": 2.9774582240000003,
+      "prompt_s": 0.138430229,
+      "completion_s": 2.623953632,
+      "total_s": 5.747185945510864
+    },
+    "finish_reason": "stop"
+  }
+]

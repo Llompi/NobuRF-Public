@@ -1,0 +1,75 @@
+{
+  "sentence": "a 5.8 GHz patch on a 24 mm FR-4 board, then explain the final design and why each change helped in about 300 words",
+  "harness": "OpenClaw",
+  "goal": {
+    "s11_max_db": -10,
+    "f_tolerance_pct": 1,
+    "target_ghz": 5.8
+  },
+  "model": "moonshotai/kimi-k3.1-pro on openrouter",
+  "reasoning_effort": "high",
+  "solver": "WGSL (GPU)",
+  "ended": "finished",
+  "openclaw_exit": 0,
+  "best_confirmed": {
+    "met": true,
+    "score": 0,
+    "point": {
+      "enabled": [
+        "inset"
+      ],
+      "values": {
+        "patch_w": 15.728,
+        "patch_l": 11.85,
+        "feed_w": 3.059,
+        "inset_d": 3.874,
+        "inset_gap": 1,
+        "slot_l": 7.864,
+        "slot_w": 1,
+        "slot_y": 0,
+        "stub_l": 3,
+        "stub_w": 1,
+        "stub_d": 2,
+        "chamfer": 1.573
+      }
+    },
+    "metrics": {
+      "f0_ghz": 5.815746523292021,
+      "s11_min_db": -19.34306396457421,
+      "s11_at_target_db": -19.13889156356257,
+      "bandwidth_mhz": 385.9967969238971,
+      "bandwidth_open": false,
+      "zin_target_ohm": 56.668716053984056
+    }
+  },
+  "timing": {
+    "wall_s": 137.1,
+    "model_s": 16.4,
+    "first_token_wait_s": 7.5,
+    "generating_s": 8.9,
+    "rate_limit_wait_s": 0,
+    "tools_s": 101.1,
+    "other_s": 19.6,
+    "harness_startup_s": 84.9,
+    "held_s": 834.2,
+    "model_turns": 11
+  },
+  "solves": {
+    "search": 20,
+    "confirm": 3
+  },
+  "tokens": {
+    "prompt": 65142,
+    "completion": 1371,
+    "reasoning": 111,
+    "calls_without_usage": 0
+  },
+  "calls_refused_by_spend_cap": 0,
+  "person_says": [],
+  "restarts": 0,
+  "cost_usd": 0.21188,
+  "openclaw": {
+    "status": "ok",
+    "error_kind": null
+  }
+}

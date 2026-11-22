@@ -23,11 +23,11 @@
 <link rel="stylesheet" href="../assets/site.css">
 <style>
   .intro { padding-bottom: var(--space-2); }
-  /* A 9:16 and a 1:1 video in 9fr and 16fr columns come out the same height.
-     The width cap keeps that height under 75 % of the screen, so the controls show on a laptop. */
+  /* A 9:16 and a 1:1 video in 9fr and 16fr columns come out the same height. The width cap holds that
+     height to the screen less the header and intro (about 21rem), so the controls show on a laptop. */
   .films {
     display: grid; grid-template-columns: 9fr 16fr; gap: var(--space-4); align-items: start;
-    max-width: calc(75svh * 25 / 16 + var(--space-4)); margin-bottom: var(--space-5);
+    max-width: calc(max(100svh - 21rem, 24rem) * 25 / 16 + var(--space-4)); margin-bottom: var(--space-5);
   }
   .films figure { margin: 0; }
   .films video { width: 100%; background: #1a1a19; }
@@ -62,7 +62,7 @@
   <div class="intro">
     <h1>Videos</h1>
     <p class="lede">
-      Two short videos about NobuRF, both with sound. To try the solver yourself, <a href="../app/">run it in your browser</a>.
+      Two short videos about NobuRF. Both have music and on-screen text, with no narration. To try the solver yourself, <a href="../app/">run it in your browser</a>.
     </p>
   </div>
 
@@ -75,9 +75,10 @@
         </video>
       </div>
       <figcaption id="hackathon-entry-caption">
-        <b>Figure 1.</b> My entry for the Kimi K3.1 Pro on Cerebras hackathon, 53&nbsp;s. From a one-line request, an
+        <b>Figure 1.</b> My entry for the Kimi K3.1 Pro hackathon, 53&nbsp;s. From a one-line request, an
         OpenClaw agent running Kimi K3.1 Pro on Cerebras tunes a 5.8&nbsp;GHz patch antenna, with a full 3D NobuRF solve
-        on every try. The timings on screen come from the run logs.
+        on every try. The timings on screen come from the
+        <a href="https://github.com/Llompi/NobuRF-Public/tree/main/launch/runs/race-2026-11-22T10-19-23">run logs</a>.
       </figcaption>
     </figure>
 
@@ -98,7 +99,7 @@
 
 <footer class="site-footer">
   <div class="page">
-    <p>Built for the Kimi K3.1 Pro on Cerebras hackathon.</p>
+    <p>Built for the Kimi K3.1 Pro hackathon on Cerebras.</p>
     <p>It is an independent project, not affiliated with or endorsed by any commercial solver vendor.</p>
     <p>NobuRF is free software under the <a href="https://github.com/Llompi/NobuRF-Public/blob/main/LICENSE">GNU AGPL-3.0</a>. The designs and results you make with it are yours. To build it into closed software, see <a href="https://github.com/Llompi/NobuRF-Public/blob/main/COMMERCIAL.md">commercial licenses</a>.</p>
     <p>Privacy: NobuRF's solver runs in your browser, on your GPU or CPU, and this site never uploads your designs. The app keeps your latest design in this browser's storage. NobuRF has no ads, sets no cookies of its own, and doesn't track you across sites. The site is hosted on Cloudflare, which uses its cookie-free Web Analytics to count visits and measure page load times. If Cloudflare's bot protection flags a visit, it may set a security cookie. Fonts load from Google Fonts. Cloudflare and Google receive standard request details, such as your IP address. The AI design features aren't part of this site. They run from your own computer with your own API key, and they send your prompts to the AI provider you choose.</p>

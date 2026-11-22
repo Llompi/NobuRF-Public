@@ -1,0 +1,217 @@
+[
+  {
+    "started_at": 1795343683137,
+    "ended_at": 1795343685392,
+    "http_status": 200,
+    "time_to_first_token_ms": 770,
+    "prompt_tokens": 3933,
+    "completion_tokens": 186,
+    "reasoning_tokens": 81,
+    "usage_reported": true,
+    "cost_usd": 0.014031,
+    "tool_calls": [
+      {
+        "name": "noburf__start_design",
+        "arguments": "{\"target_ghz\": 5.8, \"board_w_mm\": 24, \"board_l_mm\": 24, \"substrate\": \"FR-4\"}"
+      }
+    ],
+    "last_token_ms": 2245,
+    "served_by": "Parasail",
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343686406,
+    "ended_at": 1795343687525,
+    "http_status": 200,
+    "time_to_first_token_ms": 495,
+    "prompt_tokens": 4742,
+    "completion_tokens": 77,
+    "reasoning_tokens": 3,
+    "usage_reported": true,
+    "cost_usd": 0.01515,
+    "tool_calls": [
+      {
+        "name": "noburf__try_design",
+        "arguments": "{\"enable\": [\"inset\"]}"
+      }
+    ],
+    "last_token_ms": 1075,
+    "served_by": "Parasail",
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343695856,
+    "ended_at": 1795343696615,
+    "http_status": 200,
+    "time_to_first_token_ms": 667,
+    "prompt_tokens": 5102,
+    "completion_tokens": 36,
+    "reasoning_tokens": 3,
+    "usage_reported": true,
+    "cost_usd": 0.015738,
+    "tool_calls": [
+      {
+        "name": "noburf__confirm",
+        "arguments": "{}"
+      }
+    ],
+    "last_token_ms": 693,
+    "served_by": "Parasail",
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343707671,
+    "ended_at": 1795343709169,
+    "http_status": 200,
+    "time_to_first_token_ms": 743,
+    "prompt_tokens": 5286,
+    "completion_tokens": 115,
+    "reasoning_tokens": 3,
+    "usage_reported": true,
+    "cost_usd": 0.017238,
+    "tool_calls": [
+      {
+        "name": "noburf__optimise",
+        "arguments": "{\"free\": [\"patch_l\", \"inset_d\"], \"max_solves\": 20, \"aim_ghz\": 5.676, \"aim_s11_db\": -15}"
+      }
+    ],
+    "last_token_ms": 1485,
+    "served_by": "Parasail",
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343739447,
+    "ended_at": 1795343740272,
+    "http_status": 200,
+    "time_to_first_token_ms": 732,
+    "prompt_tokens": 5698,
+    "completion_tokens": 36,
+    "reasoning_tokens": 3,
+    "usage_reported": true,
+    "cost_usd": 0.017526,
+    "tool_calls": [
+      {
+        "name": "noburf__confirm",
+        "arguments": "{}"
+      }
+    ],
+    "last_token_ms": 816,
+    "served_by": "Parasail",
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343749019,
+    "ended_at": 1795343750526,
+    "http_status": 200,
+    "time_to_first_token_ms": 704,
+    "prompt_tokens": 5882,
+    "completion_tokens": 115,
+    "reasoning_tokens": 3,
+    "usage_reported": true,
+    "cost_usd": 0.019026,
+    "tool_calls": [
+      {
+        "name": "noburf__optimise",
+        "arguments": "{\"free\": [\"patch_l\", \"inset_d\"], \"max_solves\": 10, \"aim_ghz\": 5.687, \"aim_s11_db\": -15}"
+      }
+    ],
+    "last_token_ms": 1497,
+    "served_by": "Parasail",
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343778998,
+    "ended_at": 1795343779988,
+    "http_status": 200,
+    "time_to_first_token_ms": 682,
+    "prompt_tokens": 6293,
+    "completion_tokens": 70,
+    "reasoning_tokens": 3,
+    "usage_reported": true,
+    "cost_usd": 0.019719,
+    "tool_calls": [
+      {
+        "name": "noburf__try_design",
+        "arguments": "{\"values\": {\"patch_l\": 11.9, \"inset_d\": 3.874}}"
+      }
+    ],
+    "last_token_ms": 981,
+    "served_by": "Parasail",
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343783463,
+    "ended_at": 1795343784353,
+    "http_status": 200,
+    "time_to_first_token_ms": 624,
+    "prompt_tokens": 6650,
+    "completion_tokens": 60,
+    "reasoning_tokens": 3,
+    "usage_reported": true,
+    "cost_usd": 0.02067,
+    "tool_calls": [
+      {
+        "name": "noburf__try_design",
+        "arguments": "{\"values\": {\"patch_l\": 11.85}}"
+      }
+    ],
+    "last_token_ms": 883,
+    "served_by": "Parasail",
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343787267,
+    "ended_at": 1795343788030,
+    "http_status": 200,
+    "time_to_first_token_ms": 679,
+    "prompt_tokens": 6997,
+    "completion_tokens": 36,
+    "reasoning_tokens": 3,
+    "usage_reported": true,
+    "cost_usd": 0.021423,
+    "tool_calls": [
+      {
+        "name": "noburf__confirm",
+        "arguments": "{}"
+      }
+    ],
+    "last_token_ms": 757,
+    "served_by": "Parasail",
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343796576,
+    "ended_at": 1795343797978,
+    "http_status": 200,
+    "time_to_first_token_ms": 539,
+    "prompt_tokens": 7179,
+    "completion_tokens": 164,
+    "reasoning_tokens": 3,
+    "usage_reported": true,
+    "cost_usd": 0.023505,
+    "tool_calls": [
+      {
+        "name": "noburf__finish",
+        "arguments": "{\"summary\": \"Final confirmed design: 24×24 mm FR-4 board (1.6 mm), rectangular patch W=15.728 mm, L=11.85 mm, edge feed width 3.059 mm, inset feed depth 3.874 mm with 1 mm notch gaps. Fine-mesh f0=5.816 GHz (within 1% of 5.8), S11(5.8)=−19.1 dB, dip −19.3 dB, bandwidth 386 MHz. Only the inset feature is enabled.\"}"
+      }
+    ],
+    "last_token_ms": 1395,
+    "served_by": "Parasail",
+    "finish_reason": "tool_calls"
+  },
+  {
+    "started_at": 1795343798058,
+    "ended_at": 1795343802461,
+    "http_status": 200,
+    "time_to_first_token_ms": 914,
+    "prompt_tokens": 7380,
+    "completion_tokens": 476,
+    "reasoning_tokens": 3,
+    "usage_reported": true,
+    "cost_usd": 0.027852,
+    "tool_calls": [],
+    "last_token_ms": 4394,
+    "served_by": "Parasail",
+    "finish_reason": "stop"
+  }
+]
