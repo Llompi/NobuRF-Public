@@ -43,7 +43,7 @@ DNS filters don't resolve a domain that new yet. Switch the rule on once noburf.
 
 Keep `noburf.llom.party` attached and serving: the launch posts on X, Reddit and Discord link to it.
 Redirect Rules are free (10 per zone on the Free plan) and run before Pages, so they don't add a Function.
-They only fire on proxied traffic, so keep the DNS records for all three hosts proxied (orange cloud).
+They only fire on proxied traffic, so keep the DNS records for `www.noburf.com` and `noburf.llom.party` (and the apex) proxied (orange cloud).
 
 ## Why traffic does not bill
 
