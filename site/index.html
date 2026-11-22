@@ -108,7 +108,7 @@
   }
   .page .intro p.run-note { margin: var(--space-2) 0 0; font: 0.9375rem/1.5 var(--font-body); color: var(--ink-muted); }
   @media (max-width: 560px) {
-    .intro .actions .run-button { flex: 1 1 100%; justify-content: center; }
+    .intro .actions .button { flex: 1 1 100%; justify-content: center; }
   }
 
   /* Dark mode rules, after the base rules so they win. */
@@ -142,7 +142,6 @@
   @media (prefers-color-scheme: dark) and (max-width: 560px) {
     .intro .lede { font-size: 1.1875rem; }
     .page h1 { line-height: 1; }
-    .intro .actions .button { flex: 1 1 100%; justify-content: center; }
     .plate video { --fade-edges: linear-gradient(to bottom, transparent, #000 6%, #000 92%, transparent); }
   }
 </style>
