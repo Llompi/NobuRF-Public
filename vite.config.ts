@@ -15,6 +15,8 @@ export default defineConfig({
   worker: { format: 'es' },
   build: {
     target: 'es2022',
+    // MIT and BSD require keeping the notices of bundled libraries (three.js); Vite writes them here.
+    license: { fileName: 'third-party-licenses.md' },
     rollupOptions: { input: { main: 'index.html', race: 'race.html', selftest: 'selftest.html', workbench: 'workbench.html' } },
   },
   test: {
