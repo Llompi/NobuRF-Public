@@ -41,6 +41,7 @@ path and query string:
 
 Keep `noburf.llom.party` attached and redirecting: the launch posts on X, Reddit and Discord link to it.
 Redirect Rules are free (10 per zone on the Free plan) and run before Pages, so they don't add a Function.
+They only fire on proxied traffic, so keep the DNS records for all three hosts proxied (orange cloud).
 
 ## Why traffic does not bill
 
