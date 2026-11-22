@@ -353,12 +353,15 @@
       out of solves. You can type a correction while it works, and it reads that with its next solve.
     </p>
     <p>
-      I gave that sentence, plus a request for a short write-up of the final design, to the same model on Cerebras and on a
-      GPU-based provider, one lane after the other on the same solver. Both met the goal: within 1&nbsp;% of 5.8&nbsp;GHz,
-      with S11 below −10&nbsp;dB. The Cerebras lane tried 28 designs and settled at 5.83&nbsp;GHz and −10.6&nbsp;dB, with
-      7.5&nbsp;s of model generation across the whole run. The other lane tried 20 and settled at 5.82&nbsp;GHz with a deeper
-      match, −19.1&nbsp;dB. Under hackathon traffic the Cerebras lane also spent 10&nbsp;min&nbsp;47&nbsp;s waiting on rate
-      limits, so the other lane finished first.
+      I gave that sentence, plus a request for a short write-up of the final design, to Kimi K3.1 Pro on Cerebras, and then
+      to the same model through OpenRouter, on the same solver. Both met the goal: a resonance within 1&nbsp;% of the
+      5.8&nbsp;GHz target, with S11 below −10&nbsp;dB. The Cerebras run tried 28 designs and settled at 5.83&nbsp;GHz and
+      −10.6&nbsp;dB. Generating took 7.5&nbsp;s across its 14 successful model calls, 2.6&nbsp;s of it for the write-up.
+      The OpenRouter run tried 20 designs and settled at 5.82&nbsp;GHz with a deeper match, −19.1&nbsp;dB. The Cerebras server
+      was busy during the hackathon and turned away 45 requests. Waiting those out took 10&nbsp;min&nbsp;47&nbsp;s, so that run
+      took 834&nbsp;s against 137&nbsp;s for the OpenRouter one. The
+      <a href="https://github.com/Llompi/NobuRF-Public/tree/main/launch/runs/race-2026-11-22T10-19-23">run logs</a> have
+      every model request and both final designs.
     </p>
     <p>My <a href="videos/">hackathon video</a> shows the Cerebras run, from the sentence to the tuned antenna.</p>
 
@@ -498,7 +501,7 @@ npm run dev</code></pre>
 
 <footer class="site-footer">
   <div class="page">
-    <p>Built for the Kimi K3.1 Pro on Cerebras hackathon.</p>
+    <p>Built for the Kimi K3.1 Pro hackathon on Cerebras.</p>
     <p>It is an independent project, not affiliated with or endorsed by any commercial solver vendor.</p>
     <p>NobuRF is free software under the <a href="https://github.com/Llompi/NobuRF-Public/blob/main/LICENSE">GNU AGPL-3.0</a>. The designs and results you make with it are yours. To build it into closed software, see <a href="https://github.com/Llompi/NobuRF-Public/blob/main/COMMERCIAL.md">commercial licenses</a>.</p>
     <p>Privacy: NobuRF's solver runs in your browser, on your GPU or CPU, and this site never uploads your designs. The app keeps your latest design in this browser's storage. NobuRF has no ads, sets no cookies of its own, and doesn't track you across sites. The site is hosted on Cloudflare, which uses its cookie-free Web Analytics to count visits and measure page load times. If Cloudflare's bot protection flags a visit, it may set a security cookie. Fonts load from Google Fonts. Cloudflare and Google receive standard request details, such as your IP address. The AI design features aren't part of this site. They run from your own computer with your own API key, and they send your prompts to the AI provider you choose.</p>

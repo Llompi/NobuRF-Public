@@ -1,0 +1,229 @@
+{
+  "is_sample_data": false,
+  "harness": "OpenClaw",
+  "lane_label": "Kimi K3.1 Pro on Parasail via OpenRouter",
+  "match_threshold_db": -10,
+  "target_ghz": 5.8,
+  "task": "design a 5.8 GHz patch antenna, S11 at or below -10 dB with the dip within 1 %",
+  "result": {
+    "met": true,
+    "f0_ghz": 5.816,
+    "s11_db_at_target": -19.1,
+    "mesh": "confirm"
+  },
+  "model_s": 16.4,
+  "rate_limit_wait_s": 0,
+  "cost_usd": 0.21188,
+  "prompt": "a 5.8 GHz patch on a 24 mm FR-4 board, then explain the final design and why each change helped in about 300 words",
+  "tools_s": 101.1,
+  "lobe_glb": "/runs/agent/race-2026-11-22T10-19-23/openrouter/lobe/pattern_5.8ghz.glb",
+  "events": [
+    {
+      "time_ms": 0,
+      "type": "start",
+      "s11_db_at_target": -20.7
+    },
+    {
+      "time_ms": 2255,
+      "type": "model_turn_done",
+      "output_tokens": 186,
+      "model_ms": 2255
+    },
+    {
+      "time_ms": 2255,
+      "type": "edit",
+      "edit": "start: 5.8 GHz on a 24 x 24 mm FR-4 board"
+    },
+    {
+      "time_ms": 2720,
+      "type": "goal",
+      "task": "design a 5.8 GHz patch antenna, S11 at or below -10 dB with the dip within 1 %"
+    },
+    {
+      "time_ms": 4388,
+      "type": "model_turn_done",
+      "output_tokens": 77,
+      "model_ms": 1119
+    },
+    {
+      "time_ms": 4388,
+      "type": "edit",
+      "edit": "try the current design with inset"
+    },
+    {
+      "time_ms": 12650,
+      "type": "solve_done",
+      "s11_db_at_target": -20.7,
+      "goal_met": false
+    },
+    {
+      "time_ms": 12654,
+      "type": "solve_done",
+      "s11_db_at_target": -20.7,
+      "goal_met": false,
+      "model_thinking": true
+    },
+    {
+      "time_ms": 13478,
+      "type": "model_turn_done",
+      "output_tokens": 36,
+      "model_ms": 759
+    },
+    {
+      "time_ms": 13478,
+      "type": "edit",
+      "edit": "confirm on the fine mesh"
+    },
+    {
+      "time_ms": 24472,
+      "type": "solve_done",
+      "s11_db_at_target": -20.7,
+      "goal_met": false,
+      "model_thinking": true
+    },
+    {
+      "time_ms": 26032,
+      "type": "model_turn_done",
+      "output_tokens": 115,
+      "model_ms": 1498
+    },
+    {
+      "time_ms": 26032,
+      "type": "edit",
+      "edit": "optimise patch_l, inset_d, aiming at 5.676 GHz"
+    },
+    {
+      "time_ms": 56233,
+      "type": "solve_done",
+      "s11_db_at_target": -20.7,
+      "goal_met": false,
+      "model_thinking": true
+    },
+    {
+      "time_ms": 57135,
+      "type": "model_turn_done",
+      "output_tokens": 36,
+      "model_ms": 825
+    },
+    {
+      "time_ms": 57135,
+      "type": "edit",
+      "edit": "confirm on the fine mesh"
+    },
+    {
+      "time_ms": 65820,
+      "type": "solve_done",
+      "s11_db_at_target": -20.7,
+      "goal_met": false,
+      "model_thinking": true
+    },
+    {
+      "time_ms": 67389,
+      "type": "model_turn_done",
+      "output_tokens": 115,
+      "model_ms": 1507
+    },
+    {
+      "time_ms": 67389,
+      "type": "edit",
+      "edit": "optimise patch_l, inset_d, aiming at 5.687 GHz"
+    },
+    {
+      "time_ms": 95805,
+      "type": "solve_done",
+      "s11_db_at_target": -20.7,
+      "goal_met": false,
+      "model_thinking": true
+    },
+    {
+      "time_ms": 96851,
+      "type": "model_turn_done",
+      "output_tokens": 70,
+      "model_ms": 990
+    },
+    {
+      "time_ms": 96851,
+      "type": "edit",
+      "edit": "try patch_l = 11.9 mm, inset_d = 3.87 mm"
+    },
+    {
+      "time_ms": 100278,
+      "type": "solve_done",
+      "s11_db_at_target": -20.7,
+      "goal_met": false,
+      "model_thinking": true
+    },
+    {
+      "time_ms": 101216,
+      "type": "model_turn_done",
+      "output_tokens": 60,
+      "model_ms": 890
+    },
+    {
+      "time_ms": 101216,
+      "type": "edit",
+      "edit": "try patch_l = 11.85 mm"
+    },
+    {
+      "time_ms": 104085,
+      "type": "solve_done",
+      "s11_db_at_target": -20.7,
+      "goal_met": false,
+      "model_thinking": true
+    },
+    {
+      "time_ms": 104893,
+      "type": "model_turn_done",
+      "output_tokens": 36,
+      "model_ms": 763
+    },
+    {
+      "time_ms": 104893,
+      "type": "edit",
+      "edit": "confirm on the fine mesh"
+    },
+    {
+      "time_ms": 113380,
+      "type": "solve_done",
+      "s11_db_at_target": -19.1,
+      "goal_met": true
+    },
+    {
+      "time_ms": 113382,
+      "type": "solve_done",
+      "s11_db_at_target": -19.1,
+      "goal_met": true,
+      "model_thinking": true
+    },
+    {
+      "time_ms": 114841,
+      "type": "model_turn_done",
+      "output_tokens": 164,
+      "model_ms": 1402
+    },
+    {
+      "time_ms": 114841,
+      "type": "edit",
+      "edit": "finish"
+    },
+    {
+      "time_ms": 114875,
+      "type": "solve_done",
+      "s11_db_at_target": -19.1,
+      "goal_met": true,
+      "model_thinking": false
+    },
+    {
+      "time_ms": 119324,
+      "type": "model_turn_done",
+      "output_tokens": 476,
+      "model_ms": 4403
+    },
+    {
+      "time_ms": 119324,
+      "type": "done",
+      "s11_db_at_target": -19.1,
+      "goal_met": true
+    }
+  ]
+}
