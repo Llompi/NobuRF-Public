@@ -150,15 +150,30 @@ export class LineChart {
       ctx.textAlign = 'left';
       ctx.fillText(rule.label, pad.left + 4, py(rule.y) - 2);
     }
-    for (const marker of spec.markers ?? []) {
-      if (marker.x < x0 || marker.x > x1) continue;
+    // Labels sit in rows at the foot; a label that would run into the one before it (0.48 GHz next to 1 GHz)
+    // goes up a row instead of printing over it. Rows stop at half the plot height: past that a label is left
+    // out (its line stays), rather than climbing over the traces.
+    const rowEnds: number[] = [];
+    const rowHeight = 14;
+    const maxRows = Math.max(1, Math.floor((height - pad.top - pad.bottom) / 2 / rowHeight));
+    const plotRight = width - pad.right;
+    const seen = new Set<number>();
+    const markers = (spec.markers ?? []).filter((m) => Number.isFinite(m.x) && m.x >= x0 && m.x <= x1 && !seen.has(m.x) && seen.add(m.x));
+    for (const marker of markers.sort((a, b) => a.x - b.x)) {
       ctx.beginPath();
       ctx.moveTo(px(marker.x), pad.top);
       ctx.lineTo(px(marker.x), height - pad.bottom);
       ctx.stroke();
-      // Inside the plot at the foot, clear of the pointer readout along the top.
+      // Inside the plot at the foot, clear of the pointer readout along the top. A label that would run past
+      // the plot's right edge (into the trace names) goes on the left of its line.
+      const w = ctx.measureText(marker.label).width;
+      const left = px(marker.x) + 4 + w > plotRight ? px(marker.x) - 4 - w : px(marker.x) + 4;
+      let row = rowEnds.findIndex((end) => left > end + 4);
+      if (row < 0) row = rowEnds.length;
+      if (row >= maxRows) continue;
+      rowEnds[row] = left + w;
       ctx.textAlign = 'left';
-      ctx.fillText(marker.label, px(marker.x) + 4, height - pad.bottom - 6);
+      ctx.fillText(marker.label, left, height - pad.bottom - 6 - row * rowHeight);
     }
     ctx.setLineDash([]);
 
