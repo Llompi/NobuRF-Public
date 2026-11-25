@@ -54,8 +54,8 @@ They only fire on proxied traffic, so keep the DNS records for `www.noburf.com` 
 - `site/_redirects` serves the landing page at `/hn`, `/r-rf`, `/r-ham` and `/eevblog`, one short link
   per launch post. Cloudflare Web Analytics drops query strings, so a UTM tag would not show which post
   a visit came from; a path does. The page's canonical link stays `https://noburf.com/`.
-- `/examples/...` redirects to the repository, because the README's relative example links resolve
-  against this site when an AI tool reads the README from here.
+- `/examples/...` redirects to the repository. AI tools have asked this site for example files,
+  resolving the repository's relative `examples/` links against noburf.com.
 
 ## Why traffic does not bill
 

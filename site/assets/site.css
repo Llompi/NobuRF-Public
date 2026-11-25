@@ -90,11 +90,17 @@ section { padding-block: var(--space-5) var(--space-3); border-top: 1px solid va
 
 .data { font-family: var(--font-data); font-size: 0.95em; font-variant-numeric: tabular-nums; }
 
+/* Subpages: a little space under the intro, and the dark theme's narrowed headline set from the left. */
+.intro { padding-bottom: var(--space-2); }
+@media (prefers-color-scheme: dark) {
+  .page h1 { transform: scaleX(0.9); transform-origin: left; }
+}
+
 /* Data tables sit in a bordered box that scrolls sideways on a narrow screen instead of widening the page. */
 .table-scroll { max-width: var(--measure); overflow-x: auto; margin: var(--space-3) 0; border: 1px solid var(--rule); border-radius: var(--radius); }
 .table-scroll table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
 .table-scroll :is(th, td) { padding: 0.55rem 0.8rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--rule); }
-.table-scroll tr:last-child :is(th, td) { border-bottom: 0; }
+.table-scroll tbody tr:last-child :is(th, td) { border-bottom: 0; }
 .table-scroll th { font-weight: 600; }
 .table-scroll caption { padding: 0.55rem 0.8rem; text-align: left; font-size: 0.9375rem; color: var(--ink-muted); caption-side: bottom; border-top: 1px solid var(--rule); }
 

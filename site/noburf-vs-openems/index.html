@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NobuRF vs openEMS: two free FDTD solvers compared · NobuRF</title>
-<meta name="description" content="NobuRF and openEMS are both free, open-source FDTD solvers. How they differ, and how closely their results agree on the same patch antenna, with the numbers and where they still disagree.">
+<meta name="description" content="NobuRF and openEMS are both free, open-source FDTD solvers. How they differ, and how closely they agree on the same patch antenna.">
 <meta property="og:title" content="NobuRF vs openEMS: two free FDTD solvers compared">
 <meta property="og:description" content="Both are free, open-source FDTD solvers. On the same patch antenna they agree within 0.7 % on resonance. Here is how they differ and where they still disagree.">
 <meta property="og:image" content="https://noburf.com/assets/og.jpg">
@@ -22,12 +22,6 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet" media="(prefers-color-scheme: dark)">
 <link rel="stylesheet" href="../assets/site.css">
-<style>
-  .intro { padding-bottom: var(--space-2); }
-  @media (prefers-color-scheme: dark) {
-    .page h1 { transform: scaleX(0.9); transform-origin: left; }
-  }
-</style>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -63,21 +57,22 @@
     <h2 id="differences-heading">How they differ</h2>
     <div class="table-scroll" role="region" aria-labelledby="differences-heading" tabindex="0">
       <table>
+        <caption>openEMS details from <a href="https://docs.openems.de/intro.html">its documentation</a> and <a href="https://github.com/thliebig/openEMS-Project">project page</a>.</caption>
         <thead>
-          <tr><th scope="col"></th><th scope="col">NobuRF</th><th scope="col">openEMS</th></tr>
+          <tr><td></td><th scope="col">NobuRF</th><th scope="col">openEMS</th></tr>
         </thead>
         <tbody>
           <tr><th scope="row">Where it runs</th><td>A browser tab in Chrome or Edge, or Node.js from the command line</td><td>Installed on Linux, FreeBSD, macOS or Windows</td></tr>
           <tr><th scope="row">Hardware</th><td>The GPU through WebGPU, or the CPU when there is no WebGPU</td><td>The CPU, with multi-threading, SSE and MPI</td></tr>
           <tr><th scope="row">Building a model</th><td>A workbench with a 3D view, a JSON project file, or Gerber, DXF and STEP import</td><td>MATLAB, Octave or Python scripts</td></tr>
-          <tr><th scope="row">Geometry</th><td>Planar copper on a board stackup, with lumped, SMA and coax-probe ports and vias</td><td>3D shapes built in the script</td></tr>
+          <tr><th scope="row">Geometry</th><td>Planar copper on a board stackup, fed by lumped ports</td><td>3D shapes built in the script</td></tr>
           <tr><th scope="row">License</th><td>AGPL-3.0</td><td>GPL-3.0 or later</td></tr>
         </tbody>
       </table>
     </div>
     <p>
-      If your design is copper on a board, NobuRF gets you from an idea to an S11 curve without installing anything. If
-      it has 3D bodies, such as a horn, a cavity filter or a connector you want to model in full, use openEMS. NobuRF
+      If your design is copper on a board and you'd rather not install anything, start with NobuRF. If it has 3D
+      bodies, such as a horn, a cavity filter or a connector you want to model in full, use openEMS. NobuRF
       cannot draw 3D bodies yet.
     </p>
   </section>
@@ -104,6 +99,10 @@
       </table>
     </div>
     <p>
+      Across 4.8 to 6.2&nbsp;GHz the two impedance curves differ by 14.2&nbsp;Ω on average for the edge-fed patch and
+      10.7&nbsp;Ω for the inset patch, so the close match at the dip is the best point, not the whole band.
+    </p>
+    <p>
       Both are FDTD codes, so this checks that NobuRF implements the method correctly. It does not check the method
       against a real board. For that, the validation report compares NobuRF with published measurements: the patches
       from Chang et al. (1986) land within 4&nbsp;% of their measured resonance on substrates up to 0.11 wavelengths
@@ -116,13 +115,14 @@
     <h2 id="disagreements-heading">Where they disagree</h2>
     <p>
       <b>The coarse grid in the live demo.</b> The demo in the app runs on a uniform 0.5&nbsp;mm grid to keep it fast.
-      On that grid NobuRF reads 0.4 to 1.3&nbsp;% high against openEMS on its graded mesh. The main cause is the
+      On that grid NobuRF reads 0.4 to 1.3&nbsp;% high against openEMS on its graded 0.25&nbsp;mm mesh. The main cause is the
       substrate: 0.5&nbsp;mm cells put only three cells across 1.5&nbsp;mm, where the graded runs use six.
     </p>
     <p>
       <b>The inset notch on a uniform grid.</b> On a uniform 0.25&nbsp;mm grid the inset patch's dip read −36.8&nbsp;dB in
-      NobuRF against −15.6&nbsp;dB in openEMS. The notch edges were snapping to the grid. With mesh lines on the notch
-      edges, NobuRF reads −16.3&nbsp;dB and the impedance curves agree to 11&nbsp;Ω on average.
+      NobuRF against −15.6&nbsp;dB in openEMS, because the notch edges snapped to the grid. The graded mesh in the
+      table puts lines on the notch edges, and the dips agree: −21.5&nbsp;dB against −20.4&nbsp;dB. For an inset feed,
+      use a graded mesh.
     </p>
     <p>
       <b>The port model.</b> This matters more than the mesh. In openEMS alone, changing the one-edge port for a

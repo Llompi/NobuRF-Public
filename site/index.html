@@ -24,7 +24,7 @@
   "description": "A free, open-source 3D FDTD field solver for antennas and PCB traces that runs in the browser, on the GPU through WebGPU or on the CPU.",
   "applicationCategory": "DesignApplication",
   "applicationSubCategory": "Antenna and RF simulation",
-  "operatingSystem": "Windows, macOS, ChromeOS, Linux",
+  "operatingSystem": "Windows, macOS, ChromeOS",
   "browserRequirements": "Chrome or Edge 113 or later. Solves on the GPU through WebGPU when the browser has it, otherwise on the CPU.",
   "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -83,7 +83,6 @@
     font: 0.9375rem/1.7 var(--font-data);
   }
 
-  .intro { padding-bottom: var(--space-2); }
 
   .setup-prompt-row { position: relative; display: flex; margin-top: var(--space-4); }
   .setup-prompt-row:not([hidden]) + h1 { margin-top: var(--space-3); }
@@ -131,7 +130,7 @@
 
   /* Dark mode rules, after the base rules so they win. */
   @media (prefers-color-scheme: dark) {
-    .page h1 { font-size: clamp(2.4rem, 1rem + 4.8vw, 5rem); line-height: 0.95; text-align: center; max-width: none; transform: scaleX(0.9); }
+    .page h1 { font-size: clamp(2.4rem, 1rem + 4.8vw, 5rem); line-height: 0.95; text-align: center; max-width: none; transform: scaleX(0.9); transform-origin: center; }
     .intro .lede { font-size: 1.3125rem; color: var(--ink); }
     /* Under the centered headline, the lede is a left-aligned column centered on the page. */
     @media (min-width: 900px) {
@@ -358,8 +357,8 @@
       Most of the other checks in the validation report pass. A closed metal cavity resonates within 0.23&nbsp;% of
       theory even on a coarse 1&nbsp;mm grid, a plane wave crosses the grid at the speed it should, and a metal short reflects everything at the right
       phase. The open boundary reflects −84&nbsp;dB of a wave hitting it head-on, and doubling the air around the board changes none of the
-      results. What doesn't pass yet: the coarser 0.5&nbsp;mm grid the live demo uses reads 1.7 to 2.4&nbsp;% high in
-      frequency. Not checked yet: the boundary at oblique angles, and a real board on a VNA.
+      results. What doesn't pass yet: the coarser 0.5&nbsp;mm grid the live demo uses reads 0.4 to 1.3&nbsp;% high in
+      frequency against openEMS's graded runs. Not checked yet: the boundary at oblique angles, and a real board on a VNA.
     </p>
     <p>The <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">validation report</a> has the method, the scripts, every check and its figure. For the openEMS numbers on one page, and how the two tools differ, see <a href="noburf-vs-openems/">NobuRF and openEMS compared</a>.</p>
   </section>

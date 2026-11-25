@@ -4,7 +4,7 @@
 
 The workbench builds a patch antenna, a 50 Ω microstrip line, a differential pair or a blank board from a few numbers, imports Gerber, DXF and STEP, and reports S-parameters, the Smith chart, input impedance, the far field and field maps. A project is one JSON file that an AI agent can write for its user.
 
-Accuracy: on the same patch antenna and mesh, NobuRF's resonance is within 0.7 % of openEMS, another open-source FDTD solver. Against published measurements, Chang et al. (1986) patches land within 4 % on substrates up to 0.11 wavelengths thick. The validated range is one-port, lumped-fed patches on low-permittivity substrates. No fabricated board has been measured on a VNA yet, and NobuRF makes no claim to match a commercial solver.
+Accuracy: on the same patch antenna, with both on graded meshes with 0.25 mm cells at the copper, NobuRF's resonance is within 0.7 % of openEMS, another open-source FDTD solver. Against published measurements, Chang et al. (1986) patches land within 4 % for substrate thickness up to 0.11 of the wavelength in the substrate. The validated range is one-port, lumped-fed patches on substrates with εr 2.2 to 2.33; FR-4 agrees with openEMS but has no measured benchmark yet. No fabricated board has been measured on a VNA yet, and NobuRF makes no claim to match a commercial solver.
 
 ## Use it
 

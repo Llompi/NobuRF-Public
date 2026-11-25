@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Simulate a 2.4 GHz PCB antenna in your browser · NobuRF</title>
-<meta name="description" content="How to design and simulate a 2.4 GHz patch antenna on FR-4 for Wi-Fi, Bluetooth or Zigbee with NobuRF, a free FDTD solver that runs in Chrome or Edge. What it checks well, and what it doesn't yet.">
+<meta name="description" content="Design and simulate a 2.4 GHz patch antenna on FR-4 for Wi-Fi or Bluetooth with NobuRF, a free FDTD solver that runs in Chrome or Edge, and see which results to trust.">
 <meta property="og:title" content="Simulate a 2.4 GHz PCB antenna in your browser">
-<meta property="og:description" content="A free FDTD solver in Chrome or Edge: start a 2.4 GHz patch on FR-4, solve S11, impedance and the far field, and know which results to trust.">
+<meta property="og:description" content="A free FDTD solver in Chrome or Edge: start a 2.4 GHz patch on FR-4, solve it, and see which results to trust.">
 <meta property="og:image" content="https://noburf.com/assets/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -22,12 +22,6 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet" media="(prefers-color-scheme: dark)">
 <link rel="stylesheet" href="../assets/site.css">
-<style>
-  .intro { padding-bottom: var(--space-2); }
-  @media (prefers-color-scheme: dark) {
-    .page h1 { transform: scaleX(0.9); transform-origin: left; }
-  }
-</style>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -49,10 +43,10 @@
   <div class="intro">
     <h1>Simulate a 2.4&nbsp;GHz PCB antenna</h1>
     <p class="lede">
-      NobuRF is a free 3D field solver that runs in Chrome or Edge. It can start a 2.4&nbsp;GHz patch antenna on FR-4
-      for Wi-Fi, Bluetooth or Zigbee, solve its S11, impedance and radiation pattern, and export the result as a
-      Touchstone file. Patches like this are the part I have checked against published measurements. You can draw or
-      import an inverted-F or meander antenna too, but I haven't checked those against anything yet.
+      NobuRF is a free 3D field solver that runs in Chrome or Edge. It starts a 2.4&nbsp;GHz patch antenna on FR-4
+      from three numbers, solves it, and exports the S-parameters as a Touchstone file. I have checked patches against
+      published measurements on low-permittivity boards, and against openEMS on FR-4. No measured FR-4 board has
+      been run yet, so read the results as a strong first estimate.
     </p>
     <div class="actions">
       <a class="button primary" href="../app/">Open the workbench</a>
@@ -66,7 +60,8 @@
       <li>Open <a href="../app/">the workbench</a> in Chrome or Edge 113 or later. There is nothing to install and no account.</li>
       <li>Choose New, then Patch antenna. Enter 2.4&nbsp;GHz, pick FR-4 from the laminates, and set the thickness, for example 1.6&nbsp;mm.</li>
       <li>NobuRF sizes the patch from the transmission-line model, about 38 by 29&nbsp;mm on 1.6&nbsp;mm FR-4, and cuts an inset feed for 50&nbsp;Ω. The console lists the numbers.</li>
-      <li>Press Solve. The S-parameters, Smith chart and Impedance tabs show where the patch resonates and how well it matches. The Far field tab gives the pattern, directivity and gain.</li>
+      <li>Press Solve. The S-parameters, Smith chart and Impedance tabs show where the patch resonates and how well it matches.</li>
+      <li>For the radiation pattern and gain, open Solve settings, ask for a far field at 2.4&nbsp;GHz, and give the board at least 4 cells of air on every side. The panel says if a setting is missing. Solve again and open the Far field tab.</li>
       <li>The model ignores the feed line and the finite ground, so its sizes are a starting point. Change <code>patch_l</code> to move the resonance and <code>inset_d</code> to fix the match, then solve again.</li>
       <li>Before you trust a result, turn on Mesh check with one finer mesh. It solves again on smaller cells and puts an error bar on the resonance.</li>
     </ol>
@@ -79,16 +74,20 @@
   <section id="trust" aria-labelledby="trust-heading">
     <h2 id="trust-heading">Which results to trust</h2>
     <p>
-      <b>Patches on ordinary boards.</b> The closest published measurement to this case is a 57 by 38&nbsp;mm patch from
-      Chang et al. (1986), measured at 2.310&nbsp;GHz. NobuRF puts it at 2.354&nbsp;GHz, 1.9&nbsp;% high. Across that
-      paper's patches NobuRF stays within 4&nbsp;% of measurement on substrates up to 0.11 wavelengths thick, and
-      1.6&nbsp;mm FR-4 at 2.4&nbsp;GHz is 0.027. The checks are in the
-      <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">validation report</a>, and
-      <a href="../noburf-vs-openems/">the openEMS comparison</a> covers the same patch in a second solver.
+      <b>Patches on low-permittivity boards.</b> The nearest published measurement is a 57 by 38&nbsp;mm patch from
+      Chang et al. (1986) on a 3.2&nbsp;mm board with εr&nbsp;2.33, measured at 2.310&nbsp;GHz. NobuRF puts it at
+      2.354&nbsp;GHz, 1.9&nbsp;% high, read as Chang did at the peak of input resistance. Read at the S11 dip, NobuRF
+      lands 4 to 6&nbsp;% high on those patches. The checks are in the
+      <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">validation report</a>.
     </p>
     <p>
-      <b>Inverted-F, meander and chip antennas.</b> I haven't compared any of them with a measurement or another solver
-      yet. Treat the result as a first look, and confirm it on a prototype before you order boards.
+      <b>Patches on FR-4.</b> NobuRF agrees with openEMS on an FR-4 patch to within 0.7&nbsp;% on resonance (see
+      <a href="../noburf-vs-openems/">the openEMS comparison</a>), but both are FDTD codes, and no measured FR-4 board
+      has been run. Each solve reports when a design is outside the range the measurements cover, and FR-4 is.
+    </p>
+    <p>
+      <b>Inverted-F and meander antennas.</b> You can draw or import them, but I haven't compared any with a
+      measurement or another solver yet. Treat the result as a first look, and confirm it on a prototype before you order boards.
     </p>
     <p>
       <b>FR-4 itself.</b> The built-in FR-4 has εr&nbsp;4.4 and a loss tangent of 0.02. Real FR-4 varies by maker and
@@ -103,10 +102,10 @@
   <section id="size" aria-labelledby="size-heading">
     <h2 id="size-heading">Size and run time</h2>
     <p>
-      A 2.4&nbsp;GHz patch is about twice the size of the 5.8&nbsp;GHz demo in each direction, so at the same cell size
-      it has several times the cells and needs more time steps. Expect each solve to take that much longer than the
-      demo. If a grid does not fit in WebGPU, the workbench says so and suggests the CPU solver, which gives the same
-      answer more slowly. Larger grids for 2.4&nbsp;GHz boards are on the <a href="../#roadmap">roadmap</a>.
+      A 2.4&nbsp;GHz board is about twice the size of the 5.8&nbsp;GHz demo in each direction, so it takes many more
+      cells and time steps. I haven't timed a 2.4&nbsp;GHz solve yet. If a grid does not fit in WebGPU, the workbench
+      says so and suggests the CPU solver, which gives the same answer more slowly. Larger grids for 2.4&nbsp;GHz
+      boards are on the <a href="../#roadmap">roadmap</a>.
     </p>
   </section>
 </main>
