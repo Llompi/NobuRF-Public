@@ -1,0 +1,30 @@
+# NobuRF
+
+> NobuRF is a free, open-source 3D FDTD field solver for antennas and PCB traces. It runs in Chrome or Edge 113 or later, on the visitor's GPU through WebGPU or on the CPU when there is no WebGPU. There is no account, no API key and nothing to install. It is licensed under the GNU AGPL-3.0.
+
+The workbench builds a patch antenna, a 50 Ω microstrip line, a differential pair or a blank board from a few numbers, imports Gerber, DXF and STEP, and reports S-parameters, the Smith chart, input impedance, the far field and field maps. A project is one JSON file that an AI agent can write for its user.
+
+Accuracy: on the same patch antenna and mesh, NobuRF's resonance is within 0.7 % of openEMS, another open-source FDTD solver. Against published measurements, Chang et al. (1986) patches land within 4 % on substrates up to 0.11 wavelengths thick. The validated range is one-port, lumped-fed patches on low-permittivity substrates. No fabricated board has been measured on a VNA yet, and NobuRF makes no claim to match a commercial solver.
+
+## Use it
+
+- [Workbench](https://noburf.com/app/): the app itself, opens on an example 5.8 GHz patch antenna
+- [Agent setup](https://noburf.com/agent-setup.md): how an AI agent sets a user up with NobuRF
+- [Project file format](https://noburf.com/agent/project-file.md): the JSON format for a project
+- [Workbench guide](https://noburf.com/agent/workbench.md): every control and result tab
+- [Example project](https://noburf.com/agent/examples/patch-5g8.json): a 5.8 GHz patch antenna
+- [Example with far field](https://noburf.com/agent/examples/patch-5g8-far-field.json): the same patch with a far-field request
+
+## Guides
+
+- [Simulate a 2.4 GHz PCB antenna](https://noburf.com/2-4-ghz-pcb-antenna/): a patch on FR-4, step by step, and which results to trust
+- [NobuRF and openEMS compared](https://noburf.com/noburf-vs-openems/): how the two free FDTD solvers differ and how closely they agree
+
+## Source
+
+- [Source code](https://github.com/Llompi/NobuRF-Public): the public repository
+- [Validation report](https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md): every accuracy check, with the scripts to rerun it
+
+## Optional
+
+- [Videos](https://noburf.com/videos/): the hackathon video

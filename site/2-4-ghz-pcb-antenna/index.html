@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulate a 2.4 GHz PCB antenna in your browser · NobuRF</title>
+<meta name="description" content="How to design and simulate a 2.4 GHz patch antenna on FR-4 for Wi-Fi, Bluetooth or Zigbee with NobuRF, a free FDTD solver that runs in Chrome or Edge. What it checks well, and what it doesn't yet.">
+<meta property="og:title" content="Simulate a 2.4 GHz PCB antenna in your browser">
+<meta property="og:description" content="A free FDTD solver in Chrome or Edge: start a 2.4 GHz patch on FR-4, solve S11, impedance and the far field, and know which results to trust.">
+<meta property="og:image" content="https://noburf.com/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Current on the copper of a patch antenna for the 5.8 GHz band, and the line: Maxwell's equations, solved in a browser tab.">
+<meta property="og:url" content="https://noburf.com/2-4-ghz-pcb-antenna/">
+<link rel="canonical" href="https://noburf.com/2-4-ghz-pcb-antenna/">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+  .intro { padding-bottom: var(--space-2); }
+  @media (prefers-color-scheme: dark) {
+    .page h1 { transform: scaleX(0.9); transform-origin: left; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="page">
+    <a class="wordmark" href="../">NobuRF</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="../#accuracy">Accuracy</a>
+      <a href="../#agent">AI design</a>
+      <a href="../videos/">Videos</a>
+      <a href="../#roadmap">Roadmap</a>
+      <a href="https://github.com/Llompi/NobuRF-Public">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="page">
+  <div class="intro">
+    <h1>Simulate a 2.4&nbsp;GHz PCB antenna</h1>
+    <p class="lede">
+      NobuRF is a free 3D field solver that runs in Chrome or Edge. It can start a 2.4&nbsp;GHz patch antenna on FR-4
+      for Wi-Fi, Bluetooth or Zigbee, solve its S11, impedance and radiation pattern, and export the result as a
+      Touchstone file. Patches like this are the part I have checked against published measurements. You can draw or
+      import an inverted-F or meander antenna too, but I haven't checked those against anything yet.
+    </p>
+    <div class="actions">
+      <a class="button primary" href="../app/">Open the workbench</a>
+      <a class="button" href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/workbench.md">Read the workbench guide</a>
+    </div>
+  </div>
+
+  <section id="steps" aria-labelledby="steps-heading">
+    <h2 id="steps-heading">A 2.4&nbsp;GHz patch, step by step</h2>
+    <ol>
+      <li>Open <a href="../app/">the workbench</a> in Chrome or Edge 113 or later. There is nothing to install and no account.</li>
+      <li>Choose New, then Patch antenna. Enter 2.4&nbsp;GHz, pick FR-4 from the laminates, and set the thickness, for example 1.6&nbsp;mm.</li>
+      <li>NobuRF sizes the patch from the transmission-line model, about 38 by 29&nbsp;mm on 1.6&nbsp;mm FR-4, and cuts an inset feed for 50&nbsp;Ω. The console lists the numbers.</li>
+      <li>Press Solve. The S-parameters, Smith chart and Impedance tabs show where the patch resonates and how well it matches. The Far field tab gives the pattern, directivity and gain.</li>
+      <li>The model ignores the feed line and the finite ground, so its sizes are a starting point. Change <code>patch_l</code> to move the resonance and <code>inset_d</code> to fix the match, then solve again.</li>
+      <li>Before you trust a result, turn on Mesh check with one finer mesh. It solves again on smaller cells and puts an error bar on the resonance.</li>
+    </ol>
+    <p>
+      For another antenna, start from a blank board and draw the copper, or import your layout as Gerber, DXF or
+      STEP, then add a port where the feed meets the antenna.
+    </p>
+  </section>
+
+  <section id="trust" aria-labelledby="trust-heading">
+    <h2 id="trust-heading">Which results to trust</h2>
+    <p>
+      <b>Patches on ordinary boards.</b> The closest published measurement to this case is a 57 by 38&nbsp;mm patch from
+      Chang et al. (1986), measured at 2.310&nbsp;GHz. NobuRF puts it at 2.354&nbsp;GHz, 1.9&nbsp;% high. Across that
+      paper's patches NobuRF stays within 4&nbsp;% of measurement on substrates up to 0.11 wavelengths thick, and
+      1.6&nbsp;mm FR-4 at 2.4&nbsp;GHz is 0.027. The checks are in the
+      <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">validation report</a>, and
+      <a href="../noburf-vs-openems/">the openEMS comparison</a> covers the same patch in a second solver.
+    </p>
+    <p>
+      <b>Inverted-F, meander and chip antennas.</b> I haven't compared any of them with a measurement or another solver
+      yet. Treat the result as a first look, and confirm it on a prototype before you order boards.
+    </p>
+    <p>
+      <b>FR-4 itself.</b> The built-in FR-4 has εr&nbsp;4.4 and a loss tangent of 0.02. Real FR-4 varies by maker and
+      by batch, and a 1&nbsp;% change in εr moves a patch's resonance by about 0.5&nbsp;%. Use your fab's numbers
+      where you have them.
+    </p>
+    <p>
+      <b>No board of my own yet.</b> I haven't measured a NobuRF design on a VNA.
+    </p>
+  </section>
+
+  <section id="size" aria-labelledby="size-heading">
+    <h2 id="size-heading">Size and run time</h2>
+    <p>
+      A 2.4&nbsp;GHz patch is about twice the size of the 5.8&nbsp;GHz demo in each direction, so at the same cell size
+      it has several times the cells and needs more time steps. Expect each solve to take that much longer than the
+      demo. If a grid does not fit in WebGPU, the workbench says so and suggests the CPU solver, which gives the same
+      answer more slowly. Larger grids for 2.4&nbsp;GHz boards are on the <a href="../#roadmap">roadmap</a>.
+    </p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="page">
+    <p>Built for the Kimi K3.1 Pro hackathon on Cerebras.</p>
+    <p>It is an independent project, not affiliated with or endorsed by any commercial solver vendor.</p>
+    <p>NobuRF is free software under the <a href="https://github.com/Llompi/NobuRF-Public/blob/main/LICENSE">GNU AGPL-3.0</a>. The designs and results you make with it are yours. To build it into closed software, see <a href="https://github.com/Llompi/NobuRF-Public/blob/main/COMMERCIAL.md">commercial licenses</a>.</p>
+    <p>Privacy: NobuRF's solver runs in your browser, on your GPU or CPU, and this site never uploads your designs. The app keeps your latest design in this browser's storage. NobuRF has no ads, sets no cookies of its own, and doesn't track you across sites. The site is hosted on Cloudflare, which uses its cookie-free Web Analytics to count visits and measure page load times. If Cloudflare's bot protection flags a visit, it may set a security cookie. Fonts load from Google Fonts. Cloudflare and Google receive standard request details, such as your IP address. The AI design features aren't part of this site. They run from your own computer with your own API key, and they send your prompts to the AI provider you choose.</p>
+  </div>
+</footer>
+</body>
+</html>

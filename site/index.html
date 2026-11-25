@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NobuRF: a 3D electromagnetic solver in the browser</title>
-<meta name="description" content="A 3D field solver for antennas, PCB traces and near-field emissions that runs on your own GPU through WebGPU, in Chrome or Edge.">
+<title>NobuRF: a free antenna simulator in your browser</title>
+<meta name="description" content="A free, open-source antenna and PCB simulator. The 3D FDTD field solver runs in Chrome or Edge on your own GPU through WebGPU, with nothing to install and no account.">
 <meta property="og:title" content="NobuRF: Maxwell's equations, solved in a browser tab">
 <meta property="og:description" content="A 3D field solver for antennas, PCB traces and near-field emissions, running on your own GPU in the browser.">
 <meta property="og:image" content="https://noburf.com/assets/og.jpg">
@@ -15,6 +15,23 @@
 <link rel="canonical" href="https://noburf.com/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "NobuRF",
+  "url": "https://noburf.com/",
+  "description": "A free, open-source 3D FDTD field solver for antennas and PCB traces that runs in the browser, on the GPU through WebGPU or on the CPU.",
+  "applicationCategory": "DesignApplication",
+  "applicationSubCategory": "Antenna and RF simulation",
+  "operatingSystem": "Windows, macOS, ChromeOS, Linux",
+  "browserRequirements": "Chrome or Edge 113 or later. Solves on the GPU through WebGPU when the browser has it, otherwise on the CPU.",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+  "sameAs": ["https://github.com/Llompi/NobuRF-Public"]
+}
+</script>
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -178,7 +195,7 @@
     </div>
     <h1>Maxwell's equations, solved in a browser tab</h1>
     <p class="lede">
-      NobuRF is a 3D field solver for antennas. It runs on your GPU through WebGPU (tested in Chrome and Edge). On my laptop's GTX&nbsp;1660&nbsp;Ti, a 5.8&nbsp;GHz patch antenna (66&nbsp;×&nbsp;66&nbsp;×&nbsp;48 cells at 0.5&nbsp;mm, run until the field energy has fallen 50&nbsp;dB) solved in 1.9&nbsp;s, about 3&nbsp;s from click to results.
+      NobuRF is a free antenna simulator: a 3D field solver that runs on your GPU through WebGPU (tested in Chrome and Edge). On my laptop's GTX&nbsp;1660&nbsp;Ti, a 5.8&nbsp;GHz patch antenna (66&nbsp;×&nbsp;66&nbsp;×&nbsp;48 cells at 0.5&nbsp;mm, run until the field energy has fallen 50&nbsp;dB) solved in 1.9&nbsp;s, about 3&nbsp;s from click to results.
     </p>
     <div class="actions">
       <a class="button primary run-button" href="app/">
@@ -344,7 +361,7 @@
       results. What doesn't pass yet: the coarser 0.5&nbsp;mm grid the live demo uses reads 1.7 to 2.4&nbsp;% high in
       frequency. Not checked yet: the boundary at oblique angles, and a real board on a VNA.
     </p>
-    <p>The <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">validation report</a> has the method, the scripts, every check and its figure.</p>
+    <p>The <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">validation report</a> has the method, the scripts, every check and its figure. For the openEMS numbers on one page, and how the two tools differ, see <a href="noburf-vs-openems/">NobuRF and openEMS compared</a>.</p>
   </section>
 
   <section id="agent" aria-labelledby="agent-heading">
@@ -487,7 +504,8 @@
     <h2 id="run-heading">Run it</h2>
     <p>
       The <a href="app/">workbench</a> keeps your project on your machine, in this browser's storage.
-      Without WebGPU it solves on the CPU, which is much slower.
+      Without WebGPU it solves on the CPU, which is much slower. For a first design, follow
+      <a href="2-4-ghz-pcb-antenna/">a 2.4&nbsp;GHz patch on FR-4</a>, step by step.
     </p>
     <p>To run it from the source instead, with the agent bridge, you need Node.js 20.19 or later, and a browser with WebGPU, such as Chrome or Edge, for GPU solves.</p>
 <pre tabindex="0" aria-label="Commands to run NobuRF from source"><code>git clone https://github.com/Llompi/NobuRF-Public

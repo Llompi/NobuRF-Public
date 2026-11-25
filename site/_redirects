@@ -1,3 +1,19 @@
 # Cloudflare Pages redirects (static, no Functions; docs/hosting.md).
+# The top-most matching rule wins.
+
 # The share image moved from PNG to JPEG on 2026-11-22; old link previews still ask for og.png.
 /assets/og.png /assets/og.jpg 301
+
+# Short links for the launch posts. Each one serves the landing page under its own path
+# (200 = served in place, not redirected), so Web Analytics, which ignores query strings,
+# counts visits per post. The page's canonical link stays https://noburf.com/.
+/hn / 200
+/r-rf / 200
+/r-ham / 200
+/eevblog / 200
+
+# The README's example links are relative, so AI tools that read it ask for /examples/... on
+# this site. The examples live in the repository.
+/examples https://github.com/Llompi/NobuRF-Public/tree/main/examples 302
+/examples/ https://github.com/Llompi/NobuRF-Public/tree/main/examples 302
+/examples/* https://raw.githubusercontent.com/Llompi/NobuRF-Public/main/examples/:splat 302
