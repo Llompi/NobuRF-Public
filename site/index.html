@@ -468,7 +468,8 @@
     <h2 id="roadmap-heading">What's missing</h2>
     <p>
       Since the first version the solver has gained a CPML boundary, a graded mesh, conformal curved copper, radiation
-      patterns from a near-to-far-field transform, a modeled SMA feed, copper loss that grows as √f with foil roughness,
+      patterns from a near-to-far-field transform, the far field of multi-port arrays with every port driven at once,
+      a modeled SMA feed, vias with antipads, port de-embedding, copper loss that grows as √f with foil roughness,
       and Dk/Df tables for laminates. It stops once the field energy has died down. Multi-port S-parameters have a
       first check: a two-port low-pass filter from Sheen et al. (1990) rolls off within 1.0&nbsp;% of the measured curve, while
       their four-port branch-line coupler does not match yet. Conductor loss is checked on a cavity and a microstrip
@@ -476,8 +477,8 @@
       I plan to work on it, each with a validation figure:
     </p>
     <ol class="roadmap">
-      <li>Microstrip mode ports with de-embedding.</li>
-      <li>Vias and thin-wire feeds.</li>
+      <li>Microstrip mode ports.</li>
+      <li>Thin-wire feeds.</li>
       <li>Larger grids through f16 storage and multiple GPUs, for 2.4&nbsp;GHz boards and arrays.</li>
       <li>A fabricated board measured on a VNA.</li>
     </ol>

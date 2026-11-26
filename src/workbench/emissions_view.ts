@@ -148,7 +148,7 @@ export class EmissionsView {
     for (const control of [this.el.height, this.el.frequency, this.el.quantity]) control.disabled = scans.length === 0;
     this.el.mapArea.hidden = scans.length === 0;
     this.el.empty.hidden = scans.length > 0;
-    this.el.empty.textContent = 'No near-field scan in this solve. Add heights under Outputs, "Near-field scan at", and solve again to map the field over the board.';
+    this.el.empty.textContent = 'No near-field scan in this solve. Add heights in "Near-field scan at" under Setup, Analysis and outputs, and solve again to map the field over the board.';
     this.render();
   }
 

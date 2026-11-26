@@ -134,7 +134,7 @@ export function accuracyFacts(r: WorkbenchResult): Array<[string, string]> {
     : a.checks.map((x) => ({ passivity: 'passive', reciprocity: 'reciprocal', energy_decay: 'rang down' })[x.name]).join(', ')
       + (marginal.length ? `; marginal: ${named(marginal)}` : '')]);
   const outside = a.envelope.filter((x) => !x.inside);
-  rows.push(['Validated range', outside.length ? `outside: ${outside.map((x) => x.parameter).join('; ')}` : 'inside: each feature matches a benchmark that agrees with measurement']);
+  rows.push(['Validated range', outside.length ? `outside: ${outside.map((x) => x.parameter).join('; ')}` : 'inside for what it checks (substrate, band, ports, copper, edges); vias, components and the far field have no measured benchmark yet']);
   return rows;
 }
 
