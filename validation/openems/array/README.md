@@ -45,9 +45,14 @@ For each array and each drive set:
 A miss on 5 alone is first compared with the two solvers' one-port reflection
 on the same element, since their lumped port models are known to differ
 (docs/validation.md section 3); that is reported with the result, not used to
-change the limit. No solver setting is changed after the first comparison,
-with one exception, described under Results: the energy stop was raised
-from 50 to 70 dB for the second run.
+change the limit. No solver setting is changed after the first comparison.
+The second run broke that rule: the energy stop was raised from 50 to 70 dB
+after the first results were seen (described under Results). So only the
+first run is the pre-registered test; the second is exploratory. The next
+pre-registered run is still to do: 70 dB from the start, and a
+peak-direction check, fixed before that run, that accepts either of two
+mirror-image lobes and compares angles on the 5° grid without rounding
+error.
 
 ## Files
 
@@ -60,7 +65,7 @@ from 50 to 70 dB for the second run.
 
 ## Results
 
-### Second run: NobuRF stopped at 70 dB (Nov 24 2026)
+### Second run, exploratory: NobuRF stopped at 70 dB (Nov 24 2026)
 
 The full table of this run is in [results/summary.md](results/summary.md);
 the first run's table is in git history.

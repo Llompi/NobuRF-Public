@@ -114,7 +114,8 @@ describe('workbench solve (CPU)', () => {
     const entry = r.farField!.entries[0];
     expect(entry.result.peakThetaDeg).toBe(90);
     expect([90, 270]).toContain(entry.result.peakPhiDeg);
-    expect(r.farField!.caveat).toBeNull();
+    // Every run rang down, but to the fixture's 40 dB stop, below the 70 dB efficiency needs.
+    expect(r.farField!.caveat).toMatch(/stops at 40 dB energy decay/);
     // The 3 m field comes from both ports' box currents: it agrees with the EIRP from the pattern, which counts both.
     const rows = distanceRows(r, 10);
     const eirpW = 1e-3 * 10 ** (eirpDbm(r, 0, 10) / 10);

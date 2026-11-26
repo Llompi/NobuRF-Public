@@ -277,16 +277,24 @@ function refreshMesh(): void {
 function steerFarField(stale: boolean): void {
   const project = store.validation.project;
   if (!result?.farField?.array || !project || stale) return;
-  const farField = steeredFarField(result.farField, project);
-  if (farField === result.farField) return;
-  // The field views sum the same runs with the same drives as the far field.
-  const views = result.fieldRuns && result.fields
-    ? drivenFieldViews(result.fields, result.fieldRuns, arrayPortDrives(project), result.portIds)
-    : { fields: result.fields, nearField: result.nearField };
-  result = { ...result, farField, ...views };
+  let steered: WorkbenchResult;
+  try {
+    const farField = steeredFarField(result.farField, project);
+    if (farField === result.farField) return;
+    // The field views sum the same runs with the same drives as the far field.
+    const views = result.fieldRuns && result.fields
+      ? drivenFieldViews(result.fields, result.fieldRuns, arrayPortDrives(project), result.portIds)
+      : { fields: result.fields, nearField: result.nearField };
+    steered = { ...result, farField, ...views };
+  } catch (error) {
+    // The document's other subscribers still run; the views keep the last drives that worked.
+    message('error', `Port drives: ${(error as Error).message}`);
+    return;
+  }
+  result = steered;
   results.showSteered(result);
   emissionsView.showSteered(result);
-  if (views.fields) modelView.setSteeredFields(views.fields);
+  if (steered.fields) modelView.setSteeredFields(steered.fields);
   drawLegend();
 }
 

@@ -16,7 +16,7 @@ import { HuygensDftRecorder, huygensBoxInsidePml, huygensSurface, type HuygensSu
 import { largestCell, smallestCell, type MeshLines } from '../engine/mesh';
 import { prepareArray, type ArrayFarFieldResult, type PreparedArray } from '../engine/array_far_field';
 import { boxSources, scanPlane, scanPlanesK, type ScanPlane } from '../engine/near_field';
-import { nearToFarField, sourcePhasor, type Complex, type FarFieldResult } from '../engine/near_to_far';
+import { EFFICIENCY_ENERGY_DECAY_DB, nearToFarField, sourcePhasor, type Complex, type FarFieldResult } from '../engine/near_to_far';
 import { type PlaneDftLayout } from '../engine/plane_dft';
 import { divide, portSpectrum, s11FromZ, scatteringMatrix, type ScatteringResult, type Spectrum } from '../engine/port_dft';
 import type { ExcitationConfig, PortSamples, RunControl } from '../engine/types';
@@ -752,8 +752,11 @@ async function solveOnce(projectText: string, choice: SolverChoice, hooks: Solve
     const accumulatorsPerRun = solved.huygensAccumulatorsPerRun;
     if (!accumulatorsPerRun) throw new Error('internal: a far field was asked for but the solver returned no box DFT');
     hooks.onProgress({ run: 0, runs: excited.length, step: control.maxSteps, maxSteps: control.maxSteps, decayDb: null, targetDb: control.stopAtEnergyDecayDb ?? 0, stage: 'far-field' });
-    const caveat = solved.runs.every((run) => run.stoppedOnEnergy) ? null
-      : `${multiport ? 'A port\'s run' : 'The run'} stopped before the field rang down, so efficiency and gain are approximate. The pattern shape is less affected.`;
+    const caveat = !solved.runs.every((run) => run.stoppedOnEnergy)
+      ? `${multiport ? 'A port\'s run' : 'The run'} stopped before the field rang down, so efficiency and gain are approximate. The pattern shape is less affected.`
+      : a.stop.energy_decay_db < EFFICIENCY_ENERGY_DECAY_DB
+        ? `The solve stops at ${a.stop.energy_decay_db} dB energy decay, so efficiency and gain can be off by a few percent on a poorly matched antenna. Stop at ${EFFICIENCY_ENERGY_DECAY_DB} dB for about ±0.5 %.`
+        : null;
     if (multiport) {
       const drives = arrayPortDrives(project);
       const array = prepareArray({

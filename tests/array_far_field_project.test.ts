@@ -134,11 +134,14 @@ describe('array_excitation through workbench edits', () => {
     expect(() => parseProject(doc)).not.toThrow();
   });
 
-  it('drops every drive once no kept port is driven', () => {
-    const json = dipolePairJson([-25, 0, 25], { array_excitation: { d1: { amplitude: 0 }, d2: { amplitude: 1 }, d3: { amplitude: 1 } } });
-    const doc = actions.setExcitedPorts(parseProject(json), ['d1']);
-    expect(doc.outputs.array_excitation).toBeUndefined();
-    expect(() => parseProject(doc)).not.toThrow();
+  it('never turns on a port that was off: once no kept port is driven, the check asks for a drive', () => {
+    const json = dipolePairJson([-25, 0, 25], { array_excitation: { d1: { amplitude: 1 }, d2: { amplitude: 0 }, d3: { amplitude: 0 } } });
+    let doc = actions.setExcitedPorts(parseProject(json), ['d2', 'd3']);
+    expect(doc.outputs.array_excitation).toEqual({ d2: { amplitude: 0, phase_deg: 0 }, d3: { amplitude: 0, phase_deg: 0 } });
+    expect(() => parseProject(doc)).toThrow(/drives no port/);
+    doc = actions.removePort(parseProject(json), 0);
+    expect(doc.outputs.array_excitation).toEqual({ d2: { amplitude: 0, phase_deg: 0 }, d3: { amplitude: 0, phase_deg: 0 } });
+    expect(() => parseProject(doc)).toThrow(/drives no port/);
   });
 
   it('keeps the drives of the ports a section keeps', () => {

@@ -109,8 +109,9 @@ mesh lines on every copper edge, the port and the layer interfaces, so nothing s
 A far field needs a PML on every face and at least 4 cells of air on every side; the panel says so
 if a setting is missing. With several ports, the far field is the whole array's with every excited
 port driven in phase, or as Array drive under Excite sets it: an amplitude (relative to the other
-ports) and a phase in degrees for each excited port. An amplitude of 0 turns a port off, leaving it
-a matched load. The drives are `outputs.array_excitation` in the project file
+ports) and a phase in degrees for each excited port. A positive phase leads, and the beam turns
+toward the port that lags. An amplitude of 0 turns a port off, leaving it a load of its reference
+impedance. The drives are `outputs.array_excitation` in the project file
 ([project-file.md](project-file.md#far-field-of-an-array)). They only weight the solved runs, so
 changing one steers the beam without a new solve: the Far field and Emissions tabs, the lobe and
 the field views (Ez, Current, Cut and the near-field map) update at once, and the results do not go

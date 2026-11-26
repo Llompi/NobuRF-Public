@@ -9,7 +9,7 @@ import {
   type SmaEdgePort, type StackupLayer,
 } from '../project/schema';
 import { evaluateLength, NAME_PATTERN } from '../project/expression';
-import { arrayDrivesByPortId, excitedPortIds, keptArrayExcitation, resolveProject } from '../project/resolve';
+import { arrayDrivesByPortId, excitedPortIds, resolveProject } from '../project/resolve';
 import { libraryMaterial, projectMaterial } from './material_library';
 
 type Doc = Project;
@@ -626,12 +626,14 @@ export function setPortDrive(doc: Doc, portId: string, part: 'amplitude' | 'phas
   return next;
 }
 
-/** Keeps the far-field drives of the ports that pass (resolve.ts keptArrayExcitation). */
+/** Keeps the far-field drives of the ports that pass; drops the map only once fewer than two ports are left. */
 function keepArrayDrivesOf(next: Doc, keepPort: (portId: string) => boolean): Doc {
   const drives = next.outputs.array_excitation;
   if (!drives) return next;
-  const kept = keptArrayExcitation(drives, keepPort, next.ports.length);
-  if (kept) next.outputs.array_excitation = kept;
+  // Dropping the map would drive every excited port, the ones turned off too.
+  // While two ports are left, keep it even if it now drives none: the project
+  // check then asks for a drive.
+  if (next.ports.length >= 2) next.outputs.array_excitation = Object.fromEntries(Object.entries(drives).filter(([portId]) => keepPort(portId)));
   else delete next.outputs.array_excitation;
   return next;
 }

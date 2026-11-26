@@ -30,7 +30,7 @@ import { boresightPolarisation, patternFigures } from '../src/engine/far_field_p
 import { largestCell, type MeshLines } from '../src/engine/mesh';
 import { HuygensDftRecorder, huygensBoxInsidePml, huygensSurface, type HuygensSurface } from '../src/engine/huygens_box';
 import { arrayFarFieldAt, prepareArray, type ArrayFarFieldResult, type PortDrive } from '../src/engine/array_far_field';
-import { nearToFarField, type FarFieldAngles, type FarFieldResult } from '../src/engine/near_to_far';
+import { EFFICIENCY_ENERGY_DECAY_DB, nearToFarField, type FarFieldAngles, type FarFieldResult } from '../src/engine/near_to_far';
 import { touchstoneLines } from '../src/engine/touchstone';
 import { interp, portSpectrum, s11FromZ, scatteringMatrix, type ScatteringResult, type Spectrum } from '../src/engine/port_dft';
 import type { ExcitationConfig, PortSamples, RunControl } from '../src/engine/types';
@@ -717,7 +717,9 @@ async function main(): Promise<void> {
   if (farField && farFieldSolution) {
     // Every run's fields are in an array's pattern, so the caveat follows the run that fell least (NaN: no energy check ran).
     const truncatedRuns = solved.runs.filter((run) => !run.stoppedOnEnergy);
-    const caveat = truncatedRuns.length ? truncatedRunCaveat(Math.min(...truncatedRuns.map((run) => run.energyDecayDb))) : null;
+    const stopDb = project.analysis.stop.energy_decay_db;
+    const caveat = truncatedRuns.length ? truncatedRunCaveat(Math.min(...truncatedRuns.map((run) => run.energyDecayDb)))
+      : stopDb < EFFICIENCY_ENERGY_DECAY_DB ? `the solve stops at ${stopDb} dB energy decay; efficiency and gain can be off by a few percent on a poorly matched antenna (stop at ${EFFICIENCY_ENERGY_DECAY_DB} dB for about ±0.5 %)` : null;
     writeFileSync(join(outDir, 'far_field.json'), JSON.stringify(farFieldReport(project.name, farField.surface, model.mesh, farFieldSolution, portIds, caveat)) + '\n');
     const files = writePatternFiles(outDir, project.name, farFieldSolution.results);
     if (caveat) console.warn(`warning: far field: ${caveat}`);

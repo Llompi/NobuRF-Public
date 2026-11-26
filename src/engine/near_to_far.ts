@@ -258,6 +258,13 @@ export interface PatternPowers {
   mismatchFactor: number;
 }
 
+/**
+ * Energy decay (dB) at which the radiation efficiency is good to about
+ * ±0.5 % (docs/project-file.md, Far field; validation/openems/array). Below
+ * it, efficiency and gain can be off by percents on a poorly matched antenna.
+ */
+export const EFFICIENCY_ENERGY_DECAY_DB = 70;
+
 /** Directivity, gain and their peaks from the far field and the powers behind it. */
 export function patternResult(fields: PatternFields, powers: PatternPowers): FarFieldResult {
   const { frequencyHz, thetaDeg, phiDeg, rEThetaRe, rEThetaIm, rEPhiRe, rEPhiIm } = fields;

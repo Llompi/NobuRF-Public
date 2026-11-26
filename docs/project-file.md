@@ -302,7 +302,7 @@ What `far_field.json` reports, per frequency:
 | `beamwidth_e_plane_deg`, `beamwidth_h_plane_deg` | Half-power (−3 dB) beamwidth in each principal plane, interpolated between the 5 degree samples; `null` if the cut never falls 3 dB. |
 | `front_to_back_db` | Directivity toward +z over directivity toward −z. |
 | `boresight_cross_polar_db` | Cross-polar over co-polar toward +z (Ludwig's third definition). |
-| `caveat` | Present only when the run stopped before the field rang down: efficiency and gain are then approximate. |
+| `caveat` | Present when the run stopped before the field rang down, or when `analysis.stop.energy_decay_db` is below 70: efficiency and gain are then approximate. |
 
 The two pattern files per frequency:
 
@@ -359,8 +359,10 @@ array factor. The method is in
 
 `outputs.array_excitation` sets each port's source by port id: a peak
 `amplitude` in volts (0, or 1e-6 to 1e6) and a `phase_deg` (default 0). Only the ratios between
-ports change the gain and the pattern. A port left out, or with amplitude 0,
-is off and stays a load. Without `array_excitation`, every excited port is
+ports change the gain and the pattern. Phases are those of e^{jωt}
+phasors: a positive `phase_deg` leads, and the beam turns toward the port
+that lags. A port left out, or with amplitude 0, is off and stays a load of
+its reference impedance (not quite matched, see the S-parameter notes above). Without `array_excitation`, every excited port is
 driven at amplitude 1 and phase 0. A port with an amplitude above 0 must be
 in `analysis.excite`, since its run is what drives it.
 
@@ -377,7 +379,8 @@ in `analysis.excite`, since its run is what drives it.
 
 [`examples/patch-pair-5g8-steered.json`](../examples/patch-pair-5g8-steered.json)
 is a complete array with these drives: two inset-fed 5.8 GHz patches 26 mm
-apart (about half a wavelength), the right one driven 90° ahead.
+apart (about half a wavelength), the right one driven 90° ahead, so the
+beam leans toward the left patch.
 
 The drives only weight the runs after the solve. In the workbench, the
 Array drive table under Excite re-sums the solved runs, so the pattern

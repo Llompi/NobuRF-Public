@@ -405,8 +405,8 @@
     "n_freq": 121,
     "loss_reference_ghz": 5.8,
     "stop": {
-      "energy_decay_db": 50,
-      "max_steps": 20000
+      "energy_decay_db": 70,
+      "max_steps": 50000
     }
   },
   "outputs": {
