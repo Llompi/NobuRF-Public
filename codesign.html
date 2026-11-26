@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>NobuRF Co-design</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/ui/style.css" />
+    <link rel="stylesheet" href="/src/codesign/codesign.css" />
+  </head>
+  <body class="codesign">
+    <header class="cd-bar">
+      <span class="wordmark">NobuRF</span>
+      <span class="cd-model" id="model">Waiting for a run</span>
+      <span class="cd-link" id="link" role="status">Not connected</span>
+      <dl class="cd-stats">
+        <div><dt>Elapsed</dt><dd class="number" id="stat-elapsed">0.0 s</dd></div>
+        <div><dt>Solves</dt><dd class="number" id="stat-solves">0</dd></div>
+        <div><dt>Stopped early</dt><dd class="number" id="stat-stopped">0</dd></div>
+        <div><dt>AI answer</dt><dd class="number" id="stat-answer">–</dd></div>
+        <div><dt>AI behind by</dt><dd class="number" id="stat-lag">–</dd></div>
+      </dl>
+    </header>
+
+    <main class="cd-main">
+      <section class="cd-chart-panel" aria-labelledby="chart-title">
+        <div class="cd-panel-head">
+          <h2 id="chart-title">S11 at the port</h2>
+          <p class="cd-goal" id="goal"></p>
+        </div>
+        <svg id="chart" class="cd-chart" role="img" aria-label="S11 in dB against frequency: the best design so far and the solve that is running"></svg>
+        <ul class="cd-legend" aria-hidden="true">
+          <li><span class="swatch swatch-best"></span>Best design so far</li>
+          <li><span class="swatch swatch-live"></span>Solve running now</li>
+          <li><span class="swatch swatch-limit"></span>Goal</li>
+        </ul>
+        <div class="cd-panel-head cd-timeline-head">
+          <h2 id="timeline-title">Solves and AI decisions</h2>
+          <p class="cd-hint">Each line joins the solve the AI was asked about to the moment its answer landed.</p>
+        </div>
+        <svg id="timeline" class="cd-timeline" role="img" aria-labelledby="timeline-title"></svg>
+      </section>
+
+      <section class="cd-best" aria-labelledby="best-title">
+        <h2 id="best-title">Best design so far</h2>
+        <dl id="best" class="cd-best-grid"><div><dt>Status</dt><dd>No solve yet</dd></div></dl>
+      </section>
+
+      <aside class="cd-feed-panel" aria-labelledby="feed-title">
+        <h2 id="feed-title">What the AI sees and decides</h2>
+        <ol id="feed" class="cd-feed" aria-live="polite"></ol>
+        <form id="say" class="cd-say">
+          <label for="say-text" class="visually-hidden">Tell the AI</label>
+          <input id="say-text" type="text" autocomplete="off" placeholder="Tell the AI, e.g. keep patch_w at 14 mm" disabled />
+          <button type="submit" id="say-send" disabled>Send</button>
+        </form>
+        <div class="cd-actions">
+          <button type="button" id="stop-solve" disabled>Stop this solve</button>
+          <button type="button" id="stop-run" disabled>End run</button>
+        </div>
+      </aside>
+    </main>
+
+    <div id="empty" class="cd-empty">
+      <h1>Watch an AI design an antenna, solve by solve</h1>
+      <p>Start a run with <code>npm run design -- codesign my.design.json --gpu --serve 8790</code>, then open this page with <code>?ws=8790</code>.</p>
+      <p>To play back a finished run, open it with <code>?journal=</code> and the path of its <code>journal.jsonl</code> from the repo root, or drop the file here.</p>
+    </div>
+    <script type="module" src="/src/codesign/main.ts"></script>
+  </body>
+</html>

@@ -3,26 +3,17 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { resolveProject } from '../src/project/resolve';
-import type { Project } from '../src/project/schema';
 import { designAt, parseDesignFile, projectFor } from '../src/design/design_file';
-import type { Evaluation, Evaluator } from '../src/design/evaluate';
 import { axialRatio, goalMet, goalScore, metricsFromSpectrum, type DesignGoal } from '../src/design/goal';
 import { HttpChatModel, laneFor, retryWaitMs } from '../src/design/llm';
 import { nelderMead } from '../src/design/nelder_mead';
 import { microstripWidthMm, patchDesign, patchEstimateMm } from '../src/design/patch_template';
 import { DesignSession } from '../src/design/session';
+import { lorentzian, surrogateEvaluator } from './design_surrogate';
 import { SpendCapError, SpendGuard } from '../src/design/spend';
 import { ManualDriver, runStrategist, ScriptedStrategist } from '../src/design/strategist';
 
 const GOAL: DesignGoal = { target_ghz: 5.8, s11_max_db: -10, f_tolerance_pct: 1 };
-
-/** A resonance: S11 dips to `depthDb` at f0 with a fractional half-width `q`. */
-function lorentzian(f0: number, depthDb: number, q = 0.02) {
-  const fGHz = Float64Array.from({ length: 301 }, (_, k) => 4.5 + (3 * k) / 300);
-  const gMin2 = 10 ** (depthDb / 10);
-  const s11Db = fGHz.map((f) => 10 * Math.log10(1 - (1 - gMin2) / (1 + ((f - f0) / (q * f0)) ** 2)));
-  return { fGHz, s11Db };
-}
 
 describe('goal', () => {
   it('finds the dip, S11 at the target and the -10 dB band', () => {
@@ -322,31 +313,6 @@ describe('HTTP model', () => {
     expect(calls).toBe(1);
   });
 });
-
-/**
- * An analytic stand-in for the solver: the resonance falls with patch_l and
- * with a slot, the match depends on the inset depth. Qualitative only.
- */
-function surrogateEvaluator(goal: DesignGoal): Evaluator & { count: number } {
-  let count = 0;
-  const evaluateOne = (project: Project): Evaluation => {
-    count++;
-    const v = resolveProject(project).variables;
-    const ids = project.geometry.top.map((s) => s.id);
-    const slot = ids.includes('slot') ? 0.45 * v.slot_l.value : 0;
-    const f0 = 68 / (v.patch_l.value + slot);
-    const depth = ids.includes('inset_left') ? -6 - 20 / (1 + ((v.inset_d.value - 3.2) / 0.8) ** 2) : -6;
-    const spec = lorentzian(f0, depth);
-    return { metrics: metricsFromSpectrum(spec, goal), spectrum: { fGHz: Array.from(spec.fGHz), s11Db: Array.from(spec.s11Db) }, steps: 1000, solveMs: 1, warnings: [] };
-  };
-  return {
-    get count() { return count; },
-    evaluateAll: async (projects) => projects.map((p) => ({ status: 'fulfilled' as const, value: evaluateOne(p) })),
-    solves: 0,
-    solveMs: 0,
-    close: async () => {},
-  };
-}
 
 describe('design session and strategist loop', () => {
   it('scripted rules reach the goal on a roomy board with inset alone', async () => {

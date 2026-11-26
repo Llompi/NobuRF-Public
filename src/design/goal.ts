@@ -32,6 +32,8 @@ export interface DesignMetrics {
   /** Boresight axial ratio and sense at the target, only when the goal asks for it. */
   axial_ratio_db?: number;
   polarisation_sense?: 'RHCP' | 'LHCP';
+  /** Input impedance at the design target (ohm), from the solver's port spectrum. Absent for surrogate solves. */
+  z_target_ohm?: { re: number; im: number };
 }
 
 export interface Spectrum {
@@ -134,3 +136,6 @@ export function goalScore(m: DesignMetrics, goal: DesignGoal): number {
 }
 
 export const goalMet = (m: DesignMetrics, goal: DesignGoal) => goalScore(m, goal) === 0;
+
+/** A spectrum small enough to journal and stream: frequencies to 0.1 MHz, S11 to 0.01 dB. */
+export const roundedSpectrum = (s: { fGHz: number[]; s11Db: number[] }) => ({ fGHz: s.fGHz.map((f) => Number(f.toFixed(4))), s11Db: s.s11Db.map((d) => Number(d.toFixed(2))) });

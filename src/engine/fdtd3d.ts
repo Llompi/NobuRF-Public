@@ -116,6 +116,13 @@ export interface RunOptions {
    * also checks energy, since those checks are where the CPU waits for the GPU.
    */
   signal?: AbortSignal;
+  /**
+   * The active port's voltage and current so far, at the first energy check at
+   * or after every `everySteps` steps: one extra read-back of the port history
+   * then. Lets a caller estimate S11 while the run goes on (a live preview, an
+   * early stop). The arrays are copies the caller may keep.
+   */
+  portHistory?: { everySteps: number; onHistory: (stepsDone: number, v: Float32Array, i: Float32Array) => void };
 }
 
 export interface FieldRecording extends FieldRecordingOptions {
@@ -537,7 +544,8 @@ export class Fdtd3D {
       const check = control.energyCheckEverySteps;
       // Fixed-length runs skip the energy checks and their read-back stalls,
       // unless the caller wants progress or a way to cancel.
-      const measureEnergy = control.stopAtEnergyDecayDb !== null || opts.onProgress !== undefined || opts.signal !== undefined;
+      const measureEnergy = control.stopAtEnergyDecayDb !== null || opts.onProgress !== undefined || opts.signal !== undefined || opts.portHistory !== undefined;
+      let nextHistoryAt = opts.portHistory?.everySteps ?? Infinity;
       const energyStop = new EnergyStop(control, this.sourceEnd);
       const dispersionPasses = [this.dispersion.e, this.dispersion.h].filter((d): d is DispersionPass => d !== null);
       const t0 = performance.now();
@@ -642,6 +650,24 @@ export class Fdtd3D {
           if (energyStop.check(done, energy)) steps = done;
           opts.signal?.throwIfAborted();
           opts.onProgress?.(done, energyStop.decayDb);
+          if (opts.portHistory && activePort !== null && done >= nextHistoryAt && done < steps) {
+            nextHistoryAt = done + opts.portHistory.everySteps;
+            const portCount = this.ports.length;
+            const bytes = done * 2 * portCount * 4;
+            const copy = dev.createCommandEncoder();
+            copy.copyBufferToBuffer(this.bufHist, 0, this.bufHistRead, 0, bytes);
+            dev.queue.submit([copy.finish()]);
+            await this.bufHistRead.mapAsync(GPUMapMode.READ, 0, bytes);
+            const hist = new Float32Array(this.bufHistRead.getMappedRange(0, bytes));
+            const v = new Float32Array(done);
+            const i = new Float32Array(done);
+            for (let k = 0; k < done; k++) {
+              v[k] = hist[2 * (k * portCount + activePort)];
+              i[k] = hist[2 * (k * portCount + activePort) + 1];
+            }
+            this.bufHistRead.unmap();
+            opts.portHistory.onHistory(done, v, i);
+          }
         }
       }
       const frameBytes = frameCount * 3 * planeBytes;

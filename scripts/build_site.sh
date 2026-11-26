@@ -15,7 +15,7 @@ rm -rf "$OUT/figures" "$OUT/app" # figure sources are inlined into index.html; a
 # Relative base so the app also works from a preview address.
 # Only the workbench is published: the main page and race view need the local bridge.
 npx vite build --base ./ --outDir "$OUT/app" --emptyOutDir
-rm "$OUT/app/index.html" "$OUT/app/race.html" "$OUT/app/selftest.html"
+rm "$OUT/app/index.html" "$OUT/app/race.html" "$OUT/app/selftest.html" "$OUT/app/codesign.html" # local-run pages only
 mv "$OUT/app/workbench.html" "$OUT/app/index.html"
 
 mkdir -p "$OUT/agent/examples"

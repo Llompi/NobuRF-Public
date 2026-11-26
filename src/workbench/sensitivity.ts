@@ -68,6 +68,11 @@ class WorkbenchEvaluator implements Evaluator {
     };
   }
 
+  /** The study's solves are not watched (no frames), so there is never one to end early: `cancel` stops the study instead. */
+  stopCurrent(): boolean {
+    return false;
+  }
+
   cancel(): void {
     this.cancelled = true;
     this.running?.cancel();

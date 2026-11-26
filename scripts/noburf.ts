@@ -123,21 +123,49 @@ async function gpuEngine() {
 }
 
 /** Port samples from the WGSL kernels on a headless WebGPU device. Loaded lazily: the CPU path needs no GPU packages. */
-async function solveOnGpu(model: VoxelModel, exc: ExcitationConfig, control: RunControl, farField: FarFieldRequest | null, excited: number[]): Promise<Solved> {
+/**
+ * A solve watched while it runs: every `everySteps` steps, S11 and Z from the
+ * port signal so far (the same transform as the final result, on a shorter
+ * record), and a signal that stops the run. GPU, lumped-port, one-run solves only;
+ * other solves run without frames.
+ */
+export interface LiveSolve {
+  everySteps: number;
+  /** energyDecayDb: how far the energy has fallen from its peak so far; the run stops at the project's energy_decay_db. */
+  onFrame: (frame: { stepsDone: number; energyDecayDb: number; spec: Spectrum }) => void;
+  signal?: AbortSignal;
+}
+
+async function solveOnGpu(model: VoxelModel, exc: ExcitationConfig, control: RunControl, farField: FarFieldRequest | null, excited: number[], live?: LiveSolve): Promise<Solved> {
   const { createNodeGpuDevice } = await import('../src/node/gpu_device');
   const { Fdtd3D } = await import('../src/engine/fdtd3d');
   const { device, adapterName } = await createNodeGpuDevice();
   const engine = new Fdtd3D(device, model.grid, control.maxSteps, adapterName);
-  engine.load(model, exc);
-  if (farField) engine.enableHuygensDft(farField.surface, farField.frequenciesHz);
   const runs: PortSamples[] = [];
+  const dtSec = timestepSec(model.grid);
+  let decayDb = 0;
+  const watch = live && excited.length === 1
+    ? {
+      signal: live.signal,
+      onProgress: (_steps: number, energyDecayDb: number) => void (decayDb = energyDecayDb),
+      portHistory: {
+        everySteps: live.everySteps,
+        onHistory: (stepsDone: number, v: Float32Array, i: Float32Array) => live.onFrame({ stepsDone, energyDecayDb: decayDb, spec: portSpectrum({ v, i, dtSec }, exc) }),
+      },
+    }
+    : {};
   const huygensAccumulatorsPerRun: Float32Array[] | null = farField ? [] : null;
-  // Each run starts the box sums from zero, so each is read before the next run.
-  for (const activePort of excited) {
-    runs.push(await engine.run({ control, activePort }));
-    huygensAccumulatorsPerRun?.push(await engine.readHuygensDft());
+  try {
+    engine.load(model, exc);
+    if (farField) engine.enableHuygensDft(farField.surface, farField.frequenciesHz);
+    // Each run starts the box sums from zero, so each is read before the next run.
+    for (const activePort of excited) {
+      runs.push(await engine.run({ control, activePort, ...watch }));
+      huygensAccumulatorsPerRun?.push(await engine.readHuygensDft());
+    }
+  } finally {
+    engine.destroy(); // the engine's buffers, whether the solve finished, stopped or failed
   }
-  engine.destroy();
   return { runs, solver: `WGSL on ${adapterName}`, huygensAccumulatorsPerRun };
 }
 
@@ -349,7 +377,7 @@ export interface ProjectSolve {
  * transform the port record. Exported so benchmark and validation scripts run
  * exactly what the CLI runs.
  */
-export async function solveProjectText(text: string, sourceName: string, useGpu: boolean, cpuWhenModelExceedsGpu = false): Promise<ProjectSolve> {
+export async function solveProjectText(text: string, sourceName: string, useGpu: boolean, cpuWhenModelExceedsGpu = false, live?: LiveSolve): Promise<ProjectSolve> {
   let json: unknown;
   try {
     json = JSON.parse(text);
@@ -418,7 +446,7 @@ export async function solveProjectText(text: string, sourceName: string, useGpu:
   }
   const t0 = performance.now();
   const { runs, solver, huygensAccumulatorsPerRun } = useGpu
-    ? await solveOnGpu(model, exc, control, farField, excited)
+    ? await solveOnGpu(model, exc, control, farField, excited, live)
     : solveOnCpu(model, exc, control, farField, excited);
   const solveMs = performance.now() - t0;
   runs.forEach((samples, n) => samples.stoppedOnEnergy || warnings.push(runLabel(n) + truncated(samples.energyDecayDb)));

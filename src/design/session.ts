@@ -1,7 +1,7 @@
 import { ProjectError, type Project } from '../project/schema';
 import { projectFor, startPoint, tunableVariables, variableBounds, type DesignFile, type DesignPoint, type Fidelity } from './design_file';
 import type { Evaluation, Evaluator } from './evaluate';
-import { goalMet, goalScore, metricsFromSpectrum, type DesignGoal, type DesignMetrics } from './goal';
+import { goalMet, goalScore, metricsFromSpectrum, roundedSpectrum, type DesignGoal, type DesignMetrics } from './goal';
 import { nelderMead } from './nelder_mead';
 import { resolveProject } from '../project/resolve';
 import {
@@ -31,6 +31,10 @@ export interface SolveRecord {
   warnings?: string[];
   /** Grid cells of the solve, when the evaluator reports them. */
   cells?: number;
+  /** The solve was stopped partway (early stop, the watcher, or the user): the numbers are from the signal so far. */
+  stopped_early?: { steps: number; energyDecayDb: number; reason: string };
+  /** S11 over the band, for the live view and the journal. */
+  spectrum?: { fGHz: number[]; s11Db: number[] };
 }
 
 /** What `sensitivity` finds: the ranked rows and what it could not step. */
@@ -167,8 +171,9 @@ export class DesignSession {
   /** The result of the last optimise when it aimed off the target frequency (a measured mesh offset), else null. */
   private aimedPoint: DesignPoint | null = null;
   /**
-   * Set by the MCP server when the person writes mid-run (scripts/design.ts, --inbox) to end the running optimise before its next solve. The search
-   * returns its best point so far with stop "stopped by the watcher". Cleared when optimise returns.
+   * Set by a watcher (codesign.ts) or by the MCP server when the person writes mid-run (scripts/design.ts, --inbox) to end the
+   * running optimise before its next solve. The search returns its best point so far with stop "stopped by the watcher".
+   * Cleared when optimise returns.
    */
   stopSearchRequested = false;
   /** Every project solved so far (both meshes), by its JSON text: a repeat costs no solve and no budget. */
@@ -433,7 +438,7 @@ export class DesignSession {
     this.confirmSolves++;
     const [record] = await this.solve([this.current], 'confirm', this.goal);
     if (record.error) return { error: record.error };
-    const search = this.records.find((r) => r.fidelity === 'search' && r.metrics && this.samePoint(r.point, this.current));
+    const search = this.records.find((r) => r.fidelity === 'search' && r.metrics && !r.stopped_early && this.samePoint(r.point, this.current));
     return {
       ...this.pointView(record),
       ...(search?.metrics ? { search_mesh_f0_ghz: round(search.metrics.f0_ghz) } : {}),
@@ -451,7 +456,7 @@ export class DesignSession {
   async closingConfirm() {
     if (this.bestConfirmed()?.score === 0 || this.confirmSolvesLeft <= 0) return null;
     const confirmed = this.records.filter((r) => r.fidelity === 'confirm');
-    const unconfirmed = this.records.filter((r) => r.fidelity === 'search' && r.metrics && !confirmed.some((c) => this.samePoint(c.point, r.point)));
+    const unconfirmed = this.records.filter((r) => r.fidelity === 'search' && r.metrics && !r.stopped_early && !confirmed.some((c) => this.samePoint(c.point, r.point)));
     // An aimed result first: aimed off a measured mesh offset, it scores badly on the search mesh by intent.
     const aimed = this.aimedPoint;
     const best = (aimed && unconfirmed.find((r) => this.samePoint(r.point, aimed))) || unconfirmed.sort((a, b) => a.score - b.score)[0];
@@ -483,11 +488,14 @@ export class DesignSession {
     });
     const fresh = [...new Set(keyed.filter((k): k is string => typeof k === 'string' && !this.solved.has(k)))];
     if (fidelity === 'search') this.requireSearchSolves(fresh.length);
-    const settled = await this.evaluator.evaluateAll(fresh.map((k) => JSON.parse(k) as Project));
+    const settled = await this.evaluator.evaluateAll(fresh.map((k) => JSON.parse(k) as Project), { watch: fidelity === 'search' });
+    const outcomes = new Map<string, Evaluation | Error>();
     fresh.forEach((key, n) => {
       const s = settled[n];
       const outcome = s.status === 'fulfilled' ? s.value : new Error(`solver failed: ${(s.reason as Error).message}`);
-      this.solved.set(key, outcome);
+      outcomes.set(key, outcome);
+      // A solve stopped early read a partial signal: never reuse it for a later visit to the same point.
+      if (outcome instanceof Error || !outcome.stoppedEarly) this.solved.set(key, outcome);
       const point = points[keyed.indexOf(key)];
       // Each solve is journaled once, scored against the real goal (the optimiser may be aiming elsewhere).
       const record = recordOf(fidelity, point, outcome, this.goal);
@@ -497,7 +505,7 @@ export class DesignSession {
     return points.map((point, k) => {
       const key = keyed[k];
       if (key instanceof Error) return { fidelity, point, metrics: null, score: INFEASIBLE_SCORE, error: `refused: ${key.message}` };
-      return recordOf(fidelity, point, this.solved.get(key)!, scoreGoal);
+      return recordOf(fidelity, point, outcomes.get(key) ?? this.solved.get(key)!, scoreGoal);
     });
   }
 
@@ -550,6 +558,25 @@ export class DesignSession {
     return variable;
   }
 
+  /**
+   * How far the fine mesh sits from the search mesh in this run, measured from every confirmed design that was
+   * also solved on the search mesh: mean f0 shift (%) and mean S11-at-target shift (dB, positive = the fine mesh
+   * is worse). Null before the first such pair. Measured per run, never assumed: the gap depends on the design.
+   */
+  meshGap(): { pairs: number; f0_pct: number; s11_db: number } | null {
+    const pairs = this.records.filter((r) => r.fidelity === 'confirm' && r.metrics).flatMap((fine) => {
+      const coarse = this.records.find((r) => r.fidelity === 'search' && r.metrics && !r.stopped_early && this.samePoint(r.point, fine.point));
+      return coarse ? [{ fine: fine.metrics!, coarse: coarse.metrics! }] : [];
+    });
+    if (!pairs.length) return null;
+    const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    return {
+      pairs: pairs.length,
+      f0_pct: round(mean(pairs.map((p) => 100 * (p.fine.f0_ghz / p.coarse.f0_ghz - 1))), 2),
+      s11_db: round(mean(pairs.map((p) => p.fine.s11_at_target_db - p.coarse.s11_at_target_db)), 2),
+    };
+  }
+
   /** The same physical design: same features, same values of the variables that are live (an off feature's do nothing). */
   private samePoint(a: DesignPoint, b: DesignPoint): boolean {
     if (JSON.stringify([...a.enabled].sort()) !== JSON.stringify([...b.enabled].sort())) return false;
@@ -587,6 +614,8 @@ function recordOf(fidelity: Fidelity, point: DesignPoint, outcome: Evaluation | 
     fidelity, point, metrics, score: goalScore(metrics, goal),
     ...(outcome.warnings.length ? { warnings: outcome.warnings } : {}),
     ...(outcome.cells !== undefined ? { cells: outcome.cells } : {}),
+    ...(outcome.stoppedEarly ? { stopped_early: outcome.stoppedEarly } : {}),
+    ...(outcome.spectrum.fGHz.length ? { spectrum: roundedSpectrum(outcome.spectrum) } : {}),
   };
 }
 
