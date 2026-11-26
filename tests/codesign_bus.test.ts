@@ -12,6 +12,16 @@ const open = (port: number, origin: string) => new Promise<{ ws: WebSocket; rece
 });
 
 describe('co-design bus', () => {
+  it('says which port is busy instead of crashing', async () => {
+    const hooks = { onStopSolve: () => {}, onSay: () => {}, history: () => [] };
+    const first = await startCodesignBus(0, hooks);
+    try {
+      await expect(startCodesignBus(first.port, hooks)).rejects.toThrow(`port ${first.port} is already in use; pick another with --serve <port>`);
+    } finally {
+      await first.close();
+    }
+  });
+
   it('replays history, takes requests from a local page, and refuses other origins', async () => {
     const said: string[] = [];
     let stops = 0;

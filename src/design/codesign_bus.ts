@@ -60,8 +60,10 @@ export async function startCodesignBus(port: number, handlers: CodesignBusHandle
       else if (msg.type === 'stop') stopRequested = true;
     });
   });
+  // ws re-emits the server's errors; the listen promise below reports them, so they must not crash the process.
+  wss.on('error', () => {});
   await new Promise<void>((resolve, reject) => {
-    http.once('error', reject);
+    http.once('error', (e: NodeJS.ErrnoException) => reject(e.code === 'EADDRINUSE' ? new Error(`port ${port} is already in use; pick another with --serve <port>`) : e));
     http.listen(port, '127.0.0.1', () => resolve());
   });
   return {
