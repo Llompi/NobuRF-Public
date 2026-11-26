@@ -32,16 +32,17 @@ scripts. Preview branch deployments are off in the Pages project, so only `main`
 
 `https://noburf.com` is the site's address. Every link in the repo, the share tags and the agent setup prompt
 use it. Two other names reach the same Pages project. `www.noburf.com` answers with a permanent (301) redirect
-that keeps the path and query string. `noburf.llom.party` has the same rule, but the rule is switched off for
-now, so that host serves the site directly. noburf.com was registered on 2026-11-22, and some phone networks and
-DNS filters don't resolve a domain that new yet. Switch the rule on once noburf.com loads everywhere.
+that keeps the path and query string. `noburf.llom.party` has the same rule. It was switched off from 2026-11-22
+to 2026-11-26 while some phone networks and DNS filters didn't yet resolve the newly registered noburf.com, and
+it has been on since. If a network can't reach noburf.com again, switching that rule off makes the old host
+serve the site directly.
 
 | Host | Where the redirect lives |
 | --- | --- |
 | `www.noburf.com` | Redirect Rule "www.noburf.com to noburf.com" in the `noburf.com` zone |
-| `noburf.llom.party` | Redirect Rule "noburf.llom.party to noburf.com" in the `llom.party` zone (off for now) |
+| `noburf.llom.party` | Redirect Rule "noburf.llom.party to noburf.com" in the `llom.party` zone |
 
-Keep `noburf.llom.party` attached and serving: the launch posts on X, Reddit and Discord link to it.
+Keep `noburf.llom.party` attached and its rule on: the launch posts on X, Reddit and Discord link to it.
 Redirect Rules are free (10 per zone on the Free plan) and run before Pages, so they don't add a Function.
 They only fire on proxied traffic, so keep the DNS records for `www.noburf.com` and `noburf.llom.party` (and the apex) proxied (orange cloud).
 
