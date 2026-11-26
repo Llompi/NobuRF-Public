@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ScatteringResult } from '../src/engine/port_dft';
 import { stepTdr } from '../src/engine/time_domain';
 import { lineFromFields } from '../src/workbench/line_analysis';
+import { capTdrAtOpen } from '../src/workbench/line_view';
 
 /** S-parameters of an ideal line section: Z0, eps_eff, loss, length, between zRef ports. */
 function idealLine(z0: number, epsEff: number, alphaNpPerMm: number, lengthMm: number, zRef: number, fGHz: number[]): ScatteringResult {
@@ -36,6 +37,17 @@ describe('step TDR', () => {
     // About 1.4 / 20 GHz for a Kaiser beta 6 window.
     expect(tdr.riseTimePs).toBeGreaterThan(40);
     expect(tdr.riseTimePs).toBeLessThan(110);
+  });
+});
+
+describe('TDR chart', () => {
+  it('stops an open end at 19 times the reference and says so, where the ohms mean nothing', () => {
+    // A line into an open: the reflection reaches stepTdr's ceiling, 1999 times 50 ohm.
+    const open = capTdrAtOpen([Float64Array.from([50, 60, 99950]), Float64Array.from([50, 50, 50])], 50);
+    expect(open.openOhm).toBeCloseTo(950, 9);
+    expect(Array.from(open.shownOhm[0])).toEqual([50, 60, open.openOhm]);
+    expect(Array.from(open.shownOhm[1])).toEqual([50, 50, 50]);
+    expect(capTdrAtOpen([Float64Array.from([50, 120, 40])], 50)).toEqual({ shownOhm: [Float64Array.from([50, 120, 40])], openOhm: null });
   });
 });
 

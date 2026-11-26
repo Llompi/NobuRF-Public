@@ -20,7 +20,7 @@ import { basename, dirname, extname, join, relative, resolve, sep } from 'node:p
 import { createInterface } from 'node:readline';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { designAt, designFromProject, parseDesignFile, tuningDesignFromProject, projectFor, type DesignFile } from '../src/design/design_file';
-import { createEvaluator } from '../src/design/evaluate';
+import { createEvaluator, type LiveFrame, type LiveOptions } from '../src/design/evaluate';
 import { decideUseGpu } from './noburf';
 import { HttpChatModel, laneFor, type ChatModel } from '../src/design/llm';
 import { patchDesign } from '../src/design/patch_template';
@@ -32,6 +32,8 @@ import { inboxFor, runOpenClawLane, type OpenClawLaneOptions } from '../src/desi
 import { DesignSession, type SensitivityReport, type SessionEvent, type SessionLimits } from '../src/design/session';
 import { appendToInbox, InboxReader } from '../src/design/inbox';
 import { DEFAULT_LEDGER, MAX_PROVIDER_CAP_USD, MAX_RUN_CAP_USD, SpendGuard } from '../src/design/spend';
+import { EarlyStopRule, RulesWatcher, runCoDesign, SolveSignal, type ReviewEvent } from '../src/design/codesign';
+import { startCodesignBus, type CodesignBus } from '../src/design/codesign_bus';
 import { callTool, ManualDriver, runStrategist, ScriptedStrategist, STRATEGIST_TOOLS, type StrategistEvent, type StrategistResult } from '../src/design/strategist';
 
 const USAGE = `usage: design new --target <GHz> --board <W>x<L> [--s11 dB] [--bandwidth MHz] [--axial-ratio dB] [--substrate name:eps_r:h_mm] --out <file>
@@ -44,7 +46,9 @@ const USAGE = `usage: design new --target <GHz> --board <W>x<L> [--s11 dB] [--ba
        design agent-race "<request>" [--lanes cerebras,openrouter] [agent options] [--no-lobe]   (OpenClaw drives both lanes, then replay logs)
        design serve [--port 8000]   (serves this folder on localhost for the race replay)
        design sensitivity <design or project file> [--variables a,b] [--rank f0_mhz|s11_target_db|zin_target_ohm|s11_min_db]
-                         [--fidelity search|confirm] [--step-pct 2] [--check-step] [--target GHz] [--gpu | --cpu] [--workers N] [--out report.json]`;
+                         [--fidelity search|confirm] [--step-pct 2] [--check-step] [--target GHz] [--gpu | --cpu] [--workers N] [--out report.json]
+       design codesign <file> [--model rules|cerebras|openrouter] [--latency-ms N] [--reviews 120] [--early-stop off|rule] [--frame-steps 300] [--serve 8790] [run options]
+                 (experimental, see docs/codesign-findings.md: a model watches every solve, and with --gpu each running solve)`;
 
 /** Lifetime cap per provider for this tool, under the $5 credit with room for the other tools that use the same key. */
 const DEFAULT_PROVIDER_CAP_USD = MAX_PROVIDER_CAP_USD;
@@ -135,9 +139,8 @@ function refuseDirectCerebras(lane: string): void {
   }
 }
 
-function modelFor(lane: string, session: DesignSession, opts: Map<string, string>): ChatModel {
-  if (lane === 'scripted') return new ScriptedStrategist(session);
-  if (lane === 'manual') return new ManualDriver(createInterface({ input: process.stdin, terminal: false }));
+/** A provider lane with its key and a spend guard, checked before anything is sent. */
+function providerFor(lane: string, opts: Map<string, string>) {
   const l = laneFor(lane);
   refuseDirectCerebras(l.id);
   const key = process.env[l.keyEnv];
@@ -153,8 +156,21 @@ function modelFor(lane: string, session: DesignSession, opts: Map<string, string
     throw new Error(`--run-cap $${guard.runCapUsd} is too small for ${l.model}: each call reserves up to $${perCall.toFixed(4)} before it is sent, so allow at least $${(3 * perCall).toFixed(2)}`);
   }
   console.log(`${l.model} on ${l.id}: spent so far $${guard.spentEver().toFixed(4)} of the $${providerCap} cap (${guard.ledgerPath}); run cap $${guard.runCapUsd}, each call reserves up to $${perCall.toFixed(4)} first`);
+  return { lane: l, key, guard, effort, maxCompletionTokens };
+}
+
+function modelFor(lane: string, session: DesignSession, opts: Map<string, string>): ChatModel {
+  if (lane === 'scripted') return new ScriptedStrategist(session);
+  if (lane === 'manual') return new ManualDriver(createInterface({ input: process.stdin, terminal: false }));
+  const { lane: l, key, guard, effort, maxCompletionTokens } = providerFor(lane, opts);
   return new HttpChatModel(l, key, guard, { reasoningEffort: effort, maxCompletionTokens });
 }
+
+/**
+ * Console output that a solve cannot silence: solveForMetrics swaps console.log out while a solve runs, and
+ * the co-design watcher answers during solves.
+ */
+const print = (line: string) => void process.stdout.write(line + '\n');
 
 const stamp = () => new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
 
@@ -755,6 +771,146 @@ export function sensitivityTable(report: SensitivityReport): string {
   return lines.join('\n');
 }
 
+/**
+ * Co-design: the optimiser runs and a model reviews each newest solve as fast
+ * as it can answer, and may redirect the search (src/design/codesign.ts).
+ * With --gpu the running solve streams frames (S11 from the signal so far);
+ * the model, or --early-stop rule, can end a dead-end solve partway. --serve
+ * streams every event to the live view and takes the person's requests back.
+ * Prints one line per solve, stop and review, so the lag between them shows.
+ */
+async function codesign(argv: string[]): Promise<string> {
+  const { positional: [path], opts } = flags(argv, ['--gpu']);
+  if (!path) throw new Error(USAGE);
+  const design = loadDesign(path);
+  const lane = opts.get('--model') ?? 'rules';
+  if (!['rules', 'cerebras', 'openrouter'].includes(lane)) throw new Error(`codesign --model is rules, cerebras or openrouter, not "${lane}": the watcher must be able to steer`);
+  const earlyStop = opts.get('--early-stop') ?? 'off';
+  if (earlyStop !== 'off' && earlyStop !== 'rule') throw new Error(`--early-stop is off or rule, not "${earlyStop}"`);
+  const frameSteps = numberOpt(opts, '--frame-steps', 300)!;
+  if (!opts.has('--gpu') && (earlyStop === 'rule' || opts.has('--serve'))) print('note: live frames and early stops need --gpu; CPU solves run whole');
+  const outDir = join(dirname(path), `${basename(path).replace(/\.json$/i, '')}.runs`, `codesign-${lane}-${stamp()}`);
+  mkdirSync(outDir, { recursive: true });
+  const journal = join(outDir, 'journal.jsonl');
+  const t0 = performance.now();
+  const signal = new SolveSignal();
+  const events: object[] = [];
+  let bus: CodesignBus | null = null;
+  let searchSolves = 0;
+  const log = (e: SessionEvent | ReviewEvent | { type: 'frame'; frame: LiveFrame } | { type: 'you'; text: string } | { type: 'run'; [k: string]: unknown }) => {
+    const t = Math.round(performance.now() - t0);
+    const stamped = { t_ms: t, ...e };
+    writeFileSync(journal, JSON.stringify(stamped) + '\n', { flag: 'a' });
+    events.push(stamped);
+    bus?.broadcast(stamped);
+    const at = `${(t / 1000).toFixed(1).padStart(6)} s`;
+    if (e.type === 'solve') {
+      if (e.record.fidelity === 'search') searchSolves++;
+      const m = e.record.metrics;
+      const stopped = e.record.stopped_early ? `  STOPPED at ${e.record.stopped_early.steps} steps (${e.record.stopped_early.reason})` : '';
+      print(`${at}  ${e.record.fidelity} #${searchSolves}  ${m ? `f0 ${m.f0_ghz.toFixed(3)} GHz, S11 ${m.s11_at_target_db.toFixed(1)} dB` : e.record.error}  score ${e.record.score.toFixed(2)}${stopped}`);
+      signal.fire();
+    }
+    if (e.type === 'you') print(`${at}  you: ${e.text}`);
+    if (e.type === 'review') {
+      const d = e.decision;
+      const what = 'error' in d ? `refused: ${d.error}` : `${d.action.toUpperCase()} ${d.note}${d.action === 'redirect' ? ` ${JSON.stringify({ enable: d.enable, disable: d.disable, free: d.free, values: d.values, aim_ghz: d.aim_ghz })}` : ''}`;
+      print(`${at}    AI (${e.trigger}, asked at solve ${e.solves_asked}, answered at ${e.solves_answered}, ${e.stats.ms} ms): ${what}`);
+    }
+    if (e.type === 'tool' && (e.result as { error?: string })?.error) print(`${at}  ${e.name} refused: ${(e.result as { error: string }).error}`);
+    else if (e.type === 'tool' && (e.name === 'confirm' || e.name === 'closing_confirm')) print(`${at}  ${e.name} -> ${JSON.stringify(e.result)}`);
+  };
+
+  // Frames of the running solve: journaled, offered to the rule, and they wake the watcher.
+  let latest: LiveFrame | null = null;
+  const rule = earlyStop === 'rule' ? new EarlyStopRule() : null;
+  let evaluator: ReturnType<typeof createEvaluator>;
+  const live: LiveOptions = {
+    everySteps: frameSteps,
+    onFrame: (frame) => {
+      latest = frame;
+      log({ type: 'frame', frame });
+      const reason = rule?.consider(frame, design.goal);
+      if (reason) evaluator.stopCurrent(`rule: ${reason}`);
+      signal.fire();
+    },
+  };
+  evaluator = createEvaluator(design.goal, { useGpu: opts.has('--gpu'), workers: numberOpt(opts, '--workers'), live: opts.has('--gpu') ? live : undefined });
+  const session = new DesignSession(design, evaluator, { maxSearchSolves: numberOpt(opts, '--solves', 60)!, maxConfirmSolves: numberOpt(opts, '--confirms', 3)! }, (e) => {
+    if (e.type === 'solve') latest = null; // the running solve has landed
+    log(e);
+  });
+  const model = lane === 'rules' ? new RulesWatcher(numberOpt(opts, '--latency-ms', 0)) : modelFor(lane, session, opts);
+  if (opts.has('--serve')) {
+    bus = await startCodesignBus(numberOpt(opts, '--serve', 8790)!, {
+      onStopSolve: () => evaluator.stopCurrent('stopped by you'),
+      onSay: (text) => log({ type: 'you', text }),
+      history: () => events,
+    });
+    print(`live view: run "npm run dev:web" and open http://localhost:5173/codesign.html?ws=${bus.port}`);
+  }
+  // The live view's server keeps the process alive: close it on every way out.
+  try {
+    log({ type: 'run', phase: 'start', design: path, goal: design.goal, model: model.label, early_stop: earlyStop, solver: opts.has('--gpu') ? 'WGSL (GPU)' : 'CPU reference' });
+    let result;
+    try {
+      result = await runCoDesign(session, model, signal, {
+        maxReviews: numberOpt(opts, '--reviews', 120)!,
+        onEvent: log,
+        ...(opts.has('--gpu') ? { live: { latest: () => latest, stopSolve: (reason: string) => evaluator.stopCurrent(reason) } } : {}),
+        ...(bus ? { takeUserSays: () => bus!.takeSays(), stopRequested: () => bus!.stopRequested } : {}),
+      });
+      const closing = result.ended === 'tool_error' ? null : await session.closingConfirm();
+      if (closing) log({ type: 'tool', name: 'closing_confirm', args: {}, result: closing, ms: 0 });
+    } finally {
+      await evaluator.close();
+    }
+    const wallMs = performance.now() - t0;
+    const best = session.bestConfirmed();
+    const search = session.records.filter((r) => r.fidelity === 'search');
+    const stopped = search.filter((r) => r.stopped_early);
+    // Search solves until the first one that met the goal: how quickly the steering found it.
+    const firstMet = search.findIndex((r) => r.score === 0);
+    const summary = {
+      design: path,
+      goal: design.goal,
+      model: model.label,
+      solver: opts.has('--gpu') ? 'WGSL (GPU)' : 'CPU reference',
+      early_stop: earlyStop,
+      ended: result.ended,
+      ...(result.error ? { error: result.error } : {}),
+      best_confirmed: best ? { met: best.score === 0, score: best.score, point: best.point, metrics: best.metrics } : null,
+      first_search_met_at_solve: firstMet >= 0 ? firstMet + 1 : null,
+      timing: { wall_s: round1(wallMs / 1000), model_s: round1(result.modelMs / 1000), rate_limit_wait_s: round1(result.retryWaitMs / 1000), solver_s: round1(evaluator.solveMs / 1000) },
+      reviews: {
+        total: result.reviews,
+        of_solves: result.solvesReviewed,
+        search_solves: search.length,
+        coverage: search.length ? Math.round((100 * result.solvesReviewed) / search.length) / 100 : 0,
+        mean_lag_solves: result.meanLagSolves,
+        redirects: result.redirects,
+        mean_answer_ms: result.reviews ? Math.round(result.modelMs / result.reviews) : 0,
+      },
+      stopped_early: {
+        total: stopped.length,
+        by_model: stopped.filter((r) => r.stopped_early!.reason.startsWith('AI:')).length,
+        by_rule: stopped.filter((r) => r.stopped_early!.reason.startsWith('rule:')).length,
+        by_person: stopped.filter((r) => r.stopped_early!.reason === 'stopped by you').length,
+      },
+      solves: { search: search.length, confirm: session.records.filter((r) => r.fidelity === 'confirm').length },
+      tokens: { prompt: result.promptTokens, completion: result.completionTokens },
+      cost_usd: Number(result.costUsd.toFixed(5)),
+    };
+    writeFileSync(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
+    log({ type: 'run', phase: 'end', summary });
+    print(`\n${result.ended}${result.error ? `: ${result.error}` : ''}; best confirmed: ${best ? JSON.stringify(best.metrics) : 'none'}`);
+    print(`AI reviewed ${result.solvesReviewed} of ${search.length} search solves (mean lag ${result.meanLagSolves} solves, ${summary.reviews.mean_answer_ms} ms per answer), ${result.redirects} redirects, ${stopped.length} solves stopped early; wall ${summary.timing.wall_s} s; $${summary.cost_usd} -> ${outDir}`);
+    return outDir;
+  } finally {
+    await bus?.close();
+  }
+}
+
 /** Exported for scripts/design-mcp.mjs, which starts this file from any working directory. */
 export async function main(): Promise<void> {
   if (existsSync('.env')) process.loadEnvFile('.env');
@@ -768,6 +924,7 @@ export async function main(): Promise<void> {
   if (command === 'agent-race') return agentRace(rest);
   if (command === 'serve') return serve(rest);
   if (command === 'sensitivity') return void (await sensitivity(rest));
+  if (command === 'codesign') return void (await codesign(rest));
   throw new Error(USAGE);
 }
 

@@ -67,7 +67,7 @@ const MAX_BODY = 16 * 1024;
  * construction (we listen on 127.0.0.1). Browser requests must come from a
  * localhost page, which blocks a random website from posting to the bridge.
  */
-function isLocalOrigin(origin: string | undefined): boolean {
+export function isLocalOrigin(origin: string | undefined): boolean {
   if (origin === undefined) return true;
   try {
     const { hostname } = new URL(origin);
@@ -78,7 +78,7 @@ function isLocalOrigin(origin: string | undefined): boolean {
 }
 
 /** Rejects DNS rebinding: a page on evil.example that resolves to 127.0.0.1 still sends Host: evil.example. */
-function isLocalHost(host: string | undefined): boolean {
+export function isLocalHost(host: string | undefined): boolean {
   if (host === undefined) return false;
   const hostname = host.startsWith('[') ? host.slice(0, host.indexOf(']') + 1) : host.split(':')[0];
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';

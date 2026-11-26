@@ -1,0 +1,95 @@
+/* Co-design live view. Same tokens as the app (src/ui/style.css): graphite surfaces, hairline rules,
+   the cool accent for interface, data traces in their own colours. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+body.codesign { min-height: 100vh; }
+
+.cd-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-5);
+  padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--rule);
+}
+.cd-model { font-weight: 500; }
+.cd-link { font-size: 13px; color: var(--text-muted); }
+.cd-link[data-state='live'] { color: var(--good); }
+.cd-link[data-state='replay'] { color: var(--accent); }
+.cd-stats { display: flex; flex-wrap: wrap; gap: var(--space-5); margin: 0 0 0 auto; }
+.cd-stats div { display: grid; }
+.cd-stats dt { font-size: 12px; color: var(--text-muted); }
+.cd-stats dd { margin: 0; font-size: 20px; font-weight: 500; line-height: 1.2; }
+
+.cd-main {
+  display: grid; gap: var(--space-5); padding: var(--space-5);
+  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-areas: 'chart feed' 'best feed';
+}
+.cd-chart-panel { grid-area: chart; min-width: 0; }
+.cd-best { grid-area: best; }
+.cd-feed-panel { grid-area: feed; display: flex; flex-direction: column; min-height: 0; max-height: calc(100vh - 120px); position: sticky; top: var(--space-5); }
+
+.cd-panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); margin-bottom: var(--space-2); }
+.cd-goal, .cd-hint { font-size: 13px; color: var(--text-muted); }
+.cd-timeline-head { margin-top: var(--space-5); }
+
+.cd-chart { width: 100%; height: 340px; display: block; }
+.cd-timeline { width: 100%; height: 150px; display: block; }
+.cd-chart text, .cd-timeline text { font: 12px var(--font-number); font-variant-numeric: tabular-nums; fill: var(--text-muted); }
+.cd-chart .grid, .cd-timeline .grid { stroke: var(--rule); stroke-width: 1; }
+.cd-chart .limit { stroke: var(--good); stroke-width: 1.5; stroke-dasharray: 3 5; }
+.cd-chart .target { stroke: var(--good); stroke-width: 1.5; stroke-dasharray: 3 5; }
+.cd-chart .best { fill: none; stroke: var(--trace-2); stroke-width: 2.5; }
+.cd-chart .live { fill: none; stroke: var(--text); stroke-width: 1.5; opacity: 0.85; }
+.cd-chart .live-stopped { stroke: var(--bad); stroke-dasharray: 2 4; }
+.cd-chart .past { fill: none; stroke: var(--text-muted); stroke-width: 1; opacity: 0.18; }
+
+.cd-legend { display: flex; flex-wrap: wrap; gap: var(--space-4); list-style: none; margin: var(--space-2) 0 0; padding: 0; font-size: 13px; color: var(--text-muted); }
+.cd-legend li { display: flex; align-items: center; gap: var(--space-2); }
+.swatch { width: 20px; height: 0; border-top: 2.5px solid; }
+.swatch-best { border-color: var(--trace-2); }
+.swatch-live { border-color: var(--text); border-top-width: 1.5px; }
+.swatch-limit { border-color: var(--good); border-top-style: dashed; border-top-width: 1.5px; }
+
+.cd-timeline .solve { fill: var(--trace-2); }
+.cd-timeline .solve-stopped { fill: none; stroke: var(--bad); stroke-width: 1.5; }
+.cd-timeline .solve-confirm { fill: var(--good); }
+.cd-timeline .ask { stroke: var(--accent); stroke-width: 1.5; }
+.cd-timeline .answer { fill: var(--accent); }
+.cd-timeline .answer-act { fill: var(--accent-hover); stroke: var(--surface); stroke-width: 1.5; }
+
+.cd-best-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--space-3) var(--space-5); margin: var(--space-2) 0 0; }
+.cd-best-grid dt { font-size: 12px; color: var(--text-muted); }
+.cd-best-grid dd { margin: 0; font: 500 18px var(--font-number); font-variant-numeric: tabular-nums; }
+
+.cd-feed { list-style: none; margin: var(--space-2) 0 var(--space-3); padding: 0; overflow-y: auto; flex: 1; min-height: 240px; display: flex; flex-direction: column-reverse; gap: var(--space-2); }
+.cd-feed li { padding: var(--space-2) var(--space-3); border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface-raised); }
+.cd-feed .meta { display: flex; gap: var(--space-2); align-items: baseline; font-size: 12px; color: var(--text-muted); }
+.cd-feed .action { font-weight: 600; color: var(--text); }
+.cd-feed .action[data-action='redirect'], .cd-feed .action[data-action='stop_solve'] { color: var(--accent); }
+.cd-feed .action[data-action='refused'] { color: var(--caution); }
+.cd-feed .note { margin-top: 2px; font-size: 14px; }
+.cd-feed .you { border-color: var(--accent); }
+
+.cd-say { display: flex; gap: var(--space-2); }
+.cd-say input { flex: 1; min-width: 0; min-height: 40px; padding: 0 var(--space-3); border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; }
+.cd-say input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.cd-say button, .cd-actions button {
+  min-height: 40px; padding: 0 var(--space-4); border-radius: var(--radius); cursor: pointer; font-size: 14px;
+  border: 1px solid var(--rule); background: var(--surface-raised);
+}
+.cd-say button { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+.cd-say button:hover:not(:disabled) { background: var(--accent-hover); }
+.cd-actions { display: flex; gap: var(--space-2); margin-top: var(--space-2); }
+.cd-actions button:hover:not(:disabled) { border-color: var(--text-muted); }
+button:disabled, input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.cd-empty { position: fixed; inset: 64px 0 0 0; display: grid; place-content: center; gap: var(--space-3); padding: var(--space-5); max-width: 64ch; margin: 0 auto; background: var(--surface); }
+.cd-empty h1 { font-size: 24px; font-weight: 600; }
+.cd-empty code { font: 13px var(--font-code); color: var(--text); }
+.cd-empty[hidden] { display: none; }
+
+@media (max-width: 900px) {
+  .cd-main { grid-template-columns: 1fr; grid-template-areas: 'chart' 'best' 'feed'; padding: var(--space-4); }
+  .cd-feed-panel { position: static; max-height: none; }
+  .cd-stats { margin: 0; gap: var(--space-4); }
+  .cd-chart { height: 260px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }

@@ -43,7 +43,7 @@ class WorkbenchEvaluator implements Evaluator {
       }
       this.hooks.onSolve(n, projects.length);
       // Only S11 and Z_in are read: leave out the far field, the near-field scan and the field volume.
-      const lean = { ...project, outputs: { ...project.outputs, far_field_ghz: undefined, near_field_mm: undefined } };
+      const lean = { ...project, outputs: { ...project.outputs, far_field_ghz: undefined, array_excitation: undefined, near_field_mm: undefined } };
       const run = startSolve(JSON.stringify(lean), this.choice, 'off', false, { onStart: this.hooks.onStart, onProgress: this.hooks.onProgress });
       this.running = run;
       try {
@@ -66,6 +66,11 @@ class WorkbenchEvaluator implements Evaluator {
       metrics: metricsFromSpectrum(spectrum, this.goal), spectrum, cells: r.grid.nx * r.grid.ny * r.grid.nz,
       steps: run.steps, solveMs: r.solveMs, warnings: r.warnings,
     };
+  }
+
+  /** The study's solves are not watched (no frames), so there is never one to end early: `cancel` stops the study instead. */
+  stopCurrent(): boolean {
+    return false;
   }
 
   cancel(): void {

@@ -59,11 +59,11 @@ export interface FarFieldResult {
   radiatedPowerW: number;
   /** Watts: integral of U over the sphere (a consistency check on radiatedPowerW). */
   sphereIntegralPowerW: number;
-  /** Watts: 1/2 Re(V I*) at the port. */
+  /** Watts: 1/2 Re(V I*) at the port; for an array, summed over every port. */
   acceptedPowerW: number;
   /** radiatedPowerW / acceptedPowerW. */
   efficiency: number;
-  /** 1 - |S11|^2 at this frequency. */
+  /** Accepted over available power: 1 - |S11|^2 for one port; for an array, 1 - the reflected and coupled share of the incident power. */
   mismatchFactor: number;
   peakDirectivityDbi: number;
   peakThetaDeg: number;
@@ -163,26 +163,42 @@ export function equivalentCurrents(
 
 function farFieldAtFrequency(input: NearToFarInput, frequencyIndex: number): FarFieldResult {
   const { surface, accumulators, samples, exc } = input;
-  const { thetaSteps, phiSteps } = input.angles ?? DEFAULT_FAR_FIELD_ANGLES;
   const frequencyHz = input.frequenciesHz[frequencyIndex];
-  const frequencyCount = input.frequenciesHz.length;
-  const k = (2 * Math.PI * frequencyHz) / C0;
   const source = sourcePhasor(exc, samples.dtSec, samples.v.length, frequencyHz);
   if (!(Math.hypot(...source) > 0)) throw new Error(`the source has no content at ${frequencyHz / 1e9} GHz`);
-
-  const { currentJ, currentM, radiatedPowerW } = equivalentCurrents(surface, accumulators, frequencyIndex, frequencyCount, source);
-  const count = surface.count;
-  if (!(radiatedPowerW > 0)) throw new Error(`no power leaves the Huygens box at ${frequencyHz / 1e9} GHz (flux ${radiatedPowerW} W)`);
+  const currents = equivalentCurrents(surface, accumulators, frequencyIndex, input.frequenciesHz.length, source);
 
   const port = portPhasors(samples, frequencyHz);
   const v = divide(port.v, source);
   const i = divide(port.i, source);
   const acceptedPowerW = 0.5 * (v[0] * i[0] + v[1] * i[1]);
-  if (!(acceptedPowerW > 0)) throw new Error(`the port accepts no power at ${frequencyHz / 1e9} GHz (${acceptedPowerW} W)`);
   const [zRe, zIm] = divide(port.v, port.i);
   const z0 = exc.z0;
   const reflected = ((zRe - z0) ** 2 + zIm ** 2) / ((zRe + z0) ** 2 + zIm ** 2);
+  const fields = radiationPattern(surface, currents, frequencyHz, input.angles);
+  return patternResult(fields, { radiatedPowerW: currents.radiatedPowerW, acceptedPowerW, mismatchFactor: 1 - reflected });
+}
 
+/** The far field in every direction of the grid, before any power is known: r E for the currents' source. */
+export interface PatternFields {
+  frequencyHz: number;
+  thetaDeg: Float64Array;
+  phiDeg: Float64Array;
+  /** At [thetaIndex * phiSteps + phiIndex], in volts, without exp(-j k r). */
+  rEThetaRe: Float64Array;
+  rEThetaIm: Float64Array;
+  rEPhiRe: Float64Array;
+  rEPhiIm: Float64Array;
+}
+
+/** r E_theta and r E_phi radiated by the box currents, on the theta/phi grid of `angles`. */
+export function radiationPattern(
+  surface: HuygensSurface, currents: Pick<EquivalentCurrents, 'currentJ' | 'currentM'>, frequencyHz: number, angles = DEFAULT_FAR_FIELD_ANGLES,
+): PatternFields {
+  const { thetaSteps, phiSteps } = angles;
+  const { currentJ, currentM } = currents;
+  const k = (2 * Math.PI * frequencyHz) / C0;
+  const count = surface.count;
   const directions = thetaSteps * phiSteps;
   const thetaDeg = Float64Array.from({ length: thetaSteps }, (_, t) => (180 * t) / (thetaSteps - 1));
   const phiDeg = Float64Array.from({ length: phiSteps }, (_, p) => (360 * p) / phiSteps);
@@ -190,7 +206,6 @@ function farFieldAtFrequency(input: NearToFarInput, frequencyIndex: number): Far
   const rEThetaIm = new Float64Array(directions);
   const rEPhiRe = new Float64Array(directions);
   const rEPhiIm = new Float64Array(directions);
-  const intensity = new Float64Array(directions);
   const radiation = new Float64Array(12); // N then L, complex x, y, z
   const centre = surface.centreM;
   for (let t = 0; t < thetaSteps; t++) {
@@ -231,9 +246,35 @@ function farFieldAtFrequency(input: NearToFarInput, frequencyIndex: number): Far
       rEThetaIm[d] = -scale * aRe;
       rEPhiRe[d] = -scale * bIm;
       rEPhiIm[d] = scale * bRe;
-      intensity[d] = (rEThetaRe[d] ** 2 + rEThetaIm[d] ** 2 + rEPhiRe[d] ** 2 + rEPhiIm[d] ** 2) / (2 * ETA0);
     }
   }
+  return { frequencyHz, thetaDeg, phiDeg, rEThetaRe, rEThetaIm, rEPhiRe, rEPhiIm };
+}
+
+/** The powers a pattern is scaled by: radiated (box flux), accepted (at the ports), and accepted over available. */
+export interface PatternPowers {
+  radiatedPowerW: number;
+  acceptedPowerW: number;
+  mismatchFactor: number;
+}
+
+/**
+ * Energy decay (dB) at which the radiation efficiency is good to about
+ * ±0.5 % (docs/project-file.md, Far field; validation/openems/array). Below
+ * it, efficiency and gain can be off by percents on a poorly matched antenna.
+ */
+export const EFFICIENCY_ENERGY_DECAY_DB = 70;
+
+/** Directivity, gain and their peaks from the far field and the powers behind it. */
+export function patternResult(fields: PatternFields, powers: PatternPowers): FarFieldResult {
+  const { frequencyHz, thetaDeg, phiDeg, rEThetaRe, rEThetaIm, rEPhiRe, rEPhiIm } = fields;
+  const { radiatedPowerW, acceptedPowerW, mismatchFactor } = powers;
+  if (!(radiatedPowerW > 0)) throw new Error(`no power leaves the Huygens box at ${frequencyHz / 1e9} GHz (flux ${radiatedPowerW} W)`);
+  if (!(acceptedPowerW > 0)) throw new Error(`the ports accept no power at ${frequencyHz / 1e9} GHz (${acceptedPowerW} W)`);
+  const [thetaSteps, phiSteps] = [thetaDeg.length, phiDeg.length];
+  const directions = thetaSteps * phiSteps;
+  const intensity = new Float64Array(directions);
+  for (let d = 0; d < directions; d++) intensity[d] = (rEThetaRe[d] ** 2 + rEThetaIm[d] ** 2 + rEPhiRe[d] ** 2 + rEPhiIm[d] ** 2) / (2 * ETA0);
 
   const dTheta = Math.PI / (thetaSteps - 1);
   const dPhi = (2 * Math.PI) / phiSteps;
@@ -255,12 +296,11 @@ function farFieldAtFrequency(input: NearToFarInput, frequencyIndex: number): Far
   const peakGainDbi = 10 * Math.log10((4 * Math.PI * intensity[peak]) / acceptedPowerW);
   return {
     frequencyHz, thetaDeg, phiDeg, directivityDbi, rEThetaRe, rEThetaIm, rEPhiRe, rEPhiIm,
-    radiatedPowerW, sphereIntegralPowerW, acceptedPowerW, efficiency,
-    mismatchFactor: 1 - reflected,
+    radiatedPowerW, sphereIntegralPowerW, acceptedPowerW, efficiency, mismatchFactor,
     peakDirectivityDbi: directivityDbi[peak],
     peakThetaDeg: thetaDeg[Math.floor(peak / phiSteps)],
     peakPhiDeg: phiDeg[peak % phiSteps],
     peakGainDbi,
-    peakRealisedGainDbi: peakGainDbi + 10 * Math.log10(1 - reflected),
+    peakRealisedGainDbi: peakGainDbi + 10 * Math.log10(mismatchFactor),
   };
 }

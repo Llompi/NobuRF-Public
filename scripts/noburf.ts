@@ -29,7 +29,8 @@ import { gpuPortLimitExceeded } from '../src/engine/gpu_limits';
 import { boresightPolarisation, patternFigures } from '../src/engine/far_field_pattern';
 import { largestCell, type MeshLines } from '../src/engine/mesh';
 import { HuygensDftRecorder, huygensBoxInsidePml, huygensSurface, type HuygensSurface } from '../src/engine/huygens_box';
-import { nearToFarField, type FarFieldResult } from '../src/engine/near_to_far';
+import { arrayFarFieldAt, prepareArray, type ArrayFarFieldResult, type PortDrive } from '../src/engine/array_far_field';
+import { EFFICIENCY_ENERGY_DECAY_DB, nearToFarField, type FarFieldAngles, type FarFieldResult } from '../src/engine/near_to_far';
 import { touchstoneLines } from '../src/engine/touchstone';
 import { interp, portSpectrum, s11FromZ, scatteringMatrix, type ScatteringResult, type Spectrum } from '../src/engine/port_dft';
 import type { ExcitationConfig, PortSamples, RunControl } from '../src/engine/types';
@@ -39,7 +40,7 @@ import { checkDeembedding, deembedProject, type KitSolver, type PortDeembedding 
 import { analyseDifferential, constantLossNote, differentialJson, differentialSummaryLines, pairSpecsFromIds, TIMING_ENERGY_DECAY_DB } from '../src/engine/differential';
 import { PAIR_USAGE, runPairCommand } from '../src/node/pair_command';
 import { rasterise } from '../src/project/rasterise';
-import { constantLossDielectrics, resolveProject } from '../src/project/resolve';
+import { arrayPortDrives, constantLossDielectrics, drivenPorts, resolveProject } from '../src/project/resolve';
 import { parseProject, PROJECT_SCHEMA_VERSION, type Project } from '../src/project/schema';
 import { encodeGlb } from '../src/viewer/glb';
 import { lobeMesh } from '../src/viewer/lobe_mesh';
@@ -109,8 +110,8 @@ interface Solved {
   /** One run per excited port, in the order asked for. */
   runs: PortSamples[];
   solver: string;
-  /** Box DFTs (huygens_box.ts layout), when a far field was requested. */
-  huygensAccumulators: ArrayLike<number> | null;
+  /** Box DFTs (huygens_box.ts layout), one per run in the order of `runs`, when a far field was requested. */
+  huygensAccumulatorsPerRun: Array<ArrayLike<number>> | null;
 }
 
 /** solvePorts' engine on a headless WebGPU device. Loaded lazily: the CPU path needs no GPU packages. */
@@ -122,25 +123,58 @@ async function gpuEngine() {
 }
 
 /** Port samples from the WGSL kernels on a headless WebGPU device. Loaded lazily: the CPU path needs no GPU packages. */
-async function solveOnGpu(model: VoxelModel, exc: ExcitationConfig, control: RunControl, farField: FarFieldRequest | null, excited: number[]): Promise<Solved> {
+/**
+ * A solve watched while it runs: every `everySteps` steps, S11 and Z from the
+ * port signal so far (the same transform as the final result, on a shorter
+ * record), and a signal that stops the run. GPU, lumped-port, one-run solves only;
+ * other solves run without frames.
+ */
+export interface LiveSolve {
+  everySteps: number;
+  /** energyDecayDb: how far the energy has fallen from its peak so far; the run stops at the project's energy_decay_db. */
+  onFrame: (frame: { stepsDone: number; energyDecayDb: number; spec: Spectrum }) => void;
+  signal?: AbortSignal;
+}
+
+async function solveOnGpu(model: VoxelModel, exc: ExcitationConfig, control: RunControl, farField: FarFieldRequest | null, excited: number[], live?: LiveSolve): Promise<Solved> {
   const { createNodeGpuDevice } = await import('../src/node/gpu_device');
   const { Fdtd3D } = await import('../src/engine/fdtd3d');
   const { device, adapterName } = await createNodeGpuDevice();
   const engine = new Fdtd3D(device, model.grid, control.maxSteps, adapterName);
-  engine.load(model, exc);
-  if (farField) engine.enableHuygensDft(farField.surface, farField.frequenciesHz);
   const runs: PortSamples[] = [];
-  for (const activePort of excited) runs.push(await engine.run({ control, activePort }));
-  const huygensAccumulators = farField ? await engine.readHuygensDft() : null;
-  engine.destroy();
-  return { runs, solver: `WGSL on ${adapterName}`, huygensAccumulators };
+  const dtSec = timestepSec(model.grid);
+  let decayDb = 0;
+  const watch = live && excited.length === 1
+    ? {
+      signal: live.signal,
+      onProgress: (_steps: number, energyDecayDb: number) => void (decayDb = energyDecayDb),
+      portHistory: {
+        everySteps: live.everySteps,
+        onHistory: (stepsDone: number, v: Float32Array, i: Float32Array) => live.onFrame({ stepsDone, energyDecayDb: decayDb, spec: portSpectrum({ v, i, dtSec }, exc) }),
+      },
+    }
+    : {};
+  const huygensAccumulatorsPerRun: Float32Array[] | null = farField ? [] : null;
+  try {
+    engine.load(model, exc);
+    if (farField) engine.enableHuygensDft(farField.surface, farField.frequenciesHz);
+    // Each run starts the box sums from zero, so each is read before the next run.
+    for (const activePort of excited) {
+      runs.push(await engine.run({ control, activePort, ...watch }));
+      huygensAccumulatorsPerRun?.push(await engine.readHuygensDft());
+    }
+  } finally {
+    engine.destroy(); // the engine's buffers, whether the solve finished, stopped or failed
+  }
+  return { runs, solver: `WGSL on ${adapterName}`, huygensAccumulatorsPerRun };
 }
 
 function solveOnCpu(model: VoxelModel, exc: ExcitationConfig, control: RunControl, farField: FarFieldRequest | null, excited: number[]): Solved {
-  const recorder = farField ? new HuygensDftRecorder(farField.surface, farField.frequenciesHz, timestepSec(model.grid)) : undefined;
   const solver = new CpuFdtd(model);
-  const runs = excited.map((activePort) => solver.run(exc, control, recorder, activePort));
-  return { runs, solver: 'CPU reference', huygensAccumulators: recorder?.accumulators ?? null };
+  // One recorder per run: a recorder's sums never reset, and each run's box fields are kept apart.
+  const recorders = farField ? excited.map(() => new HuygensDftRecorder(farField.surface, farField.frequenciesHz, timestepSec(model.grid))) : null;
+  const runs = excited.map((activePort, run) => solver.run(exc, control, recorders?.[run], activePort));
+  return { runs, solver: 'CPU reference', huygensAccumulatorsPerRun: recorders?.map((recorder) => recorder.accumulators) ?? null };
 }
 
 /** min and max of |S_ij| in dB over the band, for every measured S_ij. */
@@ -211,17 +245,22 @@ function writePatternFiles(outDir: string, projectName: string, results: FarFiel
 const LOBE_RANGE_DB = 30;
 const LOBE_RADIUS_M = 0.1;
 
-/** far_field.json: one entry per requested frequency. */
-export function farFieldReport(projectName: string, surface: HuygensSurface, mesh: MeshLines, results: FarFieldResult[], run: Pick<PortSamples, 'stoppedOnEnergy' | 'energyDecayDb'>) {
+/** far_field.json: one entry per requested frequency. `caveat` is null when every run rang down. */
+export function farFieldReport(projectName: string, surface: HuygensSurface, mesh: MeshLines, farField: SolvedFarField, portIds: string[], caveat: string | null) {
   const { lo, hi } = surface.box;
+  const isArray = farField.kind === 'array';
   const sizeMm = [mesh.x, mesh.y, mesh.z].map((nodes, a) => round6(nodes[hi[a]] - nodes[lo[a]]));
   return {
     project: projectName,
-    method: 'near-to-far-field transform of the tangential E and H on a closed box in the air around the board (Taflove & Hagness ch. 8)',
-    units: 'powers in W and r*E in V for a 1 V peak source behind the port reference resistance; the r*E phasors omit exp(-j k r)',
+    method: 'near-to-far-field transform of the tangential E and H on a closed box in the air around the board (Taflove & Hagness ch. 8)' +
+      (isArray ? '; for several ports, the embedded element patterns of one run per port, summed with each port\'s drive' : ''),
+    units: (isArray
+      ? 'powers in W and r*E in V with each driven port\'s source at its amplitude in V peak behind its reference resistance'
+      : 'powers in W and r*E in V for a 1 V peak source behind the port reference resistance') + '; the r*E phasors omit exp(-j k r)',
     huygens_box: { lo_node: lo, hi_node: hi, size_mm: sizeMm, patches: surface.count },
-    ...(run.stoppedOnEnergy ? {} : { caveat: truncatedRunCaveat(run.energyDecayDb) }),
-    frequencies: results.map((r) => ({
+    ...(isArray ? { array_excitation: farField.drivenPorts.map((drive) => ({ port: drive.portId, amplitude: drive.amplitude, phase_deg: drive.phaseDeg })) } : {}),
+    ...(caveat === null ? {} : { caveat }),
+    frequencies: farField.results.map((r: FarFieldResult | ArrayFarFieldResult) => ({
       f_ghz: r.frequencyHz / 1e9,
       peak_directivity_dbi: round6(r.peakDirectivityDbi),
       peak_theta_deg: r.peakThetaDeg,
@@ -233,6 +272,14 @@ export function farFieldReport(projectName: string, surface: HuygensSurface, mes
       efficiency: round6(r.efficiency),
       mismatch_factor: round6(r.mismatchFactor),
       sphere_to_box_power_ratio: round6(r.sphereIntegralPowerW / r.radiatedPowerW),
+      ...('ports' in r ? {
+        incident_power_w: r.incidentPowerW,
+        ports: r.ports.map((port, index) => ({
+          port: portIds[index],
+          active_reflection: port.activeReflection && { re: round6(port.activeReflection[0]), im: round6(port.activeReflection[1]), db: round6(port.activeReflectionDb!) },
+          outgoing_power_w: port.outgoingPowerW,
+        })),
+      } : {}),
       ...patternFiguresJson(r),
       pattern: {
         theta_deg: Array.from(r.thetaDeg),
@@ -320,7 +367,8 @@ export interface ProjectSolve {
   /** Git commit and working-tree state, recorded before the solve. */
   source: ReturnType<typeof solverSource>;
   farField: FarFieldRequest | null;
-  huygensAccumulators: ArrayLike<number> | null;
+  /** Box DFTs, one per run in the order of `excited`, when a far field was requested. */
+  huygensAccumulatorsPerRun: Array<ArrayLike<number>> | null;
   warnings: string[];
 }
 
@@ -329,7 +377,7 @@ export interface ProjectSolve {
  * transform the port record. Exported so benchmark and validation scripts run
  * exactly what the CLI runs.
  */
-export async function solveProjectText(text: string, sourceName: string, useGpu: boolean, cpuWhenModelExceedsGpu = false): Promise<ProjectSolve> {
+export async function solveProjectText(text: string, sourceName: string, useGpu: boolean, cpuWhenModelExceedsGpu = false, live?: LiveSolve): Promise<ProjectSolve> {
   let json: unknown;
   try {
     json = JSON.parse(text);
@@ -354,7 +402,6 @@ export async function solveProjectText(text: string, sourceName: string, useGpu:
       'and renormalization is not implemented yet');
   }
   const farFieldGhz = project.outputs.far_field_ghz ?? [];
-  if (multiport && farFieldGhz.length) throw new Error('$.outputs.far_field_ghz: the far field is computed for one-port projects only today');
   const port = project.ports[excited[0]];
   const a = project.analysis;
   const exc: ExcitationConfig = { fMinGHz: a.f_min_ghz, fMaxGHz: a.f_max_ghz, nFreq: a.n_freq, z0: port.reference_impedance_ohm };
@@ -394,12 +441,12 @@ export async function solveProjectText(text: string, sourceName: string, useGpu:
     return {
       project, model, exc, control, excited, runs: [], runSummaries, samples: null, ...solved.runs[0], spec: runSummaries[0].spec,
       scattering: multiport ? solved.scattering : null, solver: `${gpu ? `WGSL on ${gpu.adapterName}` : 'CPU reference'}, coax feeds (line ohm on this mesh: ${lines.join(', ')})`,
-      solveMs, source, farField: null, huygensAccumulators: null, warnings,
+      solveMs, source, farField: null, huygensAccumulatorsPerRun: null, warnings,
     };
   }
   const t0 = performance.now();
-  const { runs, solver, huygensAccumulators } = useGpu
-    ? await solveOnGpu(model, exc, control, farField, excited)
+  const { runs, solver, huygensAccumulatorsPerRun } = useGpu
+    ? await solveOnGpu(model, exc, control, farField, excited, live)
     : solveOnCpu(model, exc, control, farField, excited);
   const solveMs = performance.now() - t0;
   runs.forEach((samples, n) => samples.stoppedOnEnergy || warnings.push(runLabel(n) + truncated(samples.energyDecayDb)));
@@ -411,8 +458,34 @@ export async function solveProjectText(text: string, sourceName: string, useGpu:
   const scattering = multiport ? scatteringMatrix(runs.map((r, n) => ({ activePort: excited[n], samples: r })), z0s, exc) : null;
   return {
     project, model, exc, control, excited, runs, runSummaries, samples, steps: samples.v.length, energyDecayDb: samples.energyDecayDb, stoppedOnEnergy: samples.stoppedOnEnergy,
-    spec, scattering, solver, solveMs, source, farField, huygensAccumulators: huygensAccumulators ?? null, warnings,
+    spec, scattering, solver, solveMs, source, farField, huygensAccumulatorsPerRun, warnings,
   };
+}
+
+/** The far field of a solve: one port's pattern, or an array's with the drives used, one entry per driven port. */
+export type SolvedFarField =
+  | { kind: 'one-port'; results: FarFieldResult[] }
+  | { kind: 'array'; results: ArrayFarFieldResult[]; drivenPorts: Array<{ portId: string } & PortDrive> };
+
+/**
+ * The far field of a solve at outputs.far_field_ghz, null when it asks for
+ * none: one port's pattern, or with several ports every run combined under
+ * outputs.array_excitation (engine/array_far_field.ts).
+ */
+export function solvedFarField(solved: ProjectSolve, angles?: FarFieldAngles): SolvedFarField | null {
+  const { project, farField, huygensAccumulatorsPerRun, runs, excited, exc } = solved;
+  if (!farField) return null;
+  if (!huygensAccumulatorsPerRun) throw new Error('internal: a far field was requested but the solver returned no box DFT');
+  if (project.ports.length === 1) {
+    return { kind: 'one-port', results: nearToFarField({ ...farField, accumulators: huygensAccumulatorsPerRun[0], samples: runs[0], exc, angles }) };
+  }
+  const drives = arrayPortDrives(project);
+  const array = prepareArray({
+    ...farField, exc, angles,
+    runs: runs.map((samples, run) => ({ port: excited[run], accumulators: huygensAccumulatorsPerRun[run], samples })),
+    referenceImpedancesOhm: project.ports.map((port) => port.reference_impedance_ohm),
+  });
+  return { kind: 'array', results: farField.frequenciesHz.map((_, n) => arrayFarFieldAt(array, drives, n).result), drivenPorts: drivenPorts(project, drives) };
 }
 
 /** A solve as the mesh check sees it: S, the grid's size, the runs' energy decay, and the solve itself. */
@@ -534,7 +607,7 @@ async function main(): Promise<void> {
   const { solved, accuracy: report } = await verifiedSolve(text, projectPath, useGpu, accuracyMode, deltaS, solverChoice === 'auto');
   const accuracy = accuracyJson(report);
   const deembedded = await deembedSolve(solved, useGpu, solverChoice === 'auto');
-  const { project, model, exc, control, excited, samples, steps, energyDecayDb, stoppedOnEnergy, solver, solveMs, source, farField, huygensAccumulators, warnings } = solved;
+  const { project, model, exc, control, excited, steps, energyDecayDb, stoppedOnEnergy, solver, solveMs, source, farField, warnings } = solved;
   const z0All = project.ports.map((p) => p.reference_impedance_ohm);
   // With de-embedding every result below refers to the reference planes; the raw solve is kept beside it.
   const scattering = deembedded && solved.scattering ? deembedded.s : solved.scattering;
@@ -599,18 +672,6 @@ async function main(): Promise<void> {
     writeFileSync(join(outDir, 's11.s1p'), touchstone);
     writeFileSync(join(outDir, 'result.json'), JSON.stringify(result, null, 2) + '\n');
     console.log(`f0 ${result.f0_ghz.toFixed(3)} GHz, S11 min ${result.s11_min_db.toFixed(1)} dB, ${result.steps} steps -> ${outDir}`);
-    if (farField && samples) {
-      if (!huygensAccumulators) throw new Error('internal: a far field was requested but the solver returned no box DFT');
-      const farFieldResults = nearToFarField({ ...farField, accumulators: huygensAccumulators, samples, exc });
-      writeFileSync(join(outDir, 'far_field.json'), JSON.stringify(farFieldReport(project.name, farField.surface, model.mesh, farFieldResults, samples)) + '\n');
-      const files = writePatternFiles(outDir, project.name, farFieldResults);
-      if (!samples.stoppedOnEnergy) console.warn(`warning: far field: ${truncatedRunCaveat(samples.energyDecayDb)}`);
-      for (const r of farFieldResults) {
-        console.log(`far field ${r.frequencyHz / 1e9} GHz: D ${r.peakDirectivityDbi.toFixed(2)} dBi at theta ${r.peakThetaDeg}, phi ${r.peakPhiDeg}; ` +
-          `G ${r.peakGainDbi.toFixed(2)} dBi; efficiency ${r.efficiency.toFixed(3)}`);
-      }
-      console.log(`patterns: ${files.join(', ')}`);
-    }
   } else {
     const z0s = project.ports.map((p) => p.reference_impedance_ohm);
     const fileName = `sparams.s${portIds.length}p`;
@@ -679,6 +740,27 @@ async function main(): Promise<void> {
       console.log(`${row.s} (${row.from} -> ${row.to}): ${row.min_db.toFixed(2)} to ${row.max_db.toFixed(2)} dB`);
     }
     console.log(`${runSummaries.length} run(s), ${scattering.method} S-matrix -> ${outDir}`);
+  }
+  const farFieldSolution = solvedFarField(solved);
+  if (farField && farFieldSolution) {
+    // Every run's fields are in an array's pattern, so the caveat follows the run that fell least (NaN: no energy check ran).
+    const truncatedRuns = solved.runs.filter((run) => !run.stoppedOnEnergy);
+    const stopDb = project.analysis.stop.energy_decay_db;
+    const caveat = truncatedRuns.length ? truncatedRunCaveat(Math.min(...truncatedRuns.map((run) => run.energyDecayDb)))
+      : stopDb < EFFICIENCY_ENERGY_DECAY_DB ? `the solve stops at ${stopDb} dB energy decay; efficiency and gain can be off by a few percent on a poorly matched antenna (stop at ${EFFICIENCY_ENERGY_DECAY_DB} dB for about ±0.5 %)` : null;
+    writeFileSync(join(outDir, 'far_field.json'), JSON.stringify(farFieldReport(project.name, farField.surface, model.mesh, farFieldSolution, portIds, caveat)) + '\n');
+    const files = writePatternFiles(outDir, project.name, farFieldSolution.results);
+    if (caveat) console.warn(`warning: far field: ${caveat}`);
+    if (farFieldSolution.kind === 'array') console.log(`array drives: ${farFieldSolution.drivenPorts.map((drive) => `"${drive.portId}" ${drive.amplitude} at ${drive.phaseDeg} deg`).join(', ')}`);
+    for (const r of farFieldSolution.results) {
+      console.log(`far field ${r.frequencyHz / 1e9} GHz: D ${r.peakDirectivityDbi.toFixed(2)} dBi at theta ${r.peakThetaDeg}, phi ${r.peakPhiDeg}; ` +
+        `G ${r.peakGainDbi.toFixed(2)} dBi; efficiency ${r.efficiency.toFixed(3)}`);
+      if ('ports' in r) {
+        const reflections = r.ports.flatMap((port, index) => (port.activeReflectionDb === null ? [] : [`"${portIds[index]}" ${port.activeReflectionDb.toFixed(1)} dB`]));
+        console.log(`  active reflection: ${reflections.join(', ')}`);
+      }
+    }
+    console.log(`patterns: ${files.join(', ')}`);
   }
   for (const p of deembedded?.ports ?? []) {
     const ee = p.epsEff.filter((x): x is number => x !== null);

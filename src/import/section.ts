@@ -16,7 +16,7 @@
  * "<mm> mm" lengths, like an import writes them.
  */
 import { evaluate, evaluateLength, ExpressionError, type Quantity } from '../project/expression';
-import type { Vec2 } from '../project/resolve';
+import { keptArrayExcitation, type Vec2 } from '../project/resolve';
 import type { CopperShape, LumpedComponent, Point, Port, Project, SmaEdgePort, Via } from '../project/schema';
 import { ImportError, roundToNanometre, signedPolygonArea } from './geometry';
 
@@ -386,6 +386,15 @@ export function sectionProject(doc: Project, rect: SectionRect): { doc: Project;
   if (pairs) {
     if (pairs.length) next.outputs.differential_pairs = pairs;
     else delete next.outputs.differential_pairs;
+  }
+  if (doc.outputs.array_excitation) {
+    const excited = next.analysis.excite;
+    const drives = keptArrayExcitation(doc.outputs.array_excitation, (id) => portIds.has(id) && (!excited || excited.includes(id)), ports.length);
+    if (drives) next.outputs.array_excitation = drives;
+    else {
+      delete next.outputs.array_excitation;
+      if (ports.length >= 2) notes.push('No driven port is inside the section, so the far field now drives every excited port in phase.');
+    }
   }
   return { doc: next, summary: { shapesKept, shapesClipped, shapesRemoved, shapesSplit, removed, fencesTrimmed, notes } };
 }

@@ -2,12 +2,14 @@
  * Result views: |S| in dB, the Smith chart, Z_in, and the far-field cuts,
  * each with the figures an RF engineer reads first.
  */
+import type { ArrayFarFieldResult } from '../engine/array_far_field';
 import { interp } from '../engine/port_dft';
 import { escapeHtml, fmtDuration, fmtOhms, withMinus } from '../ui/format';
 import { patternCutsSvg } from '../viewer/pattern_plot';
 import { drawSmith } from '../viewer/smith_chart';
 import { extent, LineChart, type Trace } from './line_chart';
 import { BAND_SCOPE, BEHAVIOUR_TEXT, lastChange } from '../verify/accuracy';
+import { portDrivesText } from './driven_fields';
 import type { FarFieldSummary, WorkbenchResult } from './solve';
 
 export const TRACE_COLORS = ['#f2a33a', '#8eaaf5', '#c7a3f0', '#7fd1a8', '#ec6b62', '#e3b448', '#9ba3af', '#5fc2d6'];
@@ -71,6 +73,16 @@ const sParameterTraces = (r: WorkbenchResult): Trace[] => sParameterDb(r).map((p
 
 const facts = (rows: Array<[string, string]>) => rows.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd>`).join('');
 
+/** An array's port drives and each driven port's active reflection, for the far-field facts; none for one port. */
+function arrayFacts(drives: NonNullable<WorkbenchResult['farField']>['arrayDrives'], result: ArrayFarFieldResult | null, portIds: string[]): Array<[string, string]> {
+  if (!drives || !result) return [];
+  const reflections = result.ports.flatMap((port, index) => (port.activeReflectionDb === null ? [] : [`${portIds[index]} ${db(port.activeReflectionDb)}`]));
+  return [
+    ['Port drives', portDrivesText(drives)],
+    ['Active reflection', reflections.join(', ')],
+  ];
+}
+
 function runFacts(r: WorkbenchResult): Array<[string, string]> {
   const steps = r.runs.map((run) => run.steps.toLocaleString('en-US')).join(' + ');
   const decay = Math.min(...r.runs.map((run) => run.energyDecayDb));
@@ -122,7 +134,7 @@ export function accuracyFacts(r: WorkbenchResult): Array<[string, string]> {
     : a.checks.map((x) => ({ passivity: 'passive', reciprocity: 'reciprocal', energy_decay: 'rang down' })[x.name]).join(', ')
       + (marginal.length ? `; marginal: ${named(marginal)}` : '')]);
   const outside = a.envelope.filter((x) => !x.inside);
-  rows.push(['Validated range', outside.length ? `outside: ${outside.map((x) => x.parameter).join('; ')}` : 'inside: each feature matches a benchmark that agrees with measurement']);
+  rows.push(['Validated range', outside.length ? `outside: ${outside.map((x) => x.parameter).join('; ')}` : 'inside for what it checks (substrate, band, ports, copper, edges); vias, components and the far field have no measured benchmark yet']);
   return rows;
 }
 
@@ -221,6 +233,13 @@ export class ResultViews {
     ]);
   }
 
+  /** The same solve with its array re-driven: the far-field view keeps its frequency, and the lobe follows it. */
+  showSteered(r: WorkbenchResult): void {
+    this.result = r;
+    this.renderFarField();
+    this.onFarFieldFrequency(r.farField!.entries[this.farFieldIndex]);
+  }
+
   private renderFarField(): void {
     const r = this.result;
     const host = this.el.farField;
@@ -247,11 +266,12 @@ export class ResultViews {
     this.el.farFieldFacts.innerHTML = facts([
       ['Peak directivity', `${withMinus(f.peakDirectivityDbi.toFixed(2))} dBi at θ ${f.peakThetaDeg}°, φ ${f.peakPhiDeg}°`],
       ['Peak gain', `${withMinus(f.peakGainDbi.toFixed(2))} dBi`],
-      ['Realized gain', `${withMinus(f.peakRealisedGainDbi.toFixed(2))} dBi, with the port mismatch`],
+      ['Realized gain', `${withMinus(f.peakRealisedGainDbi.toFixed(2))} dBi, ${'ports' in f ? 'with the ports\' mismatch and coupling' : 'with the port mismatch'}`],
       ['Radiation efficiency', efficiencyText(f.efficiency)],
       ['Half-power beamwidth', `E-plane ${deg(entry.beamwidthEPlaneDeg)}, H-plane ${deg(entry.beamwidthHPlaneDeg)}`],
       ['Front to back', db(entry.frontToBackDb)],
       ['Cross-polar at broadside', db(entry.crossPolarDb)],
+      ...arrayFacts(r.farField.arrayDrives, 'ports' in f ? f : null, r.portIds),
     ]);
   }
 }

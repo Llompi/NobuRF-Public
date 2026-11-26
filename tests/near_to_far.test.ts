@@ -11,15 +11,13 @@ import type { ExcitationConfig, GridConfig } from '../src/engine/types';
 import { rasterise } from '../src/project/rasterise';
 import { parseProject } from '../src/project/schema';
 import { exampleJson } from './project_fixtures';
+import { directivityAt } from './far_field_helpers';
 
 // The 0.5 mm example patch with a far field: a few minutes on the CPU. Skip with SKIP_SLOW=1.
 const slow = process.env.SKIP_SLOW ? it.skip : it;
 
 const HERTZIAN_DIRECTIVITY_DBI = 10 * Math.log10(1.5);
 const deg = (x: number) => (x * Math.PI) / 180;
-const directivityAt = (r: FarFieldResult, thetaDeg: number, phiDeg: number) =>
-  r.directivityDbi[r.thetaDeg.indexOf(thetaDeg) * r.phiDeg.length + r.phiDeg.indexOf(phiDeg)];
-
 /** One CPU run of a model with the Huygens box recording at `frequenciesHz`. */
 function dipoleFarField(model: ReturnType<typeof shortDipoleModel>, exc: ExcitationConfig, frequenciesHz: number[]) {
   const surface = huygensSurface(model, huygensBoxInsidePml(model));

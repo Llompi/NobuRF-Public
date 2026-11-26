@@ -115,7 +115,7 @@ function cavityEvaluator(goal: DesignGoal): Evaluator {
     const spectrum = { fGHz, s11Db, zRe, zIm };
     return { metrics: metricsFromSpectrum(spectrum, goal), spectrum, cells: 1000, steps: 1, solveMs: 1, warnings: [] };
   };
-  return { evaluateAll: async (ps) => ps.map((p) => ({ status: 'fulfilled' as const, value: one(p) })), solves: 0, solveMs: 0, close: async () => {} };
+  return { evaluateAll: async (ps) => ps.map((p) => ({ status: 'fulfilled' as const, value: one(p) })), stopCurrent: () => false, solves: 0, solveMs: 0, close: async () => {} };
 }
 
 describe('design session sensitivity', () => {

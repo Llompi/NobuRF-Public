@@ -9,24 +9,26 @@
  */
 import { ENERGY_STOP_RUN, timestepSec } from '../engine/config';
 import { solvePorts, type CoaxPort } from '../engine/coax_feed';
-import { boresightPolarisation, patternFigures } from '../engine/far_field_pattern';
 import { CpuFdtd, type StepRecorder } from '../engine/fdtd_cpu';
 import { PlaneDftRecorder } from '../engine/plane_dft';
 import { VolumeDftRecorder, volumeDftBytes } from '../engine/volume_dft';
 import { HuygensDftRecorder, huygensBoxInsidePml, huygensSurface, type HuygensSurface } from '../engine/huygens_box';
 import { largestCell, smallestCell, type MeshLines } from '../engine/mesh';
-import { boxSources, fieldStrengthAt, scanPlane, scanPlanesK, type ScanPlane } from '../engine/near_field';
-import { nearToFarField, sourcePhasor, type FarFieldResult } from '../engine/near_to_far';
+import { prepareArray, type ArrayFarFieldResult, type PreparedArray } from '../engine/array_far_field';
+import { boxSources, scanPlane, scanPlanesK, type ScanPlane } from '../engine/near_field';
+import { EFFICIENCY_ENERGY_DECAY_DB, nearToFarField, sourcePhasor, type Complex, type FarFieldResult } from '../engine/near_to_far';
 import { type PlaneDftLayout } from '../engine/plane_dft';
-import { portSpectrum, s11FromZ, scatteringMatrix, type ScatteringResult, type Spectrum } from '../engine/port_dft';
+import { divide, portSpectrum, s11FromZ, scatteringMatrix, type ScatteringResult, type Spectrum } from '../engine/port_dft';
 import type { ExcitationConfig, PortSamples, RunControl } from '../engine/types';
 import type { VoxelModel } from '../engine/voxelize';
 import { checkDeembedding, deembedProject, type KitSolver, type PortDeembedding } from '../project/deembed_kit';
 import { rasterise } from '../project/rasterise';
-import { resolveProject, type ResolvedProject } from '../project/resolve';
+import { arrayPortDrives, drivenPorts, resolveProject, type ResolvedProject } from '../project/resolve';
 import { parseProject } from '../project/schema';
 import { assessAccuracy, boardCellSizeMm, type AccuracyMode, type AccuracyReport } from '../verify/accuracy';
 import { DEFAULT_DELTA_S } from '../verify/convergence';
+import { drivenFieldViews, type FieldRun } from './driven_fields';
+import { arrayFarFieldEntries, farFieldEntry } from './far_field_entries';
 import { fieldPlanesFromDft, planeDftRequest, type FieldPlanes } from './plane_dft';
 
 export type SolverChoice = 'auto' | 'cpu';
@@ -68,15 +70,25 @@ export interface RunSummary {
 }
 
 export interface FarFieldSummary {
-  result: FarFieldResult;
+  /** With several ports, the array's pattern with every port driven as the project sets (ArrayFarFieldResult). */
+  result: FarFieldResult | ArrayFarFieldResult;
   polarisation: 'x' | 'y';
   beamwidthEPlaneDeg: number | null;
   beamwidthHPlaneDeg: number | null;
   frontToBackDb: number;
   crossPolarDb: number;
-  /** |E| (V/m, peak, 1 V source) at 3 m and 10 m in the direction of peak directivity, from the full transform. */
+  /** |E| (V/m, peak, 1 V source or each array drive's amplitude in V) at 3 m and 10 m in the direction of peak directivity, from the full transform. */
   fieldAt3mVPerM: number;
   fieldAt10mVPerM: number;
+}
+
+export interface WorkbenchFarField {
+  entries: FarFieldSummary[];
+  caveat: string | null;
+  /** With several ports, each driven port's source (amplitude relative, phase in degrees); null for one port. */
+  arrayDrives: Array<{ portId: string; amplitude: number; phaseDeg: number }> | null;
+  /** With several ports, every run's record and pattern, kept so that new drives re-sum them without a solve (steeredFarField); null for one port. */
+  array: PreparedArray | null;
 }
 
 /** E and H on a plane above the board, like an EMC near-field probe scan. */
@@ -105,19 +117,28 @@ export interface FieldMaps {
   volumeSkipped: string | null;
   /** Whether the solve was asked to keep the volume (Cut mode on when it started). */
   volumeAsked: boolean;
+  /**
+   * Which ports drive the fields shown, for the legend: "ports driven left 1
+   * at 0°, right 1 at 90°" for an array far field, "port left driven, the
+   * others loaded" for other multiport projects, null for one port.
+   */
+  shownDrive: string | null;
 }
 
 /**
- * The whole-grid field DFT of the first run (engine/volume_dft.ts), for the
- * first `frequencies` entries of FieldMaps.planes: as many as fit
- * VOLUME_BUDGET_BYTES. src/workbench/field_cut.ts reads cuts from it.
+ * The whole-grid field DFT (engine/volume_dft.ts) of each run whose fields
+ * are shown, for the first `frequencies` entries of FieldMaps.planes: as many
+ * as fit VOLUME_BUDGET_BYTES per run. The field drawn is the runs' DFTs
+ * summed with `weightsPerRun`; src/workbench/field_cut.ts reads cuts from it.
  */
 export interface FieldVolume {
   zMm: Float64Array;
   /** CPML cells on the low and high z faces (x and y are in FieldMaps.pml). */
   pmlZ: { low: number; high: number };
   frequencies: number;
-  accumulators: Float32Array;
+  accumulatorsPerRun: Float32Array[];
+  /** Per run, per frequency: the complex weight of that run's DFT. One run of weight 1 when a single run is shown. */
+  weightsPerRun: Complex[][];
 }
 
 export interface WorkbenchResult {
@@ -137,9 +158,22 @@ export interface WorkbenchResult {
   runs: RunSummary[];
   /** S_ij over the band; for one port, S11 from Z_in. Columns of unexcited ports are null. */
   s: ScatteringResult;
-  farField: { entries: FarFieldSummary[]; caveat: string | null } | null;
+  farField: WorkbenchFarField | null;
   fields: FieldMaps | null;
   nearField: NearFieldScan[] | null;
+  /**
+   * Each run's field views, kept for an array far field so `fields` and
+   * `nearField` can follow new drives without a solve (driven_fields.ts).
+   * Null when the views show the first run alone.
+   */
+  fieldRuns: FieldRun[] | null;
+  /**
+   * With exactly two ports, both on the layer the field planes watch
+   * (FieldMaps.copperLayer): whether the copper there, with any lumped parts
+   * placed on it, joins them, as a strip between them does. The Line view
+   * needs it. Null otherwise.
+   */
+  portsJoinedByCopper: boolean | null;
   /** The self-check: mesh convergence, passivity, reciprocity, energy decay, validated envelope. */
   accuracy: AccuracyReport | null;
   /** Ports de-embedded along their feeds (ports[].deembed): s and the runs' spectra then refer to the reference planes. Null when none. */
@@ -162,11 +196,20 @@ const MAX_FIELD_FREQUENCIES = 4;
  * (66 x 66 x 48 nodes) needs 10 MiB per frequency.
  */
 export const VOLUME_BUDGET_BYTES = 64 * 2 ** 20;
+/**
+ * Most memory the volumes of all runs may take together, when an array's
+ * field views keep every port's run: 128 MiB, what the GPU already holds
+ * during one run. Two ports keep 64 MiB each, eight ports 16 MiB each.
+ */
+export const ALL_RUNS_VOLUME_BUDGET_BYTES = 2 * VOLUME_BUDGET_BYTES;
 
-/** How many of the field frequencies the volume DFT can keep on this grid, 0 to all. */
-export function volumeFrequencies(grid: { nx: number; ny: number; nz: number }, frequencies: number): number {
+/** Memory each run's volume may take when `runs` runs keep one. */
+const volumeBudgetPerRun = (runs: number) => Math.min(VOLUME_BUDGET_BYTES, ALL_RUNS_VOLUME_BUDGET_BYTES / runs);
+
+/** How many of the field frequencies the volume DFT can keep on this grid, 0 to all, when `runs` runs each keep one. */
+export function volumeFrequencies(grid: { nx: number; ny: number; nz: number }, frequencies: number, runs = 1): number {
   let n = frequencies;
-  while (n > 0 && volumeDftBytes(grid, n) > VOLUME_BUDGET_BYTES) n--;
+  while (n > 0 && volumeDftBytes(grid, n) > volumeBudgetPerRun(runs)) n--;
   return n;
 }
 
@@ -235,11 +278,12 @@ function progressRecorder(every: number, report: (step: number, decayDb: number 
 interface Solved {
   runs: PortSamples[];
   solver: string;
-  huygensAccumulators: ArrayLike<number> | null;
-  /** The plane DFT of the first run, in `layout`. */
-  planeAccumulators: ArrayLike<number>;
-  /** The volume DFT of the first run, or null when it was not asked for. */
-  volumeAccumulators: Float32Array | null;
+  /** Box DFTs, one per run in the order of `runs`, when a far field was asked for. */
+  huygensAccumulatorsPerRun: Array<ArrayLike<number>> | null;
+  /** The plane DFT of each run whose fields are shown (the first run, or every run), in `layout`. */
+  planeAccumulatorsPerRun: Array<ArrayLike<number>>;
+  /** The volume DFT of the same runs, or null when it was not asked for. */
+  volumeAccumulatorsPerRun: Float32Array[] | null;
 }
 
 async function gpuAvailable(): Promise<boolean> {
@@ -264,7 +308,7 @@ export function failOnDeviceLoss<T>(device: Pick<GPUDevice, 'lost'>, work: Promi
 
 async function solveOnGpu(
   model: VoxelModel, exc: ExcitationConfig, control: RunControl, farField: { surface: HuygensSurface; frequenciesHz: number[] } | null,
-  excited: number[], layout: PlaneDftLayout, volumeHz: number[], hooks: SolveHooks,
+  excited: number[], layout: PlaneDftLayout, volumeHz: number[], recordedFieldRuns: number, hooks: SolveHooks,
 ): Promise<Solved> {
   const { Fdtd3D } = await import('../engine/fdtd3d');
   let engine: InstanceType<typeof Fdtd3D>;
@@ -282,25 +326,25 @@ async function solveOnGpu(
     if (volumeHz.length) engine.enableVolumeDft(volumeHz);
     const target = control.stopAtEnergyDecayDb ?? 0;
     const runs: PortSamples[] = [];
-    let huygensAccumulators: Float32Array | null = null;
-    let planeAccumulators: ArrayLike<number> = new Float32Array(0);
-    let volumeAccumulators: Float32Array | null = null;
-    // The field plots and the far field show the first excited port's run; each run restarts the DFT sums.
+    const huygensAccumulatorsPerRun: Float32Array[] | null = farField ? [] : null;
+    const planeAccumulatorsPerRun: Array<ArrayLike<number>> = [];
+    const volumeAccumulatorsPerRun: Float32Array[] | null = volumeHz.length ? [] : null;
+    // The far field needs every run's box; the field plots the first run's fields, or every run's for an array. Each run restarts the DFT sums.
     for (const [n, activePort] of excited.entries()) {
       hooks.onProgress({ run: n, runs: excited.length, step: 0, maxSteps: control.maxSteps, decayDb: null, targetDb: target, stage: 'solving' });
       runs.push(await untilLost(engine.run({ control, activePort,
         onProgress: (step, decayDb) => hooks.onProgress({ run: n, runs: excited.length, step, maxSteps: control.maxSteps, decayDb, targetDb: target, stage: 'solving' }) })));
-      if (n > 0) continue;
-      hooks.onProgress({ run: n, runs: excited.length, step: control.maxSteps, maxSteps: control.maxSteps, decayDb: null, targetDb: target, stage: 'reading-fields' });
-      if (farField) huygensAccumulators = await untilLost(engine.readHuygensDft());
-      planeAccumulators = await untilLost(engine.readPlaneDft());
-      if (volumeHz.length) {
-        volumeAccumulators = await untilLost(engine.readVolumeDft());
-        // Only the first run's fields are drawn: the other runs need not pay for the whole-grid DFT.
-        engine.disableVolumeDft();
+      if (n === 0 || farField) hooks.onProgress({ run: n, runs: excited.length, step: control.maxSteps, maxSteps: control.maxSteps, decayDb: null, targetDb: target, stage: 'reading-fields' });
+      if (huygensAccumulatorsPerRun) huygensAccumulatorsPerRun.push(await untilLost(engine.readHuygensDft()));
+      if (n >= recordedFieldRuns) continue;
+      planeAccumulatorsPerRun.push(await untilLost(engine.readPlaneDft()));
+      if (volumeAccumulatorsPerRun) {
+        volumeAccumulatorsPerRun.push(await untilLost(engine.readVolumeDft()));
+        // The runs after the recorded ones need not pay for the whole-grid DFT.
+        if (n + 1 === recordedFieldRuns) engine.disableVolumeDft();
       }
     }
-    return { runs, solver: `WebGPU, ${engine.adapterName}`, huygensAccumulators, planeAccumulators, volumeAccumulators };
+    return { runs, solver: `WebGPU, ${engine.adapterName}`, huygensAccumulatorsPerRun, planeAccumulatorsPerRun, volumeAccumulatorsPerRun };
   } finally {
     engine.destroy();
     engine.device.destroy();
@@ -309,24 +353,25 @@ async function solveOnGpu(
 
 function solveOnCpu(
   model: VoxelModel, exc: ExcitationConfig, control: RunControl, farField: { surface: HuygensSurface; frequenciesHz: number[] } | null,
-  excited: number[], layout: PlaneDftLayout, volumeHz: number[], hooks: SolveHooks,
+  excited: number[], layout: PlaneDftLayout, volumeHz: number[], recordedFieldRuns: number, hooks: SolveHooks,
 ): Solved {
   const dt = timestepSec(model.grid);
-  const huygens = farField ? new HuygensDftRecorder(farField.surface, farField.frequenciesHz, dt) : undefined;
-  const planeDft = new PlaneDftRecorder(model.grid, layout.planesK, layout.frequenciesHz, dt);
-  const volumeDft = volumeHz.length ? new VolumeDftRecorder(model.grid, volumeHz, dt) : undefined;
+  // One far-field recorder per run: a recorder's sums never reset.
+  const huygensPerRun = farField ? excited.map(() => new HuygensDftRecorder(farField.surface, farField.frequenciesHz, dt)) : null;
+  // The field plots show the first excited port's run, or every run's for an array; one recorder per run they show.
+  const planeDftPerRun = Array.from({ length: recordedFieldRuns }, () => new PlaneDftRecorder(model.grid, layout.planesK, layout.frequenciesHz, dt));
+  const volumeDftPerRun = volumeHz.length ? Array.from({ length: recordedFieldRuns }, () => new VolumeDftRecorder(model.grid, volumeHz, dt)) : null;
   const solver = new CpuFdtd(model);
   const target = control.stopAtEnergyDecayDb ?? 0;
   const runs = excited.map((activePort, n) => {
     const progress = progressRecorder(control.energyCheckEverySteps, (step, decayDb) =>
       hooks.onProgress({ run: n, runs: excited.length, step, maxSteps: control.maxSteps, decayDb, targetDb: target, stage: 'solving' }));
-    // The field plots and the far field show the first excited port's run.
-    const first = n === 0;
-    return solver.run(exc, control, allOf([progress, first ? huygens : undefined, first ? planeDft : undefined, first ? volumeDft : undefined]), activePort);
+    return solver.run(exc, control, allOf([progress, huygensPerRun?.[n], planeDftPerRun[n], volumeDftPerRun?.[n]]), activePort);
   });
   return {
-    runs, solver: 'CPU reference solver', huygensAccumulators: huygens?.accumulators ?? null,
-    planeAccumulators: planeDft.accumulators, volumeAccumulators: volumeDft?.accumulators ?? null,
+    runs, solver: 'CPU reference solver', huygensAccumulatorsPerRun: huygensPerRun?.map((recorder) => recorder.accumulators) ?? null,
+    planeAccumulatorsPerRun: planeDftPerRun.map((recorder) => recorder.accumulators),
+    volumeAccumulatorsPerRun: volumeDftPerRun?.map((recorder) => recorder.accumulators) ?? null,
   };
 }
 
@@ -375,48 +420,118 @@ function spectrumFromScattering(s: ScatteringResult, j: number, z0: number): Spe
   return out;
 }
 
+/** The field maps of the first run, labeled with `shownDrive`; the volume keeps every recorded run's DFT, the first weighted 1. */
 function fieldMaps(
-  model: VoxelModel, planes: ReturnType<typeof monitorPlanes>, solvedPlanes: FieldPlanes[],
-  volumeAccumulators: Float32Array | null, volumeHz: number[], fieldVolume: boolean,
+  model: VoxelModel, planes: ReturnType<typeof monitorPlanes>, firstRunPlanes: FieldPlanes[],
+  volumeAccumulatorsPerRun: Float32Array[] | null, volumeHz: number[], fieldVolume: boolean, recordedFieldRuns: number, shownDrive: string | null,
 ): FieldMaps {
   const pml = model.cpml.faces;
-  const volume: FieldVolume | null = volumeAccumulators && {
-    zMm: model.mesh.z, pmlZ: { low: pml.zLow, high: pml.zHigh }, frequencies: volumeHz.length, accumulators: volumeAccumulators,
+  const volume: FieldVolume | null = volumeAccumulatorsPerRun && {
+    zMm: model.mesh.z, pmlZ: { low: pml.zLow, high: pml.zHigh }, frequencies: volumeHz.length,
+    accumulatorsPerRun: volumeAccumulatorsPerRun,
+    weightsPerRun: volumeAccumulatorsPerRun.map((_, run) => volumeHz.map((): Complex => (run === 0 ? [1, 0] : [0, 0]))),
   };
   return {
     xMm: model.mesh.x, yMm: model.mesh.y,
     pml: { xLow: pml.xLow, xHigh: pml.xHigh, yLow: pml.yLow, yHigh: pml.yHigh },
     ezLayer: planes.ezLayer, ezZMm: planes.ezZMm, copperLayer: planes.copperLayer, copperZMm: planes.copperZMm,
     copperMask: copperMask(model, planes.copperK),
-    planes: solvedPlanes,
+    planes: firstRunPlanes,
     volume,
-    volumeSkipped: fieldVolume ? volumeSkippedReason(model.grid, solvedPlanes.length, volumeHz.length)
+    volumeSkipped: fieldVolume ? volumeSkippedReason(model.grid, firstRunPlanes.length, volumeHz.length, recordedFieldRuns)
       : 'Cuts record E and H everywhere in the box, which slows the solve, so they are recorded only when Cut is on as the solve starts.',
     volumeAsked: fieldVolume,
+    shownDrive,
   };
 }
 
 /** Why cuts are missing at some or all field frequencies, in the words the model view shows; null when every frequency has them. */
-function volumeSkippedReason(grid: { nx: number; ny: number; nz: number }, frequencies: number, kept: number): string | null {
+function volumeSkippedReason(grid: { nx: number; ny: number; nz: number }, frequencies: number, kept: number, runs: number): string | null {
   if (kept === frequencies) return null;
   const perFrequencyMiB = volumeDftBytes(grid, 1) / 2 ** 20;
-  const budgetMiB = VOLUME_BUDGET_BYTES / 2 ** 20;
+  const budgetMiB = volumeBudgetPerRun(runs) / 2 ** 20;
+  const keptFor = runs === 1 ? 'kept for them' : `kept for each of the ${runs} ports' runs`;
   return `Cuts through the box need ${perFrequencyMiB.toFixed(0)} MiB per frequency on this ${grid.nx} × ${grid.ny} × ${grid.nz} grid, ` +
-    `over the ${budgetMiB} MiB kept for them, so ${kept === 0 ? 'none were kept' : `only the first ${kept === 1 ? 'frequency has' : `${kept} frequencies have`} them`}.`;
+    `over the ${budgetMiB.toFixed(0)} MiB ${keptFor}, so ${kept === 0 ? 'none were kept' : `only the first ${kept === 1 ? 'frequency has' : `${kept} frequencies have`} them`}.`;
 }
 
-/** Nodes of plane k that touch a copper edge: an Ex or Ey edge there carries no curl (PEC, or a lossy sheet). */
+/** An E edge (flat index) on copper: it carries no curl (PEC, or a lossy sheet). */
+const isMetalEdge = (model: VoxelModel, index: number) => model.eCurl[index] === 0;
+
+/** Nodes of plane k that touch a copper edge. */
 function copperMask(model: VoxelModel, k: number): Uint8Array {
   const { nx, ny, nz } = model.grid;
   const N = nx * ny * nz;
   const mask = new Uint8Array(nx * ny);
-  const isMetal = (index: number) => model.eCurl[index] === 0;
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const cell = i + nx * (j + ny * k);
     const edges = [cell, N + cell, i > 0 ? cell - 1 : -1, j > 0 ? N + cell - nx : -1];
-    if (edges.some((e) => e >= 0 && isMetal(e))) mask[i + nx * j] = 1;
+    if (edges.some((e) => e >= 0 && isMetalEdge(model, e))) mask[i + nx * j] = 1;
   }
   return mask;
+}
+
+type PointMm = { xMm: number; yMm: number };
+
+/**
+ * Whether the copper on node plane k joins two points (mm): a walk along the
+ * plane's copper Ex and Ey edges from the nodes within a cell of the first
+ * reaches a node within a cell of the second. A bridge (a lumped part on the
+ * layer, from one end to the other) carries the walk across its gap.
+ */
+export function copperJoins(model: VoxelModel, k: number, from: PointMm, to: PointMm, bridges: Array<[PointMm, PointMm]>): boolean {
+  const { nx, ny, nz } = model.grid;
+  const N = nx * ny * nz;
+  const node = (i: number, j: number) => i + nx * j;
+  const edge = (i: number, j: number) => i + nx * (j + ny * k);
+  // The copper edges at each node: Ex to i + 1 and from i - 1, Ey to j + 1 and from j - 1.
+  const neighbours = (i: number, j: number) => {
+    const out: Array<[number, number]> = [];
+    if (i + 1 < nx && isMetalEdge(model, edge(i, j))) out.push([i + 1, j]);
+    if (i > 0 && isMetalEdge(model, edge(i - 1, j))) out.push([i - 1, j]);
+    if (j + 1 < ny && isMetalEdge(model, N + edge(i, j))) out.push([i, j + 1]);
+    if (j > 0 && isMetalEdge(model, N + edge(i, j - 1))) out.push([i, j - 1]);
+    return out;
+  };
+  // A port's node may sit on the copper's edge, or a cell off it: start from every copper node within a cell.
+  const copperNodesNear = (p: PointMm) => {
+    const [i0, j0] = [nearestIndex(model.mesh.x, p.xMm), nearestIndex(model.mesh.y, p.yMm)];
+    const near: Array<[number, number]> = [];
+    for (let j = Math.max(0, j0 - 1); j <= Math.min(ny - 1, j0 + 1); j++) {
+      for (let i = Math.max(0, i0 - 1); i <= Math.min(nx - 1, i0 + 1); i++) if (neighbours(i, j).length) near.push([i, j]);
+    }
+    return near;
+  };
+  const targets = new Set(copperNodesNear(to).map(([i, j]) => node(i, j)));
+  // Each bridge end's copper nodes lead to the other end's.
+  const acrossBridge = new Map<number, Array<[number, number]>>();
+  for (const [a, b] of bridges) {
+    const [nearA, nearB] = [copperNodesNear(a), copperNodesNear(b)];
+    nearA.forEach(([i, j]) => acrossBridge.set(node(i, j), [...(acrossBridge.get(node(i, j)) ?? []), ...nearB]));
+    nearB.forEach(([i, j]) => acrossBridge.set(node(i, j), [...(acrossBridge.get(node(i, j)) ?? []), ...nearA]));
+  }
+  const seen = new Uint8Array(nx * ny);
+  const queue = copperNodesNear(from);
+  queue.forEach(([i, j]) => (seen[node(i, j)] = 1));
+  while (queue.length) {
+    const [i, j] = queue.pop()!;
+    if (targets.has(node(i, j))) return true;
+    for (const [a, b] of [...neighbours(i, j), ...(acrossBridge.get(node(i, j)) ?? [])]) {
+      if (seen[node(a, b)]) continue;
+      seen[node(a, b)] = 1;
+      queue.push([a, b]);
+    }
+  }
+  return false;
+}
+
+/** The ends of every lumped part placed along a copper layer, as bridges for copperJoins. */
+function layerPartsOn(r: ResolvedProject, layer: string): Array<[PointMm, PointMm]> {
+  return r.components.flatMap(({ place }) => {
+    if (place.kind !== 'layer' || place.layer !== layer) return [];
+    const at = (alongMm: number): PointMm => (place.axis === 0 ? { xMm: alongMm, yMm: place.acrossMm } : { xMm: place.acrossMm, yMm: alongMm });
+    return [[at(place.fromMm), at(place.toMm)]];
+  });
 }
 
 /**
@@ -560,7 +675,6 @@ async function solveOnce(projectText: string, choice: SolverChoice, hooks: Solve
     throw new Error(`The ports have different reference impedances (${z0.join(', ')} Ω). The S-matrix needs one value for all of them.`);
   }
   const farFieldGhz = project.outputs.far_field_ghz ?? [];
-  if (multiport && farFieldGhz.length) throw new Error('The far field is computed for one-port projects only. Remove outputs.far_field_ghz or all but one port.');
 
   const a = project.analysis;
   const exc: ExcitationConfig = { fMinGHz: a.f_min_ghz, fMaxGHz: a.f_max_ghz, nFreq: a.n_freq, z0: z0[excited[0]] };
@@ -569,13 +683,19 @@ async function solveOnce(projectText: string, choice: SolverChoice, hooks: Solve
     ? { surface: huygensSurface(model, huygensBoxInsidePml(model)), frequenciesHz: farFieldGhz.map((f) => f * 1e9) }
     : null;
   const planes = monitorPlanes(resolved, model.mesh);
+  const portsJoinedByCopper = resolved.ports.length === 2 && resolved.ports.every((p) => p.between.includes(planes.copperLayer))
+    ? copperJoins(model, planes.copperK, resolved.ports[0], resolved.ports[1], layerPartsOn(resolved, planes.copperLayer))
+    : null;
   const scans = nearFieldPlanes(project.outputs.near_field_mm ?? [], model, planes.copperK);
   const layout: PlaneDftLayout = {
     nx: model.grid.nx, ny: model.grid.ny, frequenciesHz: fieldFrequenciesGHz(project).map((f) => f * 1e9),
     planesK: [...new Set([...planeDftRequest(planes), ...scans.flatMap((scan) => scanPlanesK(scan.k))])],
   };
 
-  const volumeHz = fieldVolume ? layout.frequenciesHz.slice(0, volumeFrequencies(model.grid, layout.frequenciesHz.length)) : [];
+  // An array far field sums every run with the drives; the field views do the same, so they show what the far field shows.
+  const fieldsOfEveryRun = multiport && farField !== null;
+  const recordedFieldRuns = fieldsOfEveryRun ? excited.length : 1;
+  const volumeHz = fieldVolume ? layout.frequenciesHz.slice(0, volumeFrequencies(model.grid, layout.frequenciesHz.length, recordedFieldRuns)) : [];
 
   // Coax ports run on the CPU only (coax_feed.ts).
   const useGpu = !coax && choice === 'auto' && (await gpuAvailable());
@@ -588,6 +708,8 @@ async function solveOnce(projectText: string, choice: SolverChoice, hooks: Solve
     startWarnings.push('This browser has no WebGPU adapter, so the solve runs on the CPU, which is much slower. Chrome or Edge with hardware acceleration on uses the GPU.');
   }
   hooks.onStart({ solver: useGpu ? 'WebGPU' : 'CPU', ...grid, runs: excited.length, maxSteps: control.maxSteps, warnings: startWarnings });
+
+  const firstRunDrive = multiport ? `port ${portIds[excited[0]]} driven, the others loaded` : null;
 
   const t0 = performance.now();
   if (coax) {
@@ -603,13 +725,15 @@ async function solveOnce(projectText: string, choice: SolverChoice, hooks: Solve
       ports: resolved.ports.map((p) => ({ id: p.id, xMm: p.xMm, yMm: p.yMm, between: p.between })),
       solver: `CPU reference solver. S at the connector flanges, renormalized from the meshed coax (${lines.join(', ')}) to each port's reference impedance`, solveMs, grid,
       portIds, z0, excited, runs, s: solved.s, farField: null,
-      fields: fieldMaps(model, planes, fieldPlanesFromDft(solved.planeAccumulators, layout, planes), solved.volumeAccumulators, volumeHz, fieldVolume), nearField: null, accuracy: null, deembedding: null, warnings,
+      fields: fieldMaps(model, planes, fieldPlanesFromDft(solved.planeAccumulators, layout, planes), solved.volumeAccumulators && [solved.volumeAccumulators], volumeHz, fieldVolume, 1, firstRunDrive),
+      nearField: null, fieldRuns: null, portsJoinedByCopper, accuracy: null, deembedding: null, warnings,
     };
   }
   const solved = useGpu
-    ? await solveOnGpu(model, exc, control, farField, excited, layout, volumeHz, hooks)
-    : solveOnCpu(model, exc, control, farField, excited, layout, volumeHz, hooks);
+    ? await solveOnGpu(model, exc, control, farField, excited, layout, volumeHz, recordedFieldRuns, hooks)
+    : solveOnCpu(model, exc, control, farField, excited, layout, volumeHz, recordedFieldRuns, hooks);
   const solveMs = performance.now() - t0;
+  const dt = timestepSec(model.grid);
 
   const runs: RunSummary[] = solved.runs.map((run, n) => ({
     portId: portIds[excited[n]],
@@ -624,41 +748,52 @@ async function solveOnce(projectText: string, choice: SolverChoice, hooks: Solve
     : oneportScattering(runs[0].spectrum, z0[0]);
 
   let farFieldOut: WorkbenchResult['farField'] = null;
-  if (farField && solved.huygensAccumulators) {
+  if (farField) {
+    const accumulatorsPerRun = solved.huygensAccumulatorsPerRun;
+    if (!accumulatorsPerRun) throw new Error('internal: a far field was asked for but the solver returned no box DFT');
     hooks.onProgress({ run: 0, runs: excited.length, step: control.maxSteps, maxSteps: control.maxSteps, decayDb: null, targetDb: control.stopAtEnergyDecayDb ?? 0, stage: 'far-field' });
-    const results = nearToFarField({ ...farField, accumulators: solved.huygensAccumulators, samples: solved.runs[0], exc });
-    const dt = timestepSec(model.grid);
-    farFieldOut = {
-      entries: results.map((result, n) => {
-        const polarisation = boresightPolarisation(result);
-        const f = patternFigures(result, polarisation);
-        const sources = boxSources(farField.surface, solved.huygensAccumulators!, farField.frequenciesHz, n, exc, dt, solved.runs[0].v.length);
-        const at = (distanceM: number) => fieldStrengthAt(sources, distanceM, result.peakThetaDeg, result.peakPhiDeg);
-        return {
-          result, polarisation,
-          beamwidthEPlaneDeg: f.beamwidthEPlaneDeg, beamwidthHPlaneDeg: f.beamwidthHPlaneDeg,
-          frontToBackDb: f.frontToBackDb, crossPolarDb: f.boresightCrossPolarDb,
-          fieldAt3mVPerM: at(3), fieldAt10mVPerM: at(10),
-        };
-      }),
-      caveat: solved.runs[0].stoppedOnEnergy ? null
-        : 'The run stopped before the field rang down, so efficiency and gain are approximate. The pattern shape is less affected.',
-    };
+    const caveat = !solved.runs.every((run) => run.stoppedOnEnergy)
+      ? `${multiport ? 'A port\'s run' : 'The run'} stopped before the field rang down, so efficiency and gain are approximate. The pattern shape is less affected.`
+      : a.stop.energy_decay_db < EFFICIENCY_ENERGY_DECAY_DB
+        ? `The solve stops at ${a.stop.energy_decay_db} dB energy decay, so efficiency and gain can be off by a few percent on a poorly matched antenna. Stop at ${EFFICIENCY_ENERGY_DECAY_DB} dB for about ±0.5 %.`
+        : null;
+    if (multiport) {
+      const drives = arrayPortDrives(project);
+      const array = prepareArray({
+        ...farField, exc, referenceImpedancesOhm: z0,
+        runs: solved.runs.map((samples, run) => ({ port: excited[run], accumulators: accumulatorsPerRun[run], samples })),
+      });
+      farFieldOut = { entries: arrayFarFieldEntries(array, drives), caveat, arrayDrives: drivenPorts(project, drives), array };
+    } else {
+      // One frequency's box currents at a time: they are megabytes each, and only the 3 m and 10 m fields need them.
+      const entries = nearToFarField({ ...farField, accumulators: accumulatorsPerRun[0], samples: solved.runs[0], exc }).map((result, n) =>
+        farFieldEntry(result, boxSources(farField.surface, accumulatorsPerRun[0], farField.frequenciesHz, n, exc, dt, solved.runs[0].v.length)));
+      farFieldOut = { entries, caveat, arrayDrives: null, array: null };
+    }
   }
 
-  const fields = fieldMaps(model, planes, fieldPlanesFromDft(solved.planeAccumulators, layout, planes), solved.volumeAccumulators, volumeHz, fieldVolume);
-  const source = (frequencyHz: number) => sourcePhasor(exc, timestepSec(model.grid), solved.runs[0].v.length, frequencyHz);
-  const nearField = scans.length === 0 ? null : scans.map(({ heightMm, k, meshHeightMm }): NearFieldScan => ({
-    heightMm, meshHeightMm,
-    planes: layout.frequenciesHz.map((frequencyHz, frequencyIndex) => scanPlane({
-      accumulators: solved.planeAccumulators, layout, frequencyIndex, k, mesh: model.mesh,
-      dRefMm: model.grid.dxMm, dtSec: timestepSec(model.grid), source: source(frequencyHz),
+  // Each recorded run's field views; scans are per volt of the run's own source.
+  const sourcesPerRun = solved.planeAccumulatorsPerRun.map((_, run) => layout.frequenciesHz.map((frequencyHz) => sourcePhasor(exc, dt, solved.runs[run].v.length, frequencyHz)));
+  const fieldRunsRecorded = solved.planeAccumulatorsPerRun.map((accumulators, run): FieldRun => ({
+    port: excited[run],
+    firstSourceOverOwn: sourcesPerRun[run].map((own, frequency) => divide(sourcesPerRun[0][frequency], own)),
+    planes: fieldPlanesFromDft(accumulators, layout, planes),
+    nearField: scans.length === 0 ? null : scans.map(({ k, heightMm, meshHeightMm }): NearFieldScan => ({
+      heightMm, meshHeightMm, planes: layout.frequenciesHz.map((_, frequencyIndex) => scanPlane({
+        accumulators, layout, frequencyIndex, k, mesh: model.mesh, dRefMm: model.grid.dxMm, dtSec: dt, source: sourcesPerRun[run][frequencyIndex],
+      })),
     })),
   }));
+  const firstRun = fieldRunsRecorded[0];
+  const firstRunFields = fieldMaps(model, planes, firstRun.planes, solved.volumeAccumulatorsPerRun, volumeHz, fieldVolume, recordedFieldRuns, firstRunDrive);
+  const views = fieldsOfEveryRun
+    ? drivenFieldViews(firstRunFields, fieldRunsRecorded, arrayPortDrives(project), portIds)
+    : { fields: firstRunFields, nearField: firstRun.nearField };
   return {
     projectName: project.name, projectText, zinGHz: project.outputs.zin_at_ghz,
     ports: resolved.ports.map((p) => ({ id: p.id, xMm: p.xMm, yMm: p.yMm, between: p.between })), solver: solved.solver, solveMs, grid,
-    portIds, z0, excited, runs, s, farField: farFieldOut, fields, nearField, accuracy: null, deembedding: null, warnings,
+    portIds, z0, excited, runs, s, farField: farFieldOut, ...views, fieldRuns: fieldsOfEveryRun ? fieldRunsRecorded : null, portsJoinedByCopper,
+    accuracy: null, deembedding: null, warnings,
   };
 }
 

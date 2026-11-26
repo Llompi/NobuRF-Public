@@ -7,7 +7,8 @@ import { constantLossDielectrics, resolveProject } from '../src/project/resolve'
 import { parseProject, type Project } from '../src/project/schema';
 import * as actions from '../src/workbench/doc_actions';
 import { newProject } from '../src/workbench/new_project';
-import { pairState, solveRelevantText, withPairs } from '../src/workbench/pair_view';
+import { pairState, withPairs } from '../src/workbench/pair_view';
+import { solveRelevantText } from '../src/workbench/store';
 import type { WorkbenchResult } from '../src/workbench/solve';
 
 const pairTemplate = () => newProject({ template: 'pair', name: 'pair', frequencyGHz: 5, substrate: 'FR-4', thicknessMm: 0.5 });

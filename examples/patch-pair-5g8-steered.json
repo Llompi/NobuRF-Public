@@ -1,0 +1,430 @@
+{
+  "noburf_project": 1,
+  "name": "patch-pair-5g8-steered",
+  "variables": {
+    "element_spacing": {
+      "value": "26 mm",
+      "min": "17 mm",
+      "max": "60 mm"
+    },
+    "board_w": {
+      "value": "element_spacing + 24 mm",
+      "locked": true
+    },
+    "board_l": {
+      "value": "24 mm",
+      "locked": true
+    },
+    "patch_w": {
+      "value": "15.7 mm",
+      "min": "1 mm",
+      "max": "element_spacing - 2 mm"
+    },
+    "patch_l": {
+      "value": "11.46 mm",
+      "min": "1 mm",
+      "max": "board_l - 1 mm"
+    },
+    "feed_w": {
+      "value": "2.87 mm",
+      "min": "0.5 mm",
+      "max": "patch_w / 2"
+    },
+    "port_y": {
+      "value": "-10 mm",
+      "min": "-board_l / 2",
+      "max": "-patch_l / 2"
+    },
+    "inset_d": {
+      "value": "4.07 mm",
+      "min": "0.5 mm",
+      "max": "patch_l / 2"
+    },
+    "inset_gap": {
+      "value": "1 mm",
+      "min": "0.5 mm",
+      "max": "3 mm"
+    }
+  },
+  "materials": {
+    "fr4_lossless": {
+      "eps_r": 4.4,
+      "tan_delta": 0
+    }
+  },
+  "stackup": [
+    {
+      "type": "copper",
+      "name": "gnd",
+      "material": "pec"
+    },
+    {
+      "type": "dielectric",
+      "name": "core",
+      "material": "fr4_lossless",
+      "thickness": "1.5 mm"
+    },
+    {
+      "type": "copper",
+      "name": "top",
+      "material": "pec"
+    }
+  ],
+  "board": {
+    "outline": [
+      [
+        "-board_w / 2",
+        "-board_l / 2"
+      ],
+      [
+        "board_w / 2",
+        "-board_l / 2"
+      ],
+      [
+        "board_w / 2",
+        "board_l / 2"
+      ],
+      [
+        "-board_w / 2",
+        "board_l / 2"
+      ]
+    ]
+  },
+  "geometry": {
+    "gnd": [
+      {
+        "id": "ground",
+        "op": "add",
+        "polygon": [
+          [
+            "-board_w / 2",
+            "-board_l / 2"
+          ],
+          [
+            "board_w / 2",
+            "-board_l / 2"
+          ],
+          [
+            "board_w / 2",
+            "board_l / 2"
+          ],
+          [
+            "-board_w / 2",
+            "board_l / 2"
+          ]
+        ]
+      }
+    ],
+    "top": [
+      {
+        "id": "left_patch",
+        "op": "add",
+        "polygon": [
+          [
+            "-patch_w / 2 - element_spacing / 2",
+            "-patch_l / 2"
+          ],
+          [
+            "patch_w / 2 - element_spacing / 2",
+            "-patch_l / 2"
+          ],
+          [
+            "patch_w / 2 - element_spacing / 2",
+            "patch_l / 2"
+          ],
+          [
+            "-patch_w / 2 - element_spacing / 2",
+            "patch_l / 2"
+          ]
+        ]
+      },
+      {
+        "id": "left_inset_left",
+        "op": "cut",
+        "polygon": [
+          [
+            "-feed_w / 2 - inset_gap - element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "-feed_w / 2 - element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "-feed_w / 2 - element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ],
+          [
+            "-feed_w / 2 - inset_gap - element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ]
+        ]
+      },
+      {
+        "id": "left_inset_right",
+        "op": "cut",
+        "polygon": [
+          [
+            "feed_w / 2 - element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "feed_w / 2 + inset_gap - element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "feed_w / 2 + inset_gap - element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ],
+          [
+            "feed_w / 2 - element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ]
+        ]
+      },
+      {
+        "id": "left_feed",
+        "op": "add",
+        "polygon": [
+          [
+            "-feed_w / 2 - element_spacing / 2",
+            "port_y"
+          ],
+          [
+            "feed_w / 2 - element_spacing / 2",
+            "port_y"
+          ],
+          [
+            "feed_w / 2 - element_spacing / 2",
+            "-patch_l / 2"
+          ],
+          [
+            "-feed_w / 2 - element_spacing / 2",
+            "-patch_l / 2"
+          ]
+        ]
+      },
+      {
+        "id": "left_inset_feed",
+        "op": "add",
+        "polygon": [
+          [
+            "-feed_w / 2 - element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "feed_w / 2 - element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "feed_w / 2 - element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ],
+          [
+            "-feed_w / 2 - element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ]
+        ]
+      },
+      {
+        "id": "right_patch",
+        "op": "add",
+        "polygon": [
+          [
+            "-patch_w / 2 + element_spacing / 2",
+            "-patch_l / 2"
+          ],
+          [
+            "patch_w / 2 + element_spacing / 2",
+            "-patch_l / 2"
+          ],
+          [
+            "patch_w / 2 + element_spacing / 2",
+            "patch_l / 2"
+          ],
+          [
+            "-patch_w / 2 + element_spacing / 2",
+            "patch_l / 2"
+          ]
+        ]
+      },
+      {
+        "id": "right_inset_left",
+        "op": "cut",
+        "polygon": [
+          [
+            "-feed_w / 2 - inset_gap + element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "-feed_w / 2 + element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "-feed_w / 2 + element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ],
+          [
+            "-feed_w / 2 - inset_gap + element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ]
+        ]
+      },
+      {
+        "id": "right_inset_right",
+        "op": "cut",
+        "polygon": [
+          [
+            "feed_w / 2 + element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "feed_w / 2 + inset_gap + element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "feed_w / 2 + inset_gap + element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ],
+          [
+            "feed_w / 2 + element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ]
+        ]
+      },
+      {
+        "id": "right_feed",
+        "op": "add",
+        "polygon": [
+          [
+            "-feed_w / 2 + element_spacing / 2",
+            "port_y"
+          ],
+          [
+            "feed_w / 2 + element_spacing / 2",
+            "port_y"
+          ],
+          [
+            "feed_w / 2 + element_spacing / 2",
+            "-patch_l / 2"
+          ],
+          [
+            "-feed_w / 2 + element_spacing / 2",
+            "-patch_l / 2"
+          ]
+        ]
+      },
+      {
+        "id": "right_inset_feed",
+        "op": "add",
+        "polygon": [
+          [
+            "-feed_w / 2 + element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "feed_w / 2 + element_spacing / 2",
+            "-patch_l / 2 - 0.5 mm"
+          ],
+          [
+            "feed_w / 2 + element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ],
+          [
+            "-feed_w / 2 + element_spacing / 2",
+            "-patch_l / 2 + inset_d"
+          ]
+        ]
+      }
+    ]
+  },
+  "ports": [
+    {
+      "id": "left",
+      "x": "-element_spacing / 2",
+      "y": "port_y",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    },
+    {
+      "id": "right",
+      "x": "element_spacing / 2",
+      "y": "port_y",
+      "between": [
+        "gnd",
+        "top"
+      ],
+      "reference_impedance_ohm": 50
+    }
+  ],
+  "boundaries": {
+    "x_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "x_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "y_max": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_min": {
+      "type": "pml",
+      "cells": 8
+    },
+    "z_max": {
+      "type": "pml",
+      "cells": 8
+    }
+  },
+  "mesh": {
+    "cell": "1 mm",
+    "air_margin_cells": {
+      "xy": 4,
+      "below": 4,
+      "above": 12
+    },
+    "graded": {
+      "edge_cell": "0.25 mm",
+      "dielectric_cells": 6,
+      "max_growth": 1.3
+    }
+  },
+  "analysis": {
+    "f_min_ghz": 4.5,
+    "f_max_ghz": 7.5,
+    "n_freq": 121,
+    "loss_reference_ghz": 5.8,
+    "stop": {
+      "energy_decay_db": 70,
+      "max_steps": 50000
+    }
+  },
+  "outputs": {
+    "zin_at_ghz": [
+      5.8
+    ],
+    "far_field_ghz": [
+      5.8
+    ],
+    "array_excitation": {
+      "left": {
+        "amplitude": 1,
+        "phase_deg": 0
+      },
+      "right": {
+        "amplitude": 1,
+        "phase_deg": 90
+      }
+    }
+  }
+}

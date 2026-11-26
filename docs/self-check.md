@@ -28,7 +28,7 @@ means one-port, lumped-fed patches on low-ε substrates.
 | --- | --- | --- |
 | Mesh check (opt-in) | Error bar on the resonance and on \|S11\| at the dip, and how far S moved between the two finest meshes | about 3 times one solve with one finer mesh |
 | Physics | Passivity (largest singular value of S), reciprocity (\|S_ij − S_ji\|), and whether the field rang down | free, always on |
-| Validated range | Whether each feature of the design (substrate, ports, copper model, edges, band) matches a benchmark that agrees with measurement | free, always on |
+| Validated range | Whether the substrate, ports, copper model, edges and band lie within benchmarks that agree with measurement (vias, components and the far field are not checked) | free, always on |
 
 The error bar is **mesh discretization uncertainty only**. It does not
 include port or material model error. Every printed bar and the `scope`
@@ -238,6 +238,11 @@ SMA edge ports), the alumina microstrip (ε_r 9.9, ε_eff
 with openEMS, but no measured FR-4 benchmark has been run. A design outside
 the range is not wrong, only unproven. The warning names the benchmark that
 bounds the feature and what NobuRF read there.
+
+The range covers only the features in the table. Vias, lumped components
+and the far field have no measured benchmark yet (vias and the far field
+are checked against openEMS, components against closed forms), so a design
+with them can read "inside" without those parts being proven.
 
 ## What this does not cover yet
 

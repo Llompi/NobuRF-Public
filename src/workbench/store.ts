@@ -44,6 +44,17 @@ export function setAt(doc: Json, path: JsonPath, value: Json): Json {
   return copy;
 }
 
+/** Outputs that only post-process a solve, so changing them never makes its results stale: the differential pairing and the far-field array drives. */
+const POST_PROCESSING_OUTPUTS = ['differential_pairs', 'array_excitation'];
+
+/** The document without its post-processing outputs, which a solve does not depend on: what staleness compares. */
+export function solveRelevantText(doc: Json): string {
+  const outputs = (doc as { outputs?: Json } | null)?.outputs;
+  if (!outputs || typeof outputs !== 'object') return JSON.stringify(doc);
+  const solveOutputs = Object.fromEntries(Object.entries(outputs).filter(([key]) => !POST_PROCESSING_OUTPUTS.includes(key)));
+  return JSON.stringify({ ...(doc as Record<string, Json>), outputs: solveOutputs });
+}
+
 /** Splits a schema error "$.a.b[0]: message" into its path and message. */
 export function splitProjectError(error: unknown): { path: string; message: string } {
   const text = error instanceof Error ? error.message : String(error);

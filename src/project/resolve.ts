@@ -1,8 +1,9 @@
 import { evaluate, evaluateLength, ExpressionError, type Quantity } from './expression';
+import type { PortDrive } from '../engine/array_far_field';
 import type { ComponentValues } from '../engine/lumped';
 import type { Roughness } from '../engine/surface_impedance';
 import { materialResponses, type MaterialResponses } from './materials';
-import { BUILTIN_MATERIALS, fail, type BuiltinMaterial, type Boundary, type Face, type Point, type Project, type RoughnessDef, type SmaEdgePort } from './schema';
+import { BUILTIN_MATERIALS, fail, type ArrayPortDrive, type BuiltinMaterial, type Boundary, type Face, type Point, type Project, type RoughnessDef, type SmaEdgePort } from './schema';
 
 export type Vec2 = [x: number, y: number];
 
@@ -316,12 +317,15 @@ export function resolveProject(p: Project): ResolvedProject {
   if (vias.length > 0 && ports.some((port) => port.kind !== 'lumped')) {
     fail('$.vias', 'vias are not supported yet in a project with an SMA connector or coax probe: the connector repaints the copper around it');
   }
-  const exciteIds = p.analysis.excite ?? portIds;
+  const exciteIds = excitedPortIds(p);
   if (exciteIds.length === 0) fail('$.analysis.excite', 'names no port; leave it out to excite every port');
   exciteIds.forEach((id, n) => {
     if (!portIds.includes(id)) fail(`$.analysis.excite[${n}]`, `"${id}" is not a port id (ports: ${portIds.join(', ')})`);
     if (exciteIds.indexOf(id) !== n) fail(`$.analysis.excite[${n}]`, `port "${id}" is listed twice`);
   });
+  for (const [id, drive] of Object.entries(p.outputs.array_excitation ?? {})) {
+    if (drive.amplitude > 0 && !exciteIds.includes(id)) fail(`$.outputs.array_excitation.${id}`, `port "${id}" is not in analysis.excite, so it has no run to drive it with`);
+  }
   const excite = portIds.flatMap((id, n) => (exciteIds.includes(id) ? [n] : []));
 
   return {
@@ -361,4 +365,49 @@ function toRoughness(r: RoughnessDef): Roughness {
 export function constantLossDielectrics(project: ResolvedProject): string[] {
   return project.stackup.filter((l) => l.type === 'dielectric' &&
     (l.responses.permittivity ? l.responses.permittivity.lossRate > 0 : l.tanDelta > 0)).map((l) => l.name);
+}
+
+/** The ids of the ports the solve runs, one run each: analysis.excite, or every port. */
+export function excitedPortIds(project: Project): string[] {
+  return project.analysis.excite ?? project.ports.map((port) => port.id);
+}
+
+/**
+ * outputs.array_excitation as the far field reads it: the project's map, or
+ * every excited port at amplitude 1 and phase 0 when it sets none. A port the
+ * map leaves out is off.
+ */
+export function arrayDrivesByPortId(project: Project): Record<string, ArrayPortDrive> {
+  return project.outputs.array_excitation ?? Object.fromEntries(excitedPortIds(project).map((portId) => [portId, { amplitude: 1, phase_deg: 0 }]));
+}
+
+/**
+ * The source behind each port when an array's far field is combined, by
+ * project port index (arrayDrivesByPortId). null for a port that is off, which
+ * stays a matched load.
+ */
+export function arrayPortDrives(project: Project): Array<PortDrive | null> {
+  const drivesByPortId = arrayDrivesByPortId(project);
+  return project.ports.map((port) => {
+    const drive = drivesByPortId[port.id];
+    return drive && drive.amplitude > 0 ? { amplitude: drive.amplitude, phaseDeg: drive.phase_deg } : null;
+  });
+}
+
+/** The driven ports alone, by id, in project order, as the far-field reports list them. */
+export function drivenPorts(project: Project, drives: Array<PortDrive | null>): Array<{ portId: string } & PortDrive> {
+  return drives.flatMap((drive, portIndex) => (drive ? [{ portId: project.ports[portIndex].id, ...drive }] : []));
+}
+
+/**
+ * outputs.array_excitation after an edit that removes ports or stops exciting
+ * them: the drives of the ports that pass, or undefined (every excited port
+ * driven in phase) once no kept port has an amplitude above 0 or fewer than
+ * two ports are left.
+ */
+export function keptArrayExcitation(
+  drivesByPortId: Record<string, ArrayPortDrive>, keepPortId: (portId: string) => boolean, portsLeft: number,
+): Record<string, ArrayPortDrive> | undefined {
+  const kept = Object.fromEntries(Object.entries(drivesByPortId).filter(([portId]) => keepPortId(portId)));
+  return portsLeft >= 2 && Object.values(kept).some((drive) => drive.amplitude > 0) ? kept : undefined;
 }

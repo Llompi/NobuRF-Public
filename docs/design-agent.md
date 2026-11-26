@@ -410,3 +410,11 @@ that are not a JSON object) goes back to the model as a tool result. A model
 error (HTTP error after retries, the spend cap, no message) or a solver crash
 ends the loop with `ended` set to `model_error`, `spend_cap` or `tool_error`.
 The outputs are still written, including every confirmed design so far.
+
+## Live co-design (experimental)
+
+`design codesign` runs the optimiser while a model reviews each solve, and with
+`--gpu` each running solve, and can stop or redirect it. It is experimental;
+what it showed and which parts are reusable is in
+[codesign-findings.md](codesign-findings.md).
+

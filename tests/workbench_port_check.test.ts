@@ -9,7 +9,7 @@ const resolved = (doc: unknown) => resolveProject(parseProject(doc));
 
 describe('ports on copper', () => {
   it('passes every example, where the feed line ends exactly at the port', () => {
-    for (const name of ['patch-5g8.json', 'patch-5g8-graded.json', 'patch-5g8-far-field.json']) {
+    for (const name of ['patch-5g8.json', 'patch-5g8-graded.json', 'patch-5g8-far-field.json', 'patch-pair-5g8-steered.json']) {
       expect(portsOffCopper(resolved(JSON.parse(readFileSync(`examples/${name}`, 'utf8'))))).toEqual([]);
     }
   });

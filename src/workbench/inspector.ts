@@ -6,6 +6,7 @@
  */
 import { evaluateLength, type Quantity } from '../project/expression';
 import { BUILTIN_MATERIALS, FACES, type DielectricMaterial, type Port, type Project, type SmaEdgePort } from '../project/schema';
+import { arrayDrivesByPortId, excitedPortIds } from '../project/resolve';
 import { escapeHtml } from '../ui/format';
 import * as actions from './doc_actions';
 import { isConductor, MATERIAL_LIBRARY } from './material_library';
@@ -308,6 +309,7 @@ export class Inspector {
           { label: 'Report Z at', path: ['outputs', 'zin_at_ghz'], kind: 'numbers', unit: 'GHz', hint: 'Comma-separated frequencies.' },
           { label: 'Far field at', path: ['outputs', 'far_field_ghz'], kind: 'numbers', unit: 'GHz', hint: 'Leave empty for no far field. Needs a PML on every face and 4 cells of air on every side.' },
           { label: 'Near-field scan at', path: ['outputs', 'near_field_mm'], kind: 'numbers', unit: 'mm', hint: 'Heights above the top copper, up to 4. Leave empty for no scan. Each must fit in the air below the PML on top.' },
+          ...this.driveFields(),
         ];
       default:
         return [];
@@ -356,8 +358,10 @@ export class Inspector {
         return header('Boundaries', 'What surrounds the solve box on each face.') + `<div class="form boundary-form">${fields.map((f) => this.fieldHtml(f)).join('')}</div>`;
       case 'mesh':
         return header('Mesh') + form(fields) + this.meshSummary();
-      case 'analysis':
-        return header('Analysis and outputs') + form(fields) + this.exciteChecks();
+      case 'analysis': {
+        const isDrive = (f: Field) => f.path[1] === 'array_excitation';
+        return header('Analysis and outputs') + form(fields.filter((f) => !isDrive(f))) + this.exciteChecks() + this.driveTable(fields.filter(isDrive));
+      }
       default:
         return header('Nothing selected');
     }
@@ -406,10 +410,38 @@ export class Inspector {
   private exciteChecks(): string {
     const d = this.doc;
     if (d.ports.length < 2) return '';
-    const excite = d.analysis.excite ?? d.ports.map((p) => p.id);
+    const excite = excitedPortIds(d);
     return `<fieldset class="checks"><legend>Excite</legend>${d.ports.map((p) =>
       `<label class="toggle"><input type="checkbox" data-excite="${escapeHtml(p.id)}"${excite.includes(p.id) ? ' checked' : ''} /> ${escapeHtml(p.id)}</label>`).join('')}` +
       '<p class="note">One solver run per excited port. With every port excited the full S-matrix is written.</p></fieldset>';
+  }
+
+  /**
+   * Amplitude and phase of each excited port's source in the far field
+   * (outputs.array_excitation), for a project with two or more ports and a far field.
+   */
+  private driveFields(): Field[] {
+    const d = this.doc;
+    if (d.ports.length < 2 || !Array.isArray(d.outputs.far_field_ghz) || !d.outputs.far_field_ghz.length) return [];
+    return excitedPortIds(d).flatMap((portId): Field[] => [
+      { label: `Amplitude of ${portId}`, path: ['outputs', 'array_excitation', portId, 'amplitude'], kind: 'number' },
+      { label: `Phase of ${portId}`, path: ['outputs', 'array_excitation', portId, 'phase_deg'], kind: 'number' },
+    ]);
+  }
+
+  /** The drive fields as a table, one row per excited port. */
+  private driveTable(drives: Field[]): string {
+    if (!drives.length) return '';
+    const rows: string[] = [];
+    for (let n = 0; n < drives.length; n += 2) {
+      rows.push(`<tr><th scope="row">${escapeHtml(String(drives[n].path[2]))}</th><td>${this.inputHtml(drives[n])}${this.errorFor(drives[n])}</td>` +
+        `<td>${this.inputHtml(drives[n + 1])}${this.errorFor(drives[n + 1])}</td></tr>`);
+    }
+    return '<fieldset class="checks"><legend>Array drive</legend>' +
+      '<table class="points"><thead><tr><th scope="col">Port</th><th scope="col">Amplitude</th><th scope="col">Phase (°)</th></tr></thead>' +
+      `<tbody>${rows.join('')}</tbody></table>` +
+      '<p class="note">Sets each excited port\'s source for the far field. Amplitudes are relative; 0 turns a port off and leaves it as a matched load. ' +
+      'A change re-sums the solved runs, so the pattern updates without a new solve.</p></fieldset>';
   }
 
   private polygonTable(points: Field[]): string {
@@ -433,6 +465,10 @@ export class Inspector {
     if (last === '@fence') return getAt(this.doc, [...f.path.slice(0, -1), 'to']) === undefined ? 'single' : 'fence';
     if (last === '@placement') return getAt(this.doc, [...f.path.slice(0, -1), 'layer']) === undefined ? 'between' : 'layer';
     if (last === 'deembed') return (getAt(this.doc, f.path) as { length?: string } | undefined)?.length;
+    if (f.path[1] === 'array_excitation') {
+      // A port the map leaves out is off (amplitude 0); a phase left out is 0, as the schema reads it.
+      return getAt(arrayDrivesByPortId(this.doc), f.path.slice(2)) ?? 0;
+    }
     return getAt(this.doc, f.path);
   }
 
@@ -554,13 +590,23 @@ export class Inspector {
       this.store.set(path.slice(0, -1), text === 'pml' ? { type: 'pml', cells: 8 } : { type: 'pec' });
       return;
     }
-    this.store.set(path, parseInput(kind, text, path));
+    const value = parseInput(kind, text, path);
+    if (path[1] === 'array_excitation') {
+      const [, , portId, part] = path as [string, string, string, 'amplitude' | 'phase_deg'];
+      this.store.update((doc) => actions.setPortDrive(doc as Project, portId, part, value));
+      return;
+    }
+    if (value === undefined && path.join('.') === 'outputs.far_field_ghz') {
+      this.store.update((doc) => actions.clearFarField(doc as Project));
+      return;
+    }
+    this.store.set(path, value);
   }
 
   private onExcite(): void {
     const checked = [...this.root.querySelectorAll<HTMLInputElement>('input[data-excite]')].filter((c) => c.checked).map((c) => c.dataset.excite!);
     const all = this.doc.ports.length === checked.length;
-    this.store.set(['analysis', 'excite'], all ? undefined : checked);
+    this.store.update((doc) => actions.setExcitedPorts(doc as Project, all ? undefined : checked));
   }
 
   /** After a rename the selection key changes for variables and materials. */

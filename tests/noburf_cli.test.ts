@@ -96,10 +96,14 @@ describe('noburf CLI', () => {
     json.outputs.far_field_ghz = [10, 12];
     writeFileSync(join(dir, 'p.json'), JSON.stringify(json));
     const run = solveCli(join(dir, 'p.json'), '--out', join(dir, 'out'));
-    expect(otherStderr(run.stderr)).toBe('');
+    // The small project stops at 30 dB, below the 70 dB efficiency needs: the CLI warns, and far_field.json says so.
+    const lowStop = /^warning: far field: the solve stops at 30 dB energy decay; efficiency and gain can be off/;
+    expect(otherStderr(run.stderr).split('\n').filter((line) => line && !lowStop.test(line))).toEqual([]);
+    expect(run.stderr).toMatch(lowStop);
     expect(run.status).toBe(0);
     expect(run.stdout).toMatch(/far field 10 GHz: D [\d.]+ dBi/);
     const farField = JSON.parse(readFileSync(join(dir, 'out', 'far_field.json'), 'utf8'));
+    expect(farField.caveat).toMatch(/stops at 30 dB/);
     expect(farField.project).toBe('small-patch');
     expect(farField.huygens_box).toMatchObject({ lo_node: [8, 8, 8], size_mm: [13, 13, 4] });
     expect(farField.frequencies.map((f: { f_ghz: number }) => f.f_ghz)).toEqual([10, 12]);

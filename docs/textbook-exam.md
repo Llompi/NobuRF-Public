@@ -478,7 +478,7 @@ These problems need something the project file cannot describe.
 | Pozar chs. 2 and 3, coaxial line and circular waveguide; Balanis ch. 13 horns and ch. 15 reflectors | Curved or non-planar 3D metal | **Geometry** is flat sheets on a layer stack, plus the built-in SMA |
 | Pozar ch. 9, ferrite isolators, circulators and phase shifters | Gyrotropic (tensor) permeability | **Anisotropic and magnetic materials** |
 | Any problem with ε(f) over a wide band | Debye or Lorentz dielectrics | **Dispersive materials**. The loss tangent is exact at one frequency |
-| Balanis ch. 6, arrays: array factor, phased and Dolph–Chebyshev arrays | Several driven ports with set amplitudes and phases, and their combined pattern | **Far field with more than one port**, and no excitation weights |
+| Balanis ch. 6, arrays: array factor, phased and Dolph–Chebyshev arrays | Several driven ports with set amplitudes and phases, and their combined pattern | The array far field with set port drives exists now (`outputs.array_excitation`), but no array problem has been built with it |
 | Balanis ch. 10, helix; vertical dipoles; Yagis with round elements | Thin wires in any direction | **Thin-wire model** |
 | Balanis ch. 14, circularly polarised patches: axial ratio | Axial ratio from the far field | Not reported. `far_field.json` holds complex E_θ and E_φ, so it is a post-processing step |
 | Pozar chs. 10 to 13: noise, amplifiers, mixers, oscillators | Active and nonlinear devices | Outside a field solver's job. 3D field solvers generally leave these to a circuit simulator |
@@ -524,7 +524,7 @@ problems it would open up.
 | 5 | **An independent solve of the junction-dominated cases** (the branch-line coupler and stepped filter in openEMS or another independent solver, from a converter or a port of the geometry) | Says whether the coupler's +7.8 % and the filter's shift come from NobuRF or from the book's junction-free model | Small |
 | 6 | **The microstrip εe excess** (+0.2 to +1.1 % against the static formula, mostly dispersion and board size) | Shifts microstrip frequencies by up to about −0.5 % | Small; the estimated parts add up to the whole excess |
 | 7 | **Waveguide ports and guided-mode absorption** | Waveguide circuits in Pozar chs. 3 and 4. The WR-90 rows no longer need it: the rebuilt model answers them with probe ports, via-fence walls and open ends | Medium |
-| 8 | **Far field for several ports, with excitation weights** | Balanis ch. 6 arrays | Medium |
+| 8 | ~~Far field for several ports, with excitation weights~~ Done (`outputs.array_excitation`) | Balanis ch. 6 arrays, once an array problem is built for this exam | Done |
 | 9 | **Thin wires in any direction** | Vertical dipoles, helices, Yagis with round elements | Medium to large |
 | 10 | **Dispersive and anisotropic materials** | Wideband FR-4 and ferrites (Pozar ch. 9) | Medium each |
 | 11 | Axial ratio in `far_field.json` | Circular polarisation problems | Small; it post-processes data already written |
