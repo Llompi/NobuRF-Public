@@ -32,7 +32,7 @@ scripts. Preview branch deployments are off in the Pages project, so only `main`
 
 `https://noburf.com` is the site's address. Every link in the repo, the share tags and the agent setup prompt
 use it. Two other names reach the same Pages project. `www.noburf.com` answers with a permanent (301) redirect
-that keeps the path and query string. `noburf.llom.party` has the same rule. It was switched off from 2026-11-22
+that keeps the path and query string. `noburf.llom.party` has the same rule. The rule was switched off from 2026-11-22
 to 2026-11-26 while some phone networks and DNS filters didn't yet resolve the newly registered noburf.com, and
 it has been on since. If a network can't reach noburf.com again, switching that rule off makes the old host
 serve the site directly.
