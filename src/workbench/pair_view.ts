@@ -19,14 +19,6 @@ import type { WorkbenchResult } from './solve';
 
 type Doc = Record<string, unknown>;
 
-/** The document without its pairing, which a solve does not depend on: what staleness compares. */
-export function solveRelevantText(doc: unknown): string {
-  const outputs = (doc as { outputs?: Doc } | null)?.outputs;
-  if (!outputs || typeof outputs !== 'object' || !('differential_pairs' in outputs)) return JSON.stringify(doc);
-  const { differential_pairs: _pairs, ...rest } = outputs;
-  return JSON.stringify({ ...(doc as Doc), outputs: rest });
-}
-
 /** The document with this pairing, or none. */
 export function withPairs(doc: Doc, pairs: DifferentialPairDef[] | null): Doc {
   const next = structuredClone(doc) as { outputs: Doc };
@@ -48,16 +40,16 @@ function listedPairs(doc: unknown): DifferentialPairDef[] | null {
   return listed.every(entry) ? (listed as DifferentialPairDef[]) : null;
 }
 
-/** The last state worked out, keyed by result and pairing: every edit asks again, and the analysis is not free. */
-let cached: { result: WorkbenchResult; pairsJson: string; state: PairState } | null = null;
+/** The last state worked out, keyed by the solve's S-matrix and the pairing: every edit asks again, and the analysis is not free. A steered far field keeps S. */
+let cached: { s: WorkbenchResult['s']; pairsJson: string; state: PairState } | null = null;
 
 /** What the view can show for this result under the document's current pairing. */
 export function pairState(r: WorkbenchResult, doc: unknown): PairState {
   const pairs = listedPairs(doc);
   const pairsJson = JSON.stringify(pairs);
-  if (cached?.result === r && cached.pairsJson === pairsJson) return cached.state;
+  if (cached?.s === r.s && cached.pairsJson === pairsJson) return cached.state;
   const state = computePairState(r, pairs);
-  cached = { result: r, pairsJson, state };
+  cached = { s: r.s, pairsJson, state };
   return state;
 }
 

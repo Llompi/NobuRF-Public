@@ -1,3 +1,4 @@
+import { isZero } from '../engine/array_far_field';
 import { volumeDftIndex, type VolumeDftComponent } from '../engine/volume_dft';
 import type { FieldMaps, FieldVolume } from './solve';
 
@@ -118,7 +119,11 @@ export function cutComponent(fields: FieldMaps, volume: FieldVolume, frequency: 
   const lines: Record<CutAxis, Float64Array> = { x: fields.xMm, y: fields.yMm, z: volume.zMm };
   const firsts: Record<CutAxis, number> = { x: fields.pml.xLow, y: fields.pml.yLow, z: volume.pmlZ.low };
   const offset = HALF_OFFSET[component];
-  const acc = volume.accumulators;
+  // The runs whose fields are summed into the one drawn, with their weights at this frequency.
+  const weighted = volume.accumulatorsPerRun.flatMap((acc, run) => {
+    const weight = volume.weightsPerRun[run][frequency];
+    return isZero(weight) ? [] : [{ acc, weightRe: weight[0], weightIm: weight[1] }];
+  });
   const out: ComplexGrid = { re: new Float32Array(grid.uMm.length * grid.vMm.length), im: new Float32Array(grid.uMm.length * grid.vMm.length) };
   // Flat-index stride of a step along each axis, so the stencil sums need no per-term objects.
   const stride: Record<CutAxis, number> = { x: 2, y: 2 * layout.nx, z: 2 * layout.nx * layout.ny };
@@ -129,11 +134,14 @@ export function cutComponent(fields: FieldMaps, volume: FieldVolume, frequency: 
     for (let a = 0; a < grid.uMm.length; a++) {
       let re = 0;
       let im = 0;
+      // The stencil is the same for every run: each term reads every weighted run's accumulator.
       for (const [pu, wu] of alongU[a]) for (const [nv, wv] of sv) for (const [pn, wn] of normal) {
         const w = wu * wv * wn;
         const p = base + pu + nv * stride[grid.v] + pn;
-        re += w * acc[p];
-        im += w * acc[p + 1];
+        for (const { acc, weightRe, weightIm } of weighted) {
+          re += w * (weightRe * acc[p] - weightIm * acc[p + 1]);
+          im += w * (weightRe * acc[p + 1] + weightIm * acc[p]);
+        }
       }
       out.re[a + grid.uMm.length * b] = re;
       out.im[a + grid.uMm.length * b] = im;

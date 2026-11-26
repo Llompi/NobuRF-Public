@@ -43,7 +43,7 @@ class WorkbenchEvaluator implements Evaluator {
       }
       this.hooks.onSolve(n, projects.length);
       // Only S11 and Z_in are read: leave out the far field, the near-field scan and the field volume.
-      const lean = { ...project, outputs: { ...project.outputs, far_field_ghz: undefined, near_field_mm: undefined } };
+      const lean = { ...project, outputs: { ...project.outputs, far_field_ghz: undefined, array_excitation: undefined, near_field_mm: undefined } };
       const run = startSolve(JSON.stringify(lean), this.choice, 'off', false, { onStart: this.hooks.onStart, onProgress: this.hooks.onProgress });
       this.running = run;
       try {

@@ -162,6 +162,13 @@ export class EmissionsView {
     this.renderFacts();
   }
 
+  /** The same solve with its array re-driven: the map's choices stay, the map, the field at a distance and EIRP follow. */
+  showSteered(r: WorkbenchResult): void {
+    this.result = r;
+    this.cache = null;
+    this.render();
+  }
+
   /** The map's values for the current choices; kept between draws so pointer moves only redraw. */
   private cache: { key: string; db: Float64Array; linear: Float64Array } | null = null;
 
@@ -200,7 +207,10 @@ export class EmissionsView {
         [`Peak ${QUANTITY_LABELS[this.quantity]}`, `${fmtDb(peak.db)} ${quantityUnit(this.quantity)} at x ${peak.xMm.toFixed(1)}, y ${peak.yMm.toFixed(1)} mm`],
       );
     }
-    rows.push(['Drive', `${withMinus(String(this.driveDbm))} dBm available at port ${r.portIds[r.excited[0]]} (${r.z0[r.excited[0]]} Ω source)`]);
+    const sourceOhm = r.z0[r.excited[0]];
+    rows.push(['Drive', r.farField?.arrayDrives
+      ? `${withMinus(String(this.driveDbm))} dBm available from a source of amplitude 1 behind ${sourceOhm} Ω. Every driven port's source has that voltage times its amplitude.`
+      : `${withMinus(String(this.driveDbm))} dBm available at port ${r.portIds[r.excited[0]]} (${sourceOhm} Ω source)`]);
     const distance = distanceRows(r, this.driveDbm);
     for (const row of distance) {
       const reference = row.limitDb === null ? '' : `; ref. limit ${fmtDb(row.limitDb)}, ${row.limit.name} at ${row.limit.distanceM} m`;

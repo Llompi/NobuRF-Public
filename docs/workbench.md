@@ -106,8 +106,20 @@ solver run, and exciting all of them gives the full S-matrix.
 
 Under Solve settings you set the band, the mesh, when to stop, and the outputs. A graded mesh puts
 mesh lines on every copper edge, the port and the layer interfaces, so nothing snaps to the grid.
-Ask for a far field only on a one-port project with a PML on every face and at least 4 cells of air
-on every side; the panel says so if a setting is missing.
+A far field needs a PML on every face and at least 4 cells of air on every side; the panel says so
+if a setting is missing. With several ports, the far field is the whole array's with every excited
+port driven in phase, or as Array drive under Excite sets it: an amplitude (relative to the other
+ports) and a phase in degrees for each excited port. An amplitude of 0 turns a port off, leaving it
+a matched load. The drives are `outputs.array_excitation` in the project file
+([project-file.md](project-file.md#far-field-of-an-array)). They only weight the solved runs, so
+changing one steers the beam without a new solve: the Far field and Emissions tabs, the lobe and
+the field views (Ez, Current, Cut and the near-field map) update at once, and the results do not go
+stale. The field legend names the drives it shows. Cuts keep the whole-grid field of every port's
+run, which slows each run and shares the cuts' memory among the ports, so a large array may keep
+cuts at fewer frequencies, or none (the Cut legend says so). The Far field tab lists each port's
+drive and its active reflection. Renaming a port keeps its drive. Removing the port, unticking it
+under Excite, or emptying the Far field at box drops it. Once no driven port is left, every excited
+port is driven in phase.
 
 Turn on Mesh in the model view to see the mesh lines the solver will use, and Solve box to see the
 air and PML around the board.
@@ -180,11 +192,14 @@ After a solve the result tabs open.
   it needs no new solve. The source is the port drive, not a board's unintentional emission, and
   cables, enclosures and real noise sources are not modelled, so none of this is a compliance
   verdict.
-- Line: for two ports at the ends of one straight strip. It shows Z0 and εeff, fitted to the field
+- Line: for two ports at the ends of one straight strip. When both ports sit on the top copper and
+  nothing there joins them (neither copper nor a lumped part placed on the layer), as on two
+  separate patches, the tab stays off. It shows Z0 and εeff, fitted to the field
   along the middle of the strip, away from the ports, so the port connections do not enter them. It
   also shows a step TDR from each port. The TDR comes from S11 and S22, so the steps at either end are
-  the port connections. If the field does not look like a single uniform line, the tab says so
-  rather than showing a fit.
+  the port connections. A trace that reaches 19 times the reference impedance stops there, marked
+  open. If the field does not look like a single uniform line, the tab says so rather than showing a
+  fit.
 - Differential: for four or more ports that form pairs of lines. It shows the differential
   insertion loss Sdd21, return loss Sdd11 and mode conversion Scd21, the differential TDR from each
   end, the line's differential and common-mode impedance, the delay and the intra-pair skew. If the
@@ -202,7 +217,9 @@ tab exports a CSV or an image, the Smith chart, Emissions and Line tabs an image
 Differential tab its figures as JSON (the same file `noburf solve` writes) or either chart as an image.
 
 In the model view, Ez shows the vertical field in the substrate under the top copper, and Current
-shows the surface current on the top copper in dB. Pick the frequency next to the legend. Radiation
+shows the surface current on the top copper in dB. Pick the frequency next to the legend. With
+several ports, the legend says which ports drive the field: the array's drives with a far field,
+else the first excited port with the others loaded. Radiation
 lobe draws the 3D pattern over the board.
 
 Ez is drawn at one instant, Re{Ez e^(j phase)}, and plays through a cycle every two seconds. Pause
@@ -245,6 +262,5 @@ On a Mac, use Cmd instead of Ctrl.
 - Lumped ports only. The modelled SMA connector is validated in the solver
   ([validation.md](validation.md#32-a-modelled-sma-connector-instead-of-a-lumped-port)) but cannot be
   placed in the workbench yet.
-- The far field is for one-port projects.
 - See [validation.md](validation.md) for how the results compare with openEMS and published
   measurements, and what still disagrees.

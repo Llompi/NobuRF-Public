@@ -4,9 +4,14 @@ import { dbMicrovoltPerMetre, driveScale } from '../src/engine/emc';
 import { distanceRows, eirpDbm } from '../src/workbench/emissions_view';
 import { volumeDftIndex } from '../src/engine/volume_dft';
 import { cutComponent } from '../src/workbench/field_cut';
+import { steeredFarField } from '../src/workbench/far_field_entries';
+import { drivenFieldViews } from '../src/workbench/driven_fields';
+import { analyseLine } from '../src/workbench/line_view';
+import { arrayPortDrives } from '../src/project/resolve';
 import { solveWorkbenchProject, type SolveProgress } from '../src/workbench/solve';
+import { parseProject } from '../src/project/schema';
 import type { ScatteringResult } from '../src/engine/port_dft';
-import { deembedLineJson } from './project_fixtures';
+import { deembedLineJson, dipolePairJson } from './project_fixtures';
 
 /** The example patch on 1 mm cells with a far field: a few seconds on the CPU. */
 function coarsePatch(): string {
@@ -71,7 +76,7 @@ describe('workbench solve (CPU)', () => {
     for (let c = 0; c < layout.nx * layout.ny; c++) {
       const at = volumeDftIndex(layout, 0, 'ez', c % layout.nx, Math.floor(c / layout.nx), ezK);
       largest = Math.max(largest, Math.hypot(ez.re[c], ez.im[c]));
-      worst = Math.max(worst, Math.hypot(volume.accumulators[at] - ez.re[c], volume.accumulators[at + 1] - ez.im[c]));
+      worst = Math.max(worst, Math.hypot(volume.accumulatorsPerRun[0][at] - ez.re[c], volume.accumulatorsPerRun[0][at + 1] - ez.im[c]));
     }
     expect(largest).toBeGreaterThan(0);
     expect(worst / largest).toBeLessThan(1e-4);
@@ -102,6 +107,56 @@ describe('workbench solve (CPU)', () => {
     const eirpW = 1e-3 * 10 ** (eirpDbm(r, 0, 10) / 10);
     expect(Math.abs(rows[0].dbMicrovoltPerMetre - dbMicrovoltPerMetre(Math.SQRT2 * Math.sqrt(30 * eirpW) / 3))).toBeLessThan(0.05);
   }, 120_000);
+
+  it('gives an array its far field: the drives, a broadside beam, and the 3 m field of every driven port', async () => {
+    const r = await solveWorkbenchProject(JSON.stringify(dipolePairJson([-25, 25])), 'cpu', { onStart: () => undefined, onProgress: () => undefined }, 'off');
+    expect(r.farField!.arrayDrives).toEqual([{ portId: 'd1', amplitude: 1, phaseDeg: 0 }, { portId: 'd2', amplitude: 1, phaseDeg: 0 }]);
+    const entry = r.farField!.entries[0];
+    expect(entry.result.peakThetaDeg).toBe(90);
+    expect([90, 270]).toContain(entry.result.peakPhiDeg);
+    expect(r.farField!.caveat).toBeNull();
+    // The 3 m field comes from both ports' box currents: it agrees with the EIRP from the pattern, which counts both.
+    const rows = distanceRows(r, 10);
+    const eirpW = 1e-3 * 10 ** (eirpDbm(r, 0, 10) / 10);
+    expect(Math.abs(rows[0].dbMicrovoltPerMetre - dbMicrovoltPerMetre(Math.SQRT2 * Math.sqrt(30 * eirpW) / 3))).toBeLessThan(0.1);
+  }, 120_000);
+
+  it('steers a solved array without a new solve: re-summing the runs gives what a solve with those drives gives', async () => {
+    const hooks = { onStart: () => undefined, onProgress: () => undefined };
+    const scanned = { near_field_mm: [4] };
+    const inPhase = await solveWorkbenchProject(JSON.stringify(dipolePairJson([-25, 25], scanned)), 'cpu', hooks, 'off', true);
+    const antiphaseJson = dipolePairJson([-25, 25], { ...scanned, array_excitation: { d1: { amplitude: 1, phase_deg: 0 }, d2: { amplitude: 1, phase_deg: 180 } } });
+    const antiphase = await solveWorkbenchProject(JSON.stringify(antiphaseJson), 'cpu', hooks, 'off', true);
+    expect(steeredFarField(inPhase.farField!, parseProject(dipolePairJson([-25, 25], scanned)))).toBe(inPhase.farField);
+
+    // The field views follow the drives like the far field: every run is kept, and re-summing gives the antiphase solve's views.
+    expect(inPhase.fieldRuns!.map((run) => run.port)).toEqual([0, 1]);
+    expect(inPhase.fields!.shownDrive).toBe('ports driven d1 1 at 0°, d2 1 at 0°');
+    const views = drivenFieldViews(inPhase.fields!, inPhase.fieldRuns!, arrayPortDrives(parseProject(antiphaseJson)), inPhase.portIds);
+    expect(views.fields.shownDrive).toBe('ports driven d1 1 at 0°, d2 1 at 180°');
+    expect(Array.from(views.fields.planes[0].jx.re)).toEqual(Array.from(antiphase.fields!.planes[0].jx.re));
+    expect(Array.from(views.nearField![0].planes[0].ez.im)).toEqual(Array.from(antiphase.nearField![0].planes[0].ez.im));
+    const cut = { axis: 'z' as const, index: 10 };
+    expect(Array.from(cutComponent(views.fields, views.fields.volume!, 0, cut, 'ez').re)).toEqual(Array.from(cutComponent(antiphase.fields!, antiphase.fields!.volume!, 0, cut, 'ez').re));
+    // d1 alone is its own run's fields; driven together, d2 adds its own.
+    const alone = drivenFieldViews(inPhase.fields!, inPhase.fieldRuns!, [{ amplitude: 1, phaseDeg: 0 }, null], inPhase.portIds);
+    const firstRunEz = inPhase.fieldRuns![0].planes[0].ez.re;
+    const worst = Math.max(...firstRunEz.map((v, n) => Math.abs(alone.fields.planes[0].ez.re[n] - v)));
+    expect(worst).toBeLessThan(1e-6 * Math.max(...firstRunEz.map(Math.abs)));
+    expect(Array.from(inPhase.fields!.planes[0].ez.re)).not.toEqual(Array.from(firstRunEz));
+
+    // Two separate pads: no strip joins the ports, so there is no Line view.
+    expect(inPhase.portsJoinedByCopper).toBe(false);
+    expect(analyseLine(inPhase)).toEqual({ ok: false, reason: expect.stringMatching(/sit on separate copper/) });
+    const steered = steeredFarField(inPhase.farField!, parseProject(antiphaseJson));
+    expect(steered.arrayDrives).toEqual(antiphase.farField!.arrayDrives);
+    const [want, got] = [antiphase.farField!.entries[0], steered.entries[0]];
+    // The same runs: the solver is deterministic, so the two agree to rounding.
+    expect(Array.from(got.result.directivityDbi)).toEqual(Array.from(want.result.directivityDbi));
+    expect([got.result.peakThetaDeg, got.result.peakPhiDeg]).toEqual([want.result.peakThetaDeg, want.result.peakPhiDeg]);
+    expect(got.fieldAt3mVPerM).toBeCloseTo(want.fieldAt3mVPerM, 12);
+    expect(got.result.peakDirectivityDbi).not.toBeCloseTo(inPhase.farField!.entries[0].result.peakDirectivityDbi, 1);
+  }, 240_000);
 
   it('refuses a scan above the free air and two heights on one plane', async () => {
     const hooks = { onStart: () => undefined, onProgress: () => undefined };
@@ -153,6 +208,9 @@ describe('workbench solve (CPU)', () => {
     const raw = deembedLineJson();
     raw.ports.forEach((p: any) => delete p.deembed);
     const atPorts = await solveWorkbenchProject(JSON.stringify(raw), 'cpu', quiet, 'off');
+    // One strip joins the two ports: the Line view takes it.
+    expect(atPorts.portsJoinedByCopper).toBe(true);
+    expect(analyseLine(atPorts).ok).toBe(true);
     // "check" on a uniform mesh runs no finer mesh (it says why) and de-embeds the project's own solve.
     const r = await solveWorkbenchProject(JSON.stringify(deembedLineJson()), 'cpu', quiet, 'check');
     expect(r.accuracy!.unavailable).toMatch(/uniform mesh/);

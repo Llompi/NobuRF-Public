@@ -1,8 +1,7 @@
 import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
-import { nearToFarField } from '../engine/near_to_far';
 import type { Project } from '../project/schema';
-import { solveProjectText } from '../../scripts/noburf';
+import { solvedFarField, solveProjectText } from '../../scripts/noburf';
 import { axialRatio, metricsFromSpectrum, type DesignGoal, type DesignMetrics } from './goal';
 
 export interface Evaluation {
@@ -33,9 +32,10 @@ export async function solveForMetrics(project: Project, goal: DesignGoal, useGpu
   }
   const metrics = metricsFromSpectrum(solved.spec, goal);
   if (goal.max_axial_ratio_db !== undefined) {
-    if (!solved.farField || !solved.huygensAccumulators || !solved.samples) throw new Error('an axial-ratio goal needs outputs.far_field_ghz at the target');
     // Only boresight is needed: theta 0 and 180, four azimuths, instead of the full 5 degree sphere.
-    const [ff] = nearToFarField({ ...solved.farField, accumulators: solved.huygensAccumulators, samples: solved.samples, exc: solved.exc, angles: { thetaSteps: 2, phiSteps: 4 } });
+    const farField = solvedFarField(solved, { thetaSteps: 2, phiSteps: 4 });
+    if (!farField) throw new Error('an axial-ratio goal needs outputs.far_field_ghz at the target');
+    const [ff] = farField.results;
     const ar = axialRatio(ff.rEThetaRe[0], ff.rEThetaIm[0], ff.rEPhiRe[0], ff.rEPhiIm[0]);
     metrics.axial_ratio_db = ar.db;
     metrics.polarisation_sense = ar.sense;

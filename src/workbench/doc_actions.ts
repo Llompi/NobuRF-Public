@@ -5,11 +5,11 @@
  * and can be undone. Renames update every reference, so they never break one.
  */
 import {
-  BOARD_EDGES, BUILTIN_MATERIALS, COMPONENT_VALUE_KEYS, parseProject, type ComponentValue, type CopperShape, type LumpedComponent, type LumpedPort, type Point, type Project,
+  BOARD_EDGES, BUILTIN_MATERIALS, COMPONENT_VALUE_KEYS, parseProject, type ArrayPortDrive, type ComponentValue, type CopperShape, type LumpedComponent, type LumpedPort, type Point, type Project,
   type SmaEdgePort, type StackupLayer,
 } from '../project/schema';
 import { evaluateLength, NAME_PATTERN } from '../project/expression';
-import { resolveProject } from '../project/resolve';
+import { arrayDrivesByPortId, excitedPortIds, keptArrayExcitation, resolveProject } from '../project/resolve';
 import { libraryMaterial, projectMaterial } from './material_library';
 
 type Doc = Project;
@@ -561,6 +561,10 @@ export function renamePort(doc: Doc, index: number, to: string): Doc {
     const renamed = (id: string) => (id === from ? to : id);
     next.outputs.differential_pairs = next.outputs.differential_pairs.map((p) => ({ ...p, positive: renamed(p.positive), negative: renamed(p.negative) }));
   }
+  const drives = next.outputs.array_excitation;
+  if (drives && from in drives) {
+    next.outputs.array_excitation = Object.fromEntries(Object.entries(drives).map(([id, drive]) => [id === from ? to : id, drive]));
+  }
   return next;
 }
 
@@ -576,6 +580,59 @@ export function removePort(doc: Doc, index: number): Doc {
     next.outputs.differential_pairs = next.outputs.differential_pairs.filter((p) => p.positive !== port.id && p.negative !== port.id);
     if (next.outputs.differential_pairs.length === 0) delete next.outputs.differential_pairs;
   }
+  return keepArrayDrivesOf(next, (id) => id !== port.id);
+}
+
+/**
+ * Sets the excited ports (undefined: every port). A port that is no longer
+ * excited loses its far-field drive, since only an excited port can be driven;
+ * a port excited again is driven again at amplitude 1, phase 0, as it would be
+ * without a drive map.
+ */
+export function setExcitedPorts(doc: Doc, portIdsToExcite: string[] | undefined): Doc {
+  const next = copy(doc);
+  const excitedBefore = excitedPortIds(doc);
+  if (portIdsToExcite) next.analysis.excite = portIdsToExcite;
+  else delete next.analysis.excite;
+  const excitedAfter = excitedPortIds(next);
+  const drives = next.outputs.array_excitation;
+  if (drives) {
+    for (const portId of excitedAfter) if (!excitedBefore.includes(portId) && !drives[portId]) drives[portId] = { amplitude: 1, phase_deg: 0 };
+  }
+  return keepArrayDrivesOf(next, (portId) => excitedAfter.includes(portId));
+}
+
+/** No far field, and so no port drives either: they weight the far field only. */
+export function clearFarField(doc: Doc): Doc {
+  const next = copy(doc);
+  delete next.outputs.far_field_ghz;
+  delete next.outputs.array_excitation;
+  return next;
+}
+
+/**
+ * Sets one port's far-field drive, its amplitude or its phase in degrees.
+ * Without outputs.array_excitation every excited port is driven at amplitude
+ * 1, phase 0, so those drives are written first and the other ports keep
+ * theirs. A port the map leaves out is off; setting its phase alone keeps it
+ * off. The value goes in as given: the schema reports one that is not a number.
+ */
+export function setPortDrive(doc: Doc, portId: string, part: 'amplitude' | 'phase_deg', value: unknown): Doc {
+  const next = copy(doc);
+  const drives = arrayDrivesByPortId(next);
+  const current: ArrayPortDrive | undefined = drives[portId];
+  drives[portId] = { ...(current ?? { amplitude: 0 }), [part]: value } as ArrayPortDrive;
+  next.outputs.array_excitation = drives;
+  return next;
+}
+
+/** Keeps the far-field drives of the ports that pass (resolve.ts keptArrayExcitation). */
+function keepArrayDrivesOf(next: Doc, keepPort: (portId: string) => boolean): Doc {
+  const drives = next.outputs.array_excitation;
+  if (!drives) return next;
+  const kept = keptArrayExcitation(drives, keepPort, next.ports.length);
+  if (kept) next.outputs.array_excitation = kept;
+  else delete next.outputs.array_excitation;
   return next;
 }
 

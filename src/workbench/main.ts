@@ -4,7 +4,7 @@
  * inspector and 3D view re-render from it after every edit.
  */
 import { rasterise } from '../project/rasterise';
-import type { Vec2 } from '../project/resolve';
+import { arrayPortDrives, type Vec2 } from '../project/resolve';
 import type { Project } from '../project/schema';
 import { byId } from '../ui/dom';
 import { escapeHtml, fmtClock, withMinus } from '../ui/format';
@@ -14,7 +14,7 @@ import { chartPng, csvFile, download, safeName, touchstoneFile } from './export'
 import { canRecordVideo, fieldFramePng, phaseDegrees, recordPhaseCycle } from './field_capture';
 import { ImportDialog } from './import_dialog';
 import { analyseLine, LineView } from './line_view';
-import { pairState, PairView, solveRelevantText, withPairs } from './pair_view';
+import { pairState, PairView, withPairs } from './pair_view';
 import { differentialJson } from '../engine/differential';
 import { MaterialDialog } from './material_dialog';
 import { NewProjectDialog } from './new_project_dialog';
@@ -25,6 +25,8 @@ import { EmissionsView } from './emissions_view';
 import { ResultViews } from './results';
 import { runSensitivity, SensitivityView } from './sensitivity';
 import { parseSelectionKey, selectionKey } from './selection';
+import { drivenFieldViews } from './driven_fields';
+import { steeredFarField } from './far_field_entries';
 import type { SolverChoice, SolveProgress, WorkbenchResult } from './solve';
 import { SolveCancelled, startSolve } from './solve_client';
 import type { AccuracyMode } from '../verify/accuracy';
@@ -32,7 +34,7 @@ import { portsOffCopper } from './port_check';
 import { SolveProgressMeter } from './progress';
 import { portlessView } from './portless_view';
 import { describeRemoved, sectionProject } from '../import/section';
-import { ProjectStore } from './store';
+import { ProjectStore, solveRelevantText } from './store';
 import { ProjectTree } from './tree';
 
 const DEFAULT_EXAMPLE = 'patch-5g8-far-field.json';
@@ -231,10 +233,13 @@ function renderValidity(): void {
   save.title = store.dirty ? 'Save (Ctrl+S). There are unsaved changes.' : 'Save (Ctrl+S)';
 }
 
-function renderStale(): void {
+/** Whether the document has changed since the shown solve in anything the solve depends on; the pairing and array drives are post-processing. */
+function resultIsStale(): boolean {
+  return result !== null && solveRelevantText(JSON.parse(result.projectText)) !== solveRelevantText(store.document);
+}
+
+function renderStale(stale: boolean): void {
   const empty = byId('stage-empty');
-  // The pairing is post-processing: changing it leaves the solve current.
-  const stale = result !== null && solveRelevantText(JSON.parse(result.projectText)) !== solveRelevantText(store.document);
   empty.hidden = !stale;
   empty.textContent = stale ? 'The project has changed since this solve. Results are from the earlier version; solve again to update them.' : '';
 }
@@ -264,11 +269,39 @@ function refreshMesh(): void {
   lastMeshError = '';
 }
 
+/**
+ * outputs.array_excitation only weights the solved runs, so a new drive re-sums
+ * them in place of a solve. Only while the results are current: a stale solve
+ * may have other ports or runs than the document.
+ */
+function steerFarField(stale: boolean): void {
+  const project = store.validation.project;
+  if (!result?.farField?.array || !project || stale) return;
+  const farField = steeredFarField(result.farField, project);
+  if (farField === result.farField) return;
+  // The field views sum the same runs with the same drives as the far field.
+  const views = result.fieldRuns && result.fields
+    ? drivenFieldViews(result.fields, result.fieldRuns, arrayPortDrives(project), result.portIds)
+    : { fields: result.fields, nearField: result.nearField };
+  result = { ...result, farField, ...views };
+  results.showSteered(result);
+  emissionsView.showSteered(result);
+  if (views.fields) modelView.setSteeredFields(views.fields);
+  drawLegend();
+}
+
+/** The stale banner, and the document's array drives on a current result (they may have changed during the solve). */
+function syncResultWithDocument(): void {
+  const stale = resultIsStale();
+  renderStale(stale);
+  steerFarField(stale);
+}
+
 store.subscribe(() => {
   tree.render();
   inspector.render();
   renderValidity();
-  renderStale();
+  syncResultWithDocument();
   updatePairTab();
   const v = store.validation;
   const shown = v.resolved ?? portlessView(store.document);
@@ -424,7 +457,7 @@ function solve(): void {
       updateResultTabs();
       fillFieldFrequencies();
       drawLegend();
-      renderStale();
+      syncResultWithDocument();
       for (const w of r.warnings) if (!shownWarnings.has(w)) message('warning', w);
       // The time loop alone, and the whole wait from the click: mesh, GPU setup and the far field are in the second.
       message('info', `Solved in ${fmtClock(performance.now() - t0)} on ${r.solver} (time loop ${fmtClock(r.solveMs)}).`);

@@ -332,6 +332,14 @@ export interface Project {
      */
     far_field_ghz?: number[];
     /**
+     * With several ports: the source behind each port when the far field is
+     * computed (engine/array_far_field.ts), a peak amplitude (relative: gain
+     * depends on the ratios only) and a phase. A port left out is off, a
+     * matched load. Absent: every excited port at amplitude 1, phase 0.
+     * Post-processing only: changing it never changes a solve.
+     */
+    array_excitation?: Record<string, ArrayPortDrive>;
+    /**
      * Heights (mm) above the top copper layer at which to scan the near field,
      * like an EMC probe over the board: E and H on a plane of the solver's
      * nodes, at the field-plot frequencies. Each must land in the air between
@@ -347,6 +355,11 @@ export interface Project {
      */
     differential_pairs?: DifferentialPairDef[];
   };
+}
+
+export interface ArrayPortDrive {
+  amplitude: number;
+  phase_deg: number;
 }
 
 export interface DifferentialPairDef {
@@ -754,6 +767,31 @@ function readNearFieldHeights(v: unknown): number[] {
   return heights;
 }
 
+/**
+ * The smallest nonzero drive amplitude: 120 dB below 1 V, far beyond any real
+ * array's taper, and far above where the power (amplitude squared) underflows to 0 W.
+ */
+const MIN_DRIVE_AMPLITUDE = 1e-6;
+
+function readArrayExcitation(v: unknown, portIds: string[], farField: boolean): Record<string, ArrayPortDrive> {
+  const path = '$.outputs.array_excitation';
+  if (portIds.length < 2) fail(path, 'needs two or more ports; one port is always driven alone');
+  if (!farField) fail(path, 'sets the port drives for the far field only; add outputs.far_field_ghz, or remove outputs.array_excitation');
+  const map = readMap(v, path);
+  const drives: Record<string, ArrayPortDrive> = {};
+  for (const [id, entry] of Object.entries(map)) {
+    const at = `${path}.${id}`;
+    if (!portIds.includes(id)) fail(at, `"${id}" is not a port id (ports: ${portIds.join(', ')})`);
+    const o = readObject(entry, at, ['amplitude'], ['phase_deg']);
+    const drive = { amplitude: readNumber(o.amplitude, `${at}.amplitude`, 0, 1e6), phase_deg: o.phase_deg === undefined ? 0 : readNumber(o.phase_deg, `${at}.phase_deg`, -36_000, 36_000) };
+    // resolve.ts checks that a driven port is excited, after analysis.excite itself is checked.
+    if (drive.amplitude > 0 && drive.amplitude < MIN_DRIVE_AMPLITUDE) fail(`${at}.amplitude`, `is too small to compute; use 0 for off, or ${MIN_DRIVE_AMPLITUDE} or more`);
+    drives[id] = drive;
+  }
+  if (!Object.values(drives).some((d) => d.amplitude > 0)) fail(path, 'drives no port; give at least one an amplitude above 0');
+  return drives;
+}
+
 function readDifferentialPairs(v: unknown, portIds: string[]): DifferentialPairDef[] {
   const path = '$.outputs.differential_pairs';
   const list = readArray(v, path);
@@ -840,7 +878,7 @@ export function parseProject(json: unknown): Project {
   const fMax = readNumber(a.f_max_ghz, '$.analysis.f_max_ghz', 0.01, 1000);
   if (fMax <= fMin) fail('$.analysis.f_max_ghz', `${fMax} must be above f_min_ghz ${fMin}`);
 
-  const outputs = readObject($.outputs, '$.outputs', ['zin_at_ghz'], ['far_field_ghz', 'near_field_mm', 'differential_pairs']);
+  const outputs = readObject($.outputs, '$.outputs', ['zin_at_ghz'], ['far_field_ghz', 'array_excitation', 'near_field_mm', 'differential_pairs']);
   const zinAt = readArray(outputs.zin_at_ghz, '$.outputs.zin_at_ghz').map((f, n) => readNumber(f, `$.outputs.zin_at_ghz[${n}]`, fMin, fMax));
 
   const ports = readArray($.ports, '$.ports').map((p, n) => readPort(p, `$.ports[${n}]`));
@@ -878,6 +916,9 @@ export function parseProject(json: unknown): Project {
     outputs: {
       zin_at_ghz: zinAt,
       ...(outputs.far_field_ghz === undefined ? {} : { far_field_ghz: readFarFieldFrequencies(outputs.far_field_ghz, fMin, fMax, boundaries, airMargin) }),
+      ...(outputs.array_excitation === undefined ? {} : {
+        array_excitation: readArrayExcitation(outputs.array_excitation, ports.map((p) => p.id), outputs.far_field_ghz !== undefined),
+      }),
       ...(outputs.near_field_mm === undefined ? {} : { near_field_mm: readNearFieldHeights(outputs.near_field_mm) }),
       ...(outputs.differential_pairs === undefined ? {} : { differential_pairs: readDifferentialPairs(outputs.differential_pairs, ports.map((p) => p.id)) }),
     },

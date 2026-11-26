@@ -41,7 +41,9 @@ and a third when the project asks for a far field:
   [Far field](#far-field) below.
 
 A project with two or more ports writes `sparams.s<N>p` and `result.json`
-instead; see [Several ports](#several-ports).
+instead of the first two; see [Several ports](#several-ports). With
+`outputs.far_field_ghz` it also writes the far field of the whole array; see
+[Far field of an array](#far-field-of-an-array).
 
 The schema lives in [`src/project/schema.ts`](../src/project/schema.ts); every
 field is documented there. [`examples/patch-5g8.json`](../examples/patch-5g8.json)
@@ -74,7 +76,7 @@ is a complete project.
 | `boundaries` | Per face (`x_min` … `z_max`): `{ type: "pml", cells }` or `{ type: "pec" }`. |
 | `mesh` | `cell` and `air_margin_cells: { xy, below, above }` (each at least 1, in multiples of `cell`). Without `graded` the cells are uniform cubes of `cell`. With `graded: { edge_cell, dielectric_cells, max_growth }`, see below. `conformal: true` models slanted and curved copper edges by the part of each cell they cover ([conformal.md](conformal.md)). |
 | `analysis` | Band (`f_min_ghz`, `f_max_ghz`, `n_freq`), `loss_reference_ghz` (where `eps_r` and `tan_delta` hold exactly for a material without its own `at_ghz`), `stop: { energy_decay_db, max_steps }`, and optional `excite`: the ids of the ports to excite (default: every port). |
-| `outputs` | `zin_at_ghz`: frequencies at which `result.json` reports Z_in. Optional `far_field_ghz`: 1 to 16 frequencies inside the band at which to compute the far field (writes `far_field.json`). Optional `near_field_mm`: 1 to 4 heights above the top copper for a near-field scan (workbench only, see below). Optional `differential_pairs`: ports read as differential pairs, `{ id, positive, negative, differential_ohm?, common_ohm? }` per pair end (writes `differential.json`; see [differential-pairs.md](differential-pairs.md)). |
+| `outputs` | `zin_at_ghz`: frequencies at which `result.json` reports Z_in. Optional `far_field_ghz`: 1 to 16 frequencies inside the band at which to compute the far field (writes `far_field.json`). Optional `array_excitation`: with several ports, the amplitude and phase of each port's source in that far field (see [Far field of an array](#far-field-of-an-array)). Optional `near_field_mm`: 1 to 4 heights above the top copper for a near-field scan (workbench only, see below). Optional `differential_pairs`: ports read as differential pairs, `{ id, positive, negative, differential_ohm?, common_ohm? }` per pair end (writes `differential.json`; see [differential-pairs.md](differential-pairs.md)). |
 
 ## Several ports
 
@@ -116,8 +118,9 @@ A one-port project writes `s11.s1p` and the fields listed at the top, plus
 `ports` and `provenance.excited_ports`.
 
 The GPU solver takes at most 8 ports with at most 64 port cells together
-(a port is one cell per mesh cell between its two layers). The far field is
-computed for one-port projects only.
+(a port is one cell per mesh cell between its two layers). The far field of
+several ports is the whole array's: see
+[Far field of an array](#far-field-of-an-array).
 
 ## De-embedding a port
 
@@ -290,9 +293,9 @@ What `far_field.json` reports, per frequency:
 | `peak_directivity_dbi`, `peak_theta_deg`, `peak_phi_deg` | 4π U / P_rad at the strongest direction (theta from +z, phi from +x). |
 | `radiated_power_w` | Poynting flux out of the box. |
 | `accepted_power_w` | ½ Re(V I*) at the port. |
-| `efficiency` | radiated / accepted power. Close to 1 for a lossless model; below 1 with dielectric loss. A lossless model far from 1 means the run did not ring down, or the box is too close to the PML. |
+| `efficiency` | radiated / accepted power. Close to 1 for a lossless model; below 1 with dielectric loss. Good to about ±0.5 % on a run stopped at 70 dB energy decay, so a lossless model reading 1.0005 is at 1 (see below). A lossless model far from 1 means the run did not ring down, or the box is too close to the PML. |
 | `peak_gain_dbi` | 4π U / P_accepted (IEEE gain). |
-| `peak_realised_gain_dbi` | Gain × (1 − \|S11\|²): it includes the port mismatch. |
+| `peak_realised_gain_dbi` | Gain × (1 − \|S11\|²): it includes the port mismatch. For an array, gain × accepted over incident power, so it also counts what couples out through the other ports. |
 | `sphere_to_box_power_ratio` | U integrated over the sphere over the box flux; a check of the transform, expected within a percent or two of 1. |
 | `pattern` | `theta_deg` (0 to 180) × `phi_deg` (0 to 355) grid: `directivity_dbi` rows per theta, and `r_e_theta_v`, `r_e_phi_v` as `re` and `im` rows. |
 | `boresight_polarisation`, `e_plane_phi_deg` | `x` or `y`, whichever E component is stronger toward +z, and the azimuth of the plane that holds it (0 for x, 90 for y). The figures below assume a broadside antenna. |
@@ -312,7 +315,8 @@ The two pattern files per frequency:
   opens in Blender, Windows 3D Viewer and three.js.
 
 Powers and fields are for a 1 V peak sinusoidal source behind the port's
-reference resistance; only ratios matter for directivity and gain.
+reference resistance (for an array, each port's source at its amplitude in
+volts); only ratios matter for directivity and gain.
 
 The box must enclose all copper and dielectric with air on its faces, so a
 far field needs:
@@ -329,6 +333,81 @@ solve, and the transform afterwards takes about 2 s per frequency. Since the tra
 Fourier transform of the whole run, let the run ring down (the energy stop):
 a truncated run leaves the efficiency off 1, and `far_field.json` then
 carries a `caveat` and the CLI prints a warning.
+
+A run stopped at 50 dB energy decay counts as rung down but still leaves
+the efficiency rippling across frequency: by a few tenths of a percent on
+a patch, and by several percent where most of the incident power reflects
+(a short dipole, |S11| about 0.9). When efficiency matters, set
+`analysis.stop.energy_decay_db` to 70 or more. At 70 dB it is good to
+about ±0.5 %: the lossless dipole and patch pairs in
+`validation/openems/array` settle at 0.990 to 0.998 and 0.9996 to 1.0006
+across their bands, so a reading slightly over 1 is within that error,
+not a gain.
+
+### Far field of an array
+
+With two or more ports, the far field is the whole array's, with every port
+driven at once. The solver still runs once per excited port: in each run one
+port carries the source and the others are loads of their reference
+impedance. The fields of that run are the port's embedded element pattern,
+which includes what its neighbors pick up and re-radiate. Fields add
+linearly, so the array's pattern for any set of drives is the sum of the
+runs' patterns, each scaled by its port's source. Coupling between the
+elements is in the result; nothing multiplies an isolated element by an
+array factor. The method is in
+[`src/engine/array_far_field.ts`](../src/engine/array_far_field.ts).
+
+`outputs.array_excitation` sets each port's source by port id: a peak
+`amplitude` in volts (0, or 1e-6 to 1e6) and a `phase_deg` (default 0). Only the ratios between
+ports change the gain and the pattern. A port left out, or with amplitude 0,
+is off and stays a load. Without `array_excitation`, every excited port is
+driven at amplitude 1 and phase 0. A port with an amplitude above 0 must be
+in `analysis.excite`, since its run is what drives it.
+
+```json
+"outputs": {
+  "zin_at_ghz": [5.8],
+  "far_field_ghz": [5.8],
+  "array_excitation": {
+    "left": { "amplitude": 1, "phase_deg": 0 },
+    "right": { "amplitude": 1, "phase_deg": 90 }
+  }
+}
+```
+
+[`examples/patch-pair-5g8-steered.json`](../examples/patch-pair-5g8-steered.json)
+is a complete array with these drives: two inset-fed 5.8 GHz patches 26 mm
+apart (about half a wavelength), the right one driven 90° ahead.
+
+The drives only weight the runs after the solve. In the workbench, the
+Array drive table under Excite re-sums the solved runs, so the pattern
+updates when you press Enter or leave the field, without a new solve ([workbench.md](workbench.md)). The
+CLI does not keep the runs between solves, so there a change of drives means
+solving again. To get one element's embedded pattern, drive that port alone.
+
+`far_field.json` for an array adds:
+
+| Key | Meaning |
+| --- | --- |
+| `array_excitation` | The drives used, one entry per driven port: `port`, `amplitude`, `phase_deg`. |
+| `incident_power_w` | Per frequency: the power the sources send in, the sum of \|a\|²/2 over the ports. |
+| `ports` | Per frequency, one entry per port: `port` (its id), `active_reflection` (`re`, `im` and `db` of b/a with every port driven at once; `null` for a port that is off) and `outgoing_power_w` (\|b\|²/2, the power leaving through that port's load). |
+
+`accepted_power_w` is summed over the ports, and `mismatch_factor` is accepted
+over incident power. Realized gain therefore counts both the reflection at
+the driven ports and the power coupled out through any port, as commercial
+full-wave tools do. The `caveat` appears when any run stopped before the field
+rang down. The CLI prints the drives and each driven port's active
+reflection under each far-field line.
+
+The active reflection and the powers come from the same untapered record as
+the box fields, so the powers balance exactly. The S-parameter files taper
+the end of the record, so the active reflection built from `sparams.sNp`
+(the sum of S times the drives) can differ from it by up to about 0.01 on runs
+that stop at a 40 dB decay; the difference shrinks as the runs ring down
+further. A port with `deembed` has itself and its feed line removed from
+the S-parameters but not from the active reflection, which stays at the
+lumped port.
 
 ## Near field
 
@@ -349,8 +428,11 @@ form the solver steps, and matches the solver's own Hz to 1e-4. With a far
 field as well, the field at 3 m and 10 m comes from the same Huygens box,
 with the full free-space Green's function rather than its far-field limit.
 `src/engine/near_field.ts` has the formulas and `docs/validation.md` 4.5
-the checks. The CLI accepts the key and warns that it writes nothing for
-it yet. Not available with an SMA or coax probe port.
+the checks. With several ports and a far field, the scan, like the
+workbench's other field views, is the array with every port driven as in
+`array_excitation`; without a far field it is the first excited port driven
+and the others loaded. The CLI accepts the key and warns that it writes
+nothing for it yet. Not available with an SMA or coax probe port.
 
 ## Graded mesh
 
@@ -694,7 +776,7 @@ drill files (vias), solder mask and silkscreen. The importers are in [`src/impor
 ## Limits today
 
 Lumped ports, SMA edge connectors and coax probes (the last two on the CPU); the S-matrix file needs one reference impedance for all
-ports; the far field needs a one-port project. On a uniform mesh, shapes and ports snap to the
+ports; the far field needs lumped ports. On a uniform mesh, shapes and ports snap to the
 cell grid, so on the example's 0.5 mm cells a length moves in 0.5 mm steps;
 use `mesh.graded` to put lines on the edges instead, or `mesh.conformal` to
 model edges between lines (and slanted or curved ones) by the part of each

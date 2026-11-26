@@ -21,12 +21,16 @@ export function analyseLine(r: WorkbenchResult): LineAnalysis {
   if (r.s.re.some((row) => row.some((column) => !column))) return { ok: false, reason: 'The line view needs both ports excited.' };
   const fields = r.fields;
   if (!fields) return { ok: false, reason: 'The line view needs the field planes, which this result does not have.' };
+  if (r.portsJoinedByCopper === false) {
+    return { ok: false, reason: `The line view needs the two ports joined by one strip on layer ${fields.copperLayer}; there they sit on separate copper.` };
+  }
   const onStrip = r.ports.every((p) => p.between.includes(fields.copperLayer));
   try {
     if (!onStrip) throw new Error(`both ports must connect to ${fields.copperLayer}, the copper layer the field planes watch`);
     const fit = lineFromFields({
       xMm: fields.xMm, yMm: fields.yMm, substrateMm: 2 * (fields.copperZMm - fields.ezZMm),
-      planes: fields.planes, ports: [r.ports[0], r.ports[1]],
+      // The fit reads the first run's fields (the first excited port driven), also when the views show an array's drives.
+      planes: r.fieldRuns?.[0].planes ?? fields.planes, ports: [r.ports[0], r.ports[1]],
     });
     return { ok: true, fit, fitProblem: null };
   } catch (error) {
@@ -36,6 +40,19 @@ export function analyseLine(r: WorkbenchResult): LineAnalysis {
 
 /** Above this the field is not one uniform line (a bend, an off-centre port, a second conductor). */
 const MAX_RESIDUAL = 0.1;
+/**
+ * A step that comes back at least this much of itself reads as an open end:
+ * 19 times the reference impedance. The chart stops there and labels it
+ * "open", where the ohms would mean nothing (stepTdr's ceiling is 1999 times).
+ */
+const OPEN_REFLECTION = 0.9;
+
+/** TDR traces as the chart draws them: capped at the open level, which is returned when a trace reaches it (else null). */
+export function capTdrAtOpen(tracesOhm: Float64Array[], zRef: number): { shownOhm: Float64Array[]; openOhm: number | null } {
+  const openOhm = (zRef * (1 + OPEN_REFLECTION)) / (1 - OPEN_REFLECTION);
+  const reachesOpen = tracesOhm.some((trace) => trace.some((z) => z >= openOhm));
+  return { shownOhm: tracesOhm.map((trace) => trace.map((z) => Math.min(z, openOhm))), openOhm: reachesOpen ? openOhm : null };
+}
 const TDR_COLORS = ['#f2a33a', '#8eaaf5'];
 const facts = (rows: Array<[string, string]>) => rows.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd>`).join('');
 
@@ -55,15 +72,16 @@ export class LineView {
     const durationNs = (3 * 2 * lengthMm * Math.sqrt(epsEff)) / C_MM_PER_NS;
     const fromPort = (n: 0 | 1) => stepTdr(r.s.fGHz, r.s.re[n][n]!, r.s.im[n][n]!, zRef, durationNs);
     const tdr = [fromPort(0), fromPort(1)];
-    const traces: Trace[] = tdr.map((t, n) => ({ name: `From ${r.portIds[n]}`, color: TDR_COLORS[n], dashed: n === 1, x: t.tNs, y: t.zOhm }));
+    const { shownOhm, openOhm } = capTdrAtOpen(tdr.map((t) => t.zOhm), zRef);
+    const traces: Trace[] = tdr.map((t, n) => ({ name: `From ${r.portIds[n]}`, color: TDR_COLORS[n], dashed: n === 1, x: t.tNs, y: shownOhm[n] }));
     const roundTripNs = (2 * lengthMm * Math.sqrt(epsEff)) / C_MM_PER_NS;
     // At least 10 ohm either side of the reference, so a near-match does not fill the chart with a few ohms of ripple.
     let [lo, hi] = [zRef - 10, zRef + 10];
-    for (const t of tdr) for (const z of t.zOhm) [lo, hi] = [Math.min(lo, z), Math.max(hi, z)];
+    for (const trace of shownOhm) for (const z of trace) [lo, hi] = [Math.min(lo, z), Math.max(hi, z)];
     const [yMin, yMax] = [Math.floor(lo / 5) * 5, Math.ceil(hi / 5) * 5];
     this.chart.set({
       traces, yUnit: 'Ω', xUnit: 'ns', yMin, yMax,
-      rules: [{ y: zRef, label: `${zRef} Ω` }],
+      rules: [{ y: zRef, label: `${zRef} Ω` }, ...(openOhm === null ? [] : [{ y: openOhm, label: 'open' }])],
       markers: analysis.fit ? [{ x: Number(roundTripNs.toFixed(3)), label: 'Far port' }] : [],
     });
 

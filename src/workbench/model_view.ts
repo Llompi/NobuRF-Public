@@ -502,6 +502,13 @@ export class ModelView {
     this.setLobe(farField);
   }
 
+  /** The same solve's fields summed for new port drives: the frequency, mode and cut on screen stay. */
+  setSteeredFields(fields: FieldMaps): void {
+    this.viewVersion++;
+    this.fields = fields;
+    this.buildFieldSheet();
+  }
+
   setFieldMode(mode: FieldMode): void {
     this.viewVersion++;
     this.fieldMode = mode;
@@ -624,17 +631,18 @@ export class ModelView {
     const fields = this.fields;
     if (!fields || this.fieldMode === 'none') return null;
     const f = fields.planes[this.fieldIndex].frequencyGHz;
+    const drive = fields.shownDrive ? `, ${fields.shownDrive}` : '';
     const signed = { scaleCss: `linear-gradient(to top, ${NEGATIVE.getStyle()}, #1a1c20 50%, ${POSITIVE.getStyle()})`, low: '−', high: '+' };
     const magnitude = { scaleCss: scaleCss(MAGNITUDE_SCALE), low: `−${MAGNITUDE_RANGE_DB} dB`, high: '0 dB = 98th percentile' };
-    if (this.fieldMode === 'current') return { title: `Surface current |J| on ${fields.copperLayer}, ${f} GHz`, ...magnitude };
-    if (this.fieldMode === 'ez') return { title: `Ez in ${fields.ezLayer}, ${f} GHz, drawn above the board`, ...signed };
+    if (this.fieldMode === 'current') return { title: `Surface current |J| on ${fields.copperLayer}, ${f} GHz${drive}`, ...magnitude };
+    if (this.fieldMode === 'ez') return { title: `Ez in ${fields.ezLayer}, ${f} GHz, drawn above the board${drive}`, ...signed };
     const cut = this.cutSettings;
     if (!cut) {
       return { title: fields.volumeSkipped ?? 'This solve kept no field volume for cuts.', scaleCss: 'none', low: '', high: '' };
     }
     const at = cutGrid(fields, fields.volume!, cut).atMm;
     const arrows = cut.arrows ? `, arrows ${cut.quantity[0].toUpperCase()} in the plane` : '';
-    const title = `${quantityLabel(cut.quantity)} on the ${planeLabel(cut.axis)} cut at ${cut.axis} = ${at.toFixed(2)} mm, ${f} GHz${arrows}`;
+    const title = `${quantityLabel(cut.quantity)} on the ${planeLabel(cut.axis)} cut at ${cut.axis} = ${at.toFixed(2)} mm, ${f} GHz${arrows}${drive}`;
     return { title, ...(isMagnitude(cut.quantity) ? magnitude : signed) };
   }
 

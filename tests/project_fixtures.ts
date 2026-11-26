@@ -176,3 +176,34 @@ export function deembedLineJson(): Record<string, any> {
   for (const port of json.ports) port.deembed = { length: '3 mm' };
   return json;
 }
+
+const dipolePad = (centerXMm: number) => rect(`${centerXMm - 4} mm`, '-4 mm', `${centerXMm + 4} mm`, '4 mm');
+
+/**
+ * Short vertical dipoles along x (square pads on two copper layers 10 mm
+ * apart, a lumped port between them), one per center, with a far field at
+ * 3 GHz on 2 mm cells: a pair solves in a few seconds on the CPU.
+ */
+export function dipolePairJson(centersXMm: number[], outputs: Record<string, unknown> = {}): Record<string, any> {
+  return {
+    noburf_project: 1,
+    name: 'dipole-pair',
+    variables: {},
+    materials: {},
+    stackup: [
+      { type: 'copper', name: 'bot', material: 'pec' },
+      { type: 'dielectric', name: 'gap', material: 'air', thickness: '10 mm' },
+      { type: 'copper', name: 'top', material: 'pec' },
+    ],
+    board: { outline: [['-34 mm', '-6 mm'], ['34 mm', '-6 mm'], ['34 mm', '6 mm'], ['-34 mm', '6 mm']] },
+    geometry: {
+      bot: centersXMm.map((x, n) => ({ id: `bot${n}`, op: 'add', polygon: dipolePad(x) })),
+      top: centersXMm.map((x, n) => ({ id: `top${n}`, op: 'add', polygon: dipolePad(x) })),
+    },
+    ports: centersXMm.map((x, n) => ({ id: `d${n + 1}`, x: `${x} mm`, y: '0 mm', between: ['bot', 'top'], reference_impedance_ohm: 50 })),
+    boundaries: Object.fromEntries(['x_min', 'x_max', 'y_min', 'y_max', 'z_min', 'z_max'].map((face) => [face, { type: 'pml', cells: 8 }])),
+    mesh: { cell: '2 mm', air_margin_cells: { xy: 6, below: 6, above: 6 } },
+    analysis: { f_min_ghz: 2, f_max_ghz: 4, n_freq: 41, loss_reference_ghz: 3, stop: { energy_decay_db: 40, max_steps: 12000 } },
+    outputs: { zin_at_ghz: [3], far_field_ghz: [3], ...outputs },
+  };
+}

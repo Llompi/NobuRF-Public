@@ -32,15 +32,28 @@ function syntheticFields(): FieldMaps {
   return {
     xMm, yMm, pml: { xLow: 1, xHigh: 1, yLow: 1, yHigh: 1 },
     ezLayer: 'sub', ezZMm: 0.4, copperLayer: 'top', copperZMm: 0.8, copperMask: new Uint8Array(0), planes: [],
-    volume: { zMm, pmlZ: { low: 1, high: 1 }, frequencies: 2, accumulators },
+    volume: { zMm, pmlZ: { low: 1, high: 1 }, frequencies: 2, accumulatorsPerRun: [accumulators], weightsPerRun: [[[1, 0], [1, 0]]] },
     volumeSkipped: null,
     volumeAsked: true,
+    shownDrive: null,
   };
 }
 
 describe('field cuts', () => {
   const fields = syntheticFields();
   const volume = fields.volume!;
+
+  it('sums the runs of a driven array with their complex weights', () => {
+    // Run 0 the synthetic field, run 1 the same field doubled; weights j and 0.5: the sum is (j + 1) times run 0.
+    const twoRuns = { ...volume, accumulatorsPerRun: [volume.accumulatorsPerRun[0], volume.accumulatorsPerRun[0].map((v) => 2 * v)], weightsPerRun: [[[0, 1], [0, 1]], [[0.5, 0], [0.5, 0]]] as Array<Array<[number, number]>> };
+    const cut = { axis: 'y' as const, index: 2 };
+    const single = cutComponent(fields, volume, 1, cut, 'hx');
+    const summed = cutComponent(fields, twoRuns, 1, cut, 'hx');
+    for (let n = 0; n < single.re.length; n++) {
+      expect(summed.re[n]).toBeCloseTo(single.re[n] - single.im[n], 4);
+      expect(summed.im[n]).toBeCloseTo(single.im[n] + single.re[n], 4);
+    }
+  });
 
   it('puts every component on the nodes exactly for a linear field, on every plane', () => {
     for (const axis of ['x', 'y', 'z'] as const) {
@@ -90,5 +103,8 @@ describe('field cuts', () => {
     expect(volumeFrequencies(large, 4)).toBe(0);
     const middle = { nx: 100, ny: 100, nz: 60 };
     expect(volumeFrequencies(middle, 4)).toBe(2);
+    // An array keeps every port's run: two share twice the budget, eight split it.
+    expect(volumeFrequencies(middle, 4, 2)).toBe(2);
+    expect(volumeFrequencies(middle, 4, 8)).toBe(0);
   });
 });
