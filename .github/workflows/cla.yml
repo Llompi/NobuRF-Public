@@ -1,5 +1,11 @@
 # Asks first-time contributors to sign CLA.md, and records signatures in signatures/cla.json
 # on the cla-signatures branch, which must exist before the first outside pull request.
+#
+# Pull requests the owner opens skip the check: the owner is the party the CLA grants rights to,
+# so there is nobody to ask. Their commits are often authored by Claude (git identity
+# "Claude <noreply@anthropic.com>"), which GitHub links to an unrelated personal account, @claude.
+# Allowlisting that login would exempt a stranger, so the owner's pull requests are skipped instead.
+# Every pull request opened by anyone else is still checked, whoever authored its commits.
 name: CLA
 
 on:
@@ -17,7 +23,7 @@ permissions:
 jobs:
   cla:
     if: >-
-      github.event_name == 'pull_request_target' ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'Llompi') ||
       github.event.comment.body == 'recheck' ||
       github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'
     runs-on: ubuntu-latest
