@@ -1,0 +1,5 @@
+# Every page here is public. Search engines and AI crawlers are welcome.
+User-agent: *
+Allow: /
+
+Sitemap: https://noburf.com/sitemap.xml

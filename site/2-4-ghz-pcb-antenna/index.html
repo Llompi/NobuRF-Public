@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulate a 2.4 GHz PCB antenna in your browser · NobuRF</title>
+<meta name="description" content="Design and simulate a 2.4 GHz patch antenna on FR-4 for Wi-Fi or Bluetooth with NobuRF, a free FDTD solver that runs in Chrome or Edge, and see which results to trust.">
+<meta property="og:title" content="Simulate a 2.4 GHz PCB antenna in your browser">
+<meta property="og:description" content="A free FDTD solver in Chrome or Edge: start a 2.4 GHz patch on FR-4, solve it, and see which results to trust.">
+<meta property="og:image" content="https://noburf.com/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Current on the copper of a patch antenna for the 5.8 GHz band, and the line: Maxwell's equations, solved in a browser tab.">
+<meta property="og:url" content="https://noburf.com/2-4-ghz-pcb-antenna/">
+<link rel="canonical" href="https://noburf.com/2-4-ghz-pcb-antenna/">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "HowTo",
+ "name": "Simulate a 2.4 GHz patch antenna on FR-4 in your browser",
+ "description": "Start a 2.4 GHz patch antenna on FR-4 in NobuRF, solve it in the browser, read S11 and the radiation pattern, and check the mesh.",
+ "image": "https://noburf.com/assets/guides/patch-result.webp",
+ "tool": [
+  {
+   "@type": "HowToTool",
+   "name": "NobuRF in Chrome or Edge 113 or later"
+  }
+ ],
+ "step": [
+  {
+   "@type": "HowToStep",
+   "position": 1,
+   "name": "Start a patch antenna",
+   "text": "Choose New, then Patch antenna, with 2.4 GHz, 1.6 mm and FR-4, and choose Create.",
+   "url": "https://noburf.com/2-4-ghz-pcb-antenna/#new",
+   "image": "https://noburf.com/assets/guides/patch-new.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 2,
+   "name": "Check the model",
+   "text": "Check the patch size and inset depth variables, and read the console note on how they were sized.",
+   "url": "https://noburf.com/2-4-ghz-pcb-antenna/#model",
+   "image": "https://noburf.com/assets/guides/patch-created.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 3,
+   "name": "Read S11",
+   "text": "Solve, then open the S-parameters tab for the resonance and the band below -10 dB.",
+   "url": "https://noburf.com/2-4-ghz-pcb-antenna/#s11",
+   "image": "https://noburf.com/assets/guides/patch-s11.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 4,
+   "name": "Ask for the far field",
+   "text": "Under Setup, Analysis and outputs, enter 2.4 under Far field at.",
+   "url": "https://noburf.com/2-4-ghz-pcb-antenna/#far-field",
+   "image": "https://noburf.com/assets/guides/patch-farfield-setup.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 5,
+   "name": "Add air below the board",
+   "text": "Under Setup, Mesh, set Air below to 4 cells, then solve again.",
+   "url": "https://noburf.com/2-4-ghz-pcb-antenna/#air",
+   "image": "https://noburf.com/assets/guides/patch-air-below.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 6,
+   "name": "Read the pattern",
+   "text": "Open the Far field tab for directivity, gain, efficiency and beamwidth.",
+   "url": "https://noburf.com/2-4-ghz-pcb-antenna/#pattern",
+   "image": "https://noburf.com/assets/guides/patch-farfield.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 7,
+   "name": "Check the mesh",
+   "text": "Set Mesh check to One finer mesh and solve again for an error bar on the resonance.",
+   "url": "https://noburf.com/2-4-ghz-pcb-antenna/#mesh-check",
+   "image": "https://noburf.com/assets/guides/patch-mesh-check.webp"
+  }
+ ]
+}
+</script>
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="page">
+    <a class="wordmark" href="../">NobuRF</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="../#accuracy">Accuracy</a>
+      <a href="../#agent">AI design</a>
+      <a href="../#guides">Guides</a>
+      <a href="../videos/">Videos</a>
+      <a href="../#roadmap">Roadmap</a>
+      <a href="https://github.com/Llompi/NobuRF-Public">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="page">
+  <div class="intro">
+    <h1>Simulate a 2.4&nbsp;GHz PCB antenna</h1>
+    <p class="lede">
+      NobuRF is a free 3D field solver that runs in Chrome or Edge. It starts a 2.4&nbsp;GHz patch antenna on FR-4
+      from three numbers, solves it, and exports the S-parameters as a Touchstone file.
+    </p>
+    <div class="actions">
+      <a class="button primary" href="../app/">Open the workbench</a>
+      <a class="button" href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/workbench.md">Read the workbench guide</a>
+    </div>
+  </div>
+
+  <figure class="guide-result">
+    <img src="../assets/guides/patch-result.webp" width="802" height="334" alt="Radiation patterns of the 2.4 GHz patch in the E-plane and H-plane, a broad lobe pointing up from the board, with readouts of peak directivity 6.41 dBi, peak gain 2.96 dBi, realized gain 1.64 dBi and radiation efficiency 45.1 percent.">
+    <figcaption><b>Figure 1.</b> A patch started from three inputs, 2.4&nbsp;GHz, 1.6&nbsp;mm and FR-4. S11 dips to −10.6&nbsp;dB at 2.364&nbsp;GHz, and the pattern peaks at broadside with 2.96&nbsp;dBi of gain.</figcaption>
+  </figure>
+
+  <section id="steps" aria-labelledby="steps-heading">
+    <h2 id="steps-heading">A 2.4&nbsp;GHz patch, step by step</h2>
+    <p>Open <a href="../app/">the workbench</a> in Chrome or Edge 113 or later.</p>
+    <ol class="steps" role="list">
+      <li class="step" id="new">
+        <div class="step-text">
+          <h3>Start a patch antenna</h3>
+          <p>Choose New in the toolbar. Leave the board size empty and NobuRF sizes the board from the design.</p>
+          <ol class="callouts" role="list">
+            <li>Patch antenna: a rectangular patch sized from the textbook formulas, with an inset feed for 50&nbsp;Ω.</li>
+            <li>Design frequency, 2.4&nbsp;GHz, typed over the default of 2.45&nbsp;GHz.</li>
+            <li>Substrate thickness, 1.6&nbsp;mm.</li>
+            <li>Substrate, FR-4. Then Create.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/patch-new.webp"><img src="../assets/guides/patch-new.webp" width="540" height="884" alt="The New project dialog with Patch antenna chosen, 2.4 GHz, 1.6 mm and FR-4 filled in, and the Create button." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="model">
+        <div class="step-text">
+          <h3>Check the model</h3>
+          <p>NobuRF sizes the patch from the transmission-line model and cuts an inset for 50&nbsp;Ω, on a 58 by 51&nbsp;mm board. Every dimension is a variable you can change, as the drawing under these steps shows.</p>
+          <ol class="callouts" role="list">
+            <li>patch_w and patch_l: 38.01 by 29.42&nbsp;mm.</li>
+            <li>inset_d, the inset depth: 10.91&nbsp;mm.</li>
+            <li>The console says where the numbers come from, and that they are a starting point: the formulas ignore the feed line and the finite ground.</li>
+          </ol>
+          <p>Then press Solve.</p>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/patch-created.webp"><img src="../assets/guides/patch-created.webp" width="850" height="568" alt="The workbench with the new patch in 3D, the project tree listing its variables, and the console line explaining how the patch and inset were sized." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="s11">
+        <div class="step-text">
+          <h3>Read S11</h3>
+          <p>When the solve ends, open the S-parameters tab. On a laptop's GTX 1660 Ti this one took 25&nbsp;s.</p>
+          <ol class="callouts" role="list">
+            <li>The resonance: S11 dips to −10.6&nbsp;dB at 2.364&nbsp;GHz, 1.5&nbsp;% below the design frequency.</li>
+            <li>The band below −10&nbsp;dB: 20&nbsp;MHz, from 2.349 to 2.370&nbsp;GHz.</li>
+            <li>The mesh, 107 by 95 by 50 cells, and the 24,200 time steps it took for the field energy to fall by 50&nbsp;dB.</li>
+            <li>Touchstone exports the S-parameters for a circuit simulator.</li>
+          </ol>
+          <p>To tune it, shorten <code>patch_l</code> to move the resonance up and change <code>inset_d</code> to deepen the match. A deeper match also widens the band, though a patch on 1.6&nbsp;mm FR-4 may still fall short of the 83.5&nbsp;MHz of the 2.4&nbsp;GHz band.</p>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/patch-s11.webp"><img src="../assets/guides/patch-s11.webp" width="848" height="816" alt="The S-parameters tab: S11 against frequency from 1.8 to 3 GHz with a dip just below 2.4 GHz, and readouts of the deepest S11, the band below −10 dB, the solver, mesh, steps and solve time." loading="lazy"></a>
+        </figure>
+      </li>
+
+
+      <li class="step" id="far-field">
+        <div class="step-text">
+          <h3>Ask for the far field</h3>
+          <p>For the radiation pattern and gain, open Setup, then Analysis and outputs, in the project tree.</p>
+          <ol class="callouts" role="list">
+            <li>Far field at: 2.4&nbsp;GHz.</li>
+            <li>The panel says what is missing before you solve: the far field needs 4 cells of air below the board, and the template leaves 2.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/patch-farfield-setup.webp"><img src="../assets/guides/patch-farfield-setup.webp" width="328" height="198" alt="Analysis and outputs with Far field at set to 2.4 GHz." loading="lazy"></a>
+          <a href="../assets/guides/patch-farfield-error.webp"><img src="../assets/guides/patch-farfield-error.webp" width="328" height="204" alt="The message The project can't be solved yet: the far field needs at least 4 cells of air to fit its box between the board and the PML, got 2." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="air">
+        <div class="step-text">
+          <h3>Add air below the board</h3>
+          <p>Open Setup, then Mesh, and solve again once the message is gone.</p>
+          <ol class="callouts" role="list">
+            <li>Air below: 4 cells.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/patch-air-below.webp"><img src="../assets/guides/patch-air-below.webp" width="328" height="391" alt="The Mesh inspector with Air below set to 4 cells." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="pattern">
+        <div class="step-text">
+          <h3>Read the pattern</h3>
+          <p>When the second solve ends, open the Far field tab.</p>
+          <ol class="callouts" role="list">
+            <li>Peak directivity, 6.41&nbsp;dBi at broadside, and peak gain, 2.96&nbsp;dBi.</li>
+            <li>Realized gain, 1.64&nbsp;dBi, which also counts the power the port mismatch reflects.</li>
+            <li>Radiation efficiency, 45.1&nbsp;%: loss in the FR-4 and the copper takes more than half the power the patch accepts.</li>
+            <li>The half-power beamwidth: 95° in the E-plane, 90° in the H-plane.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/patch-farfield.webp"><img src="../assets/guides/patch-farfield.webp" width="824" height="456" alt="The Far field tab: E-plane and H-plane radiation patterns at 2.4 GHz, with directivity, gain, realized gain, efficiency, beamwidth and front-to-back ratio beside them." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="mesh-check">
+        <div class="step-text">
+          <h3>Check the mesh</h3>
+          <p>Before you trust a result, set Mesh check to One finer mesh and solve again. It also solves on smaller cells and puts an error bar on the resonance, so it takes several times as long.</p>
+          <ol class="callouts" role="list">
+            <li>Mesh check: One finer mesh.</li>
+          </ol>
+          <p>For another antenna, start from a blank board and draw the copper, or import your layout as Gerber, DXF or STEP, then add a port where the feed meets the antenna.</p>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/patch-mesh-check.webp"><img src="../assets/guides/patch-mesh-check.webp" width="580" height="92" alt="The toolbar with Mesh check set to One finer mesh, next to the Solve button." loading="lazy"></a>
+        </figure>
+      </li>
+    </ol>
+  </section>
+
+  <section id="geometry" aria-labelledby="geometry-heading">
+    <h2 id="geometry-heading">What the template draws</h2>
+    <figure class="diagram">
+      <svg viewBox="0 0 440 340" role="img" aria-labelledby="patch-title patch-desc">
+        <title id="patch-title">The patch template from above</title>
+        <desc id="patch-desc">A rectangular copper patch, patch_w wide and patch_l long, fed by a microstrip line of width feed_w from the port at the board edge. The feed runs into a notch cut inset_d deep into the patch, with a gap on each side of the line.</desc>
+        <path d="M70 46 H350 V263 H228.7 V183 H191.3 V263 H70 Z" fill="#b88a3c"/>
+        <rect x="198.7" y="183" width="22.6" height="125" fill="#b88a3c"/>
+        <circle cx="210" cy="308" r="8" fill="#62cde8"/>
+        <g stroke="currentColor" stroke-width="1" fill="none">
+          <path d="M70 30 H350 M70 24 V36 M350 24 V36"/>
+          <path d="M366 46 V263 M360 46 H372 M360 263 H372"/>
+          <path d="M180 183 V263 M174 183 H186 M174 263 H186" stroke="#62cde8" stroke-width="1.5"/>
+          <path d="M60 223 H174"/>
+        </g>
+        <text x="210" y="20" text-anchor="middle">patch_w</text>
+        <text x="378" y="159">patch_l</text>
+        <text x="56" y="228" text-anchor="end">inset_d</text>
+        <text x="234" y="300">feed_w, the 50 Ω line</text>
+        <text x="210" y="334" text-anchor="middle" class="label-muted">port, at the board edge</text>
+      </svg>
+      <figcaption>To scale for the 2.4&nbsp;GHz design, except the feed below the patch, which is shortened. Input resistance is highest at the radiating edge, 322&nbsp;Ω here, and falls toward zero at the center, so a deeper inset lowers it. A 10.91&nbsp;mm inset puts the feed at 50&nbsp;Ω.</figcaption>
+    </figure>
+  </section>
+
+  <section id="trust" aria-labelledby="trust-heading">
+    <h2 id="trust-heading">Which results to trust</h2>
+    <p>
+      On low-permittivity boards, the nearest published measurement is a 57 by 38&nbsp;mm patch from
+      Chang et al. (1986) on a 3.2&nbsp;mm board with εr&nbsp;2.33, measured at 2.310&nbsp;GHz. NobuRF puts it at
+      2.354&nbsp;GHz, 1.9&nbsp;% high, read as Chang did at the peak of input resistance. Read at the S11 dip, NobuRF
+      lands 4 to 6&nbsp;% high on those patches. The checks are in the
+      <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">validation report</a>.
+    </p>
+    <p>
+      On FR-4, NobuRF agrees with openEMS to within 0.4&nbsp;% on resonance (see
+      <a href="../noburf-vs-openems/">the openEMS comparison</a>), but both are FDTD codes, and I haven't measured a
+      NobuRF board on a VNA yet. With Mesh check on, the results list FR-4 as outside the validated range.
+    </p>
+    <p>
+      The built-in FR-4 has εr&nbsp;4.4 and a loss tangent of 0.02. Real FR-4 varies by maker and batch, and a
+      1&nbsp;% change in εr moves a patch's resonance by about 0.5&nbsp;%, so use your fab's numbers where you have them.
+    </p>
+    <p>
+      Inverted-F and meander antennas can be drawn or imported, but I haven't compared any with a measurement or
+      another solver yet. Confirm them on a prototype before you order boards.
+    </p>
+  </section>
+
+  <section id="size" aria-labelledby="size-heading">
+    <h2 id="size-heading">Size and run time</h2>
+    <p>
+      A 2.4&nbsp;GHz board is about twice the size of the 5.8&nbsp;GHz demo in each direction. The patch on this
+      page meshed to 0.51 million cells and ran 24,200 time steps: 25&nbsp;s on a laptop's GTX 1660 Ti in Edge, and
+      37&nbsp;s for the second solve with the far field. Without a GPU, WebGPU runs in software and the same solve
+      takes tens of minutes. If a grid doesn't fit in WebGPU, the workbench says so and offers the CPU solver.
+    </p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="page">
+    <p>It is an independent project, not affiliated with or endorsed by any commercial solver vendor.</p>
+    <p>NobuRF is free software under the <a href="https://github.com/Llompi/NobuRF-Public/blob/main/LICENSE">GNU AGPL-3.0</a>. The designs and results you make with it are yours. To build it into closed software, see <a href="https://github.com/Llompi/NobuRF-Public/blob/main/COMMERCIAL.md">commercial licenses</a>.</p>
+    <p>Privacy: NobuRF's solver runs in your browser, on your GPU or CPU, and this site never uploads your designs. The app keeps your latest design in this browser's storage. NobuRF has no ads, sets no cookies of its own, and doesn't track you across sites. The site is hosted on Cloudflare, which uses its cookie-free Web Analytics to count visits and measure page load times. If Cloudflare's bot protection flags a visit, it may set a security cookie. Fonts load from Google Fonts. Cloudflare and Google receive standard request details, such as your IP address. The AI design features aren't part of this site. They run from your own computer with your own API key, and they send your prompts to the AI provider you choose.</p>
+  </div>
+</footer>
+</body>
+</html>

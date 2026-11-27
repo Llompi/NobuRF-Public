@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NobuRF: a 3D electromagnetic solver in the browser</title>
-<meta name="description" content="A 3D field solver for antennas, PCB traces and near-field emissions that runs on your own GPU through WebGPU, in Chrome or Edge.">
+<title>NobuRF: a free antenna simulator in your browser</title>
+<meta name="description" content="A free, open-source antenna and PCB simulator. The 3D FDTD field solver runs in Chrome or Edge on your own GPU through WebGPU, with nothing to install and no account.">
 <meta property="og:title" content="NobuRF: Maxwell's equations, solved in a browser tab">
 <meta property="og:description" content="A 3D field solver for antennas, PCB traces and near-field emissions, running on your own GPU in the browser.">
 <meta property="og:image" content="https://noburf.com/assets/og.jpg">
@@ -15,6 +15,23 @@
 <link rel="canonical" href="https://noburf.com/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "NobuRF",
+  "url": "https://noburf.com/",
+  "description": "A free, open-source 3D FDTD field solver for antennas and PCB traces that runs in the browser, on the GPU through WebGPU or on the CPU.",
+  "applicationCategory": "DesignApplication",
+  "applicationSubCategory": "Antenna and RF simulation",
+  "operatingSystem": "Windows, macOS, ChromeOS",
+  "browserRequirements": "Chrome or Edge 113 or later. Solves on the GPU through WebGPU when the browser has it, otherwise on the CPU.",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+  "sameAs": ["https://github.com/Llompi/NobuRF-Public"]
+}
+</script>
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -58,6 +75,8 @@
 
   ol.roadmap { padding-left: 2.1rem; margin: var(--space-3) 0; }
   ol.roadmap li { margin-bottom: var(--space-1); padding-left: 0.25rem; }
+  .guide-list { max-width: var(--measure); padding-left: 1.25rem; margin: 0 0 var(--space-2); }
+  .guide-list li { margin-bottom: var(--space-1); }
   ol.roadmap li::marker { font-family: var(--font-data); color: var(--ink-muted); }
 
   pre {
@@ -66,18 +85,10 @@
     font: 0.9375rem/1.7 var(--font-data);
   }
 
-  .intro { padding-bottom: var(--space-2); }
 
-  .setup-prompt-row { position: relative; display: flex; margin-top: var(--space-4); }
-  .setup-prompt-row:not([hidden]) + h1 { margin-top: var(--space-3); }
-  .setup-prompt {
-    display: inline-flex; align-items: center; gap: 0.6rem; min-height: 44px; padding: 0.45rem 1.1rem;
-    border-radius: 999px; border: 1px solid var(--rule); background: transparent; color: var(--ink);
-    font: 500 0.9375rem/1.35 var(--font-body); text-align: left; cursor: pointer;
-    transition: border-color 150ms ease-out, background-color 150ms ease-out;
-  }
-  .setup-prompt:hover { border-color: var(--ink-muted); background: color-mix(in srgb, var(--ink) 4%, transparent); }
-  .setup-prompt svg { flex: none; color: var(--ink-muted); }
+  .setup-prompt-row { position: relative; display: flex; margin: var(--space-1) 0 var(--space-3); }
+  .setup-prompt { gap: 0.6rem; background: transparent; font: inherit; font-weight: 600; cursor: pointer; }
+  .setup-prompt svg { flex: none; }
   .setup-prompt-toast {
     position: absolute; left: 0; top: calc(100% + var(--space-1)); z-index: 1; max-width: min(100%, 34rem); margin: 0;
     padding: 0.55rem 0.9rem; border: 1px solid var(--rule); border-radius: var(--radius);
@@ -107,24 +118,19 @@
     .run-icon { transition: none; }
     .run-button:hover .run-icon { transform: none; }
   }
-  .page .intro p.run-note { margin: var(--space-2) 0 0; font: 0.9375rem/1.5 var(--font-body); color: var(--ink-muted); }
   @media (max-width: 560px) {
     .intro .actions .button { flex: 1 1 100%; justify-content: center; }
   }
 
   /* Dark mode rules, after the base rules so they win. */
   @media (prefers-color-scheme: dark) {
-    .page h1 { font-size: clamp(2.4rem, 1rem + 4.8vw, 5rem); line-height: 0.95; text-align: center; max-width: none; transform: scaleX(0.9); }
+    .page h1 { font-size: clamp(2.4rem, 1rem + 4.8vw, 5rem); line-height: 0.95; text-align: center; max-width: none; transform: scaleX(0.9); transform-origin: center; }
     .intro .lede { font-size: 1.3125rem; color: var(--ink); }
     /* Under the centered headline, the lede is a left-aligned column centered on the page. */
     @media (min-width: 900px) {
       .page .intro .lede { max-width: 40rem; margin-inline: auto; }
       .intro .actions { justify-content: center; }
-      .page .intro p.run-note { margin-inline: auto; text-align: center; }
     }
-    .setup-prompt-row { justify-content: center; }
-    /* The toast sits under the centered pill. */
-    .setup-prompt-toast { right: 0; width: fit-content; margin-inline: auto; }
     /* Figures sit on the page itself, as on the posters: no card, and the recording fades out at its edges. */
     .plate video {
       /* The recording's navy background lightens to the page color, and its edges fade out. */
@@ -158,6 +164,7 @@
     <nav class="site-nav" aria-label="Site">
       <a href="#accuracy">Accuracy</a>
       <a href="#agent">AI design</a>
+      <a href="#guides">Guides</a>
       <a href="videos/">Videos</a>
       <a href="#roadmap">Roadmap</a>
       <a href="https://github.com/Llompi/NobuRF-Public">GitHub</a>
@@ -167,18 +174,10 @@
 
 <main id="main" class="page">
   <div class="intro">
-    <div class="setup-prompt-row" id="setup-prompt-row" hidden>
-      <button type="button" class="setup-prompt" id="copy-setup-prompt">
-        Set up NobuRF with your AI agent
-        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4">
-          <rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/>
-        </svg>
-      </button>
-      <p class="setup-prompt-toast" id="setup-prompt-toast" role="status"></p>
-    </div>
     <h1>Maxwell's equations, solved in a browser tab</h1>
     <p class="lede">
-      NobuRF is a 3D field solver for antennas. It runs on your GPU through WebGPU (tested in Chrome and Edge). On my laptop's GTX&nbsp;1660&nbsp;Ti, a 5.8&nbsp;GHz patch antenna (66&nbsp;×&nbsp;66&nbsp;×&nbsp;48 cells at 0.5&nbsp;mm, run until the field energy has fallen 50&nbsp;dB) solved in 1.9&nbsp;s, about 3&nbsp;s from click to results.
+      NobuRF is a free 3D field solver for antennas and circuit boards. It runs on your GPU through WebGPU, in Chrome
+      or Edge, with nothing to install. On my laptop's GTX&nbsp;1660&nbsp;Ti, a 5.8&nbsp;GHz patch antenna solved in 1.9&nbsp;s.
     </p>
     <div class="actions">
       <a class="button primary run-button" href="app/">
@@ -187,7 +186,6 @@
       </a>
       <a class="button" href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">Read the validation report</a>
     </div>
-    <p class="run-note">There's nothing to install. The whole solver runs in this tab, on your own GPU when the browser supports WebGPU.</p>
   </div>
 
   <figure>
@@ -341,32 +339,30 @@
       Most of the other checks in the validation report pass. A closed metal cavity resonates within 0.23&nbsp;% of
       theory even on a coarse 1&nbsp;mm grid, a plane wave crosses the grid at the speed it should, and a metal short reflects everything at the right
       phase. The open boundary reflects −84&nbsp;dB of a wave hitting it head-on, and doubling the air around the board changes none of the
-      results. What doesn't pass yet: the coarser 0.5&nbsp;mm grid the live demo uses reads 1.7 to 2.4&nbsp;% high in
-      frequency. Not checked yet: the boundary at oblique angles, and a real board on a VNA.
+      results. What doesn't pass yet: the coarser 0.5&nbsp;mm grid the live demo uses reads 0.4 to 1.3&nbsp;% high in
+      frequency against openEMS's graded runs. Not checked yet: the boundary at oblique angles, and a real board on a VNA.
     </p>
-    <p>The <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">validation report</a> has the method, the scripts, every check and its figure.</p>
+    <p>The <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">validation report</a> has the method, the scripts, every check and its figure. For the openEMS numbers on one page, and how the two tools differ, see <a href="noburf-vs-openems/">NobuRF and openEMS compared</a>.</p>
   </section>
 
   <section id="agent" aria-labelledby="agent-heading">
     <h2 id="agent-heading">From one sentence to an antenna</h2>
     <p>
-      For the Kimi K3.1 Pro hackathon on November 21 and 22, 2026, I made the solver a tool for an AI agent. You type one line,
-      such as "a 5.8&nbsp;GHz patch on a 24&nbsp;mm FR-4 board". Kimi K3.1 Pro, running inside OpenClaw, reads it, sets up the
-      design, runs NobuRF solves, changes the geometry between them, and stops when S11 meets the goal it read or when it runs
-      out of solves. You can type a correction while it works, and it reads that with its next solve.
+      The solver is also a tool for an AI agent. You type one line, such as "a 5.8&nbsp;GHz patch on a 24&nbsp;mm FR-4
+      board". The agent reads it, sets up the design, runs NobuRF solves, changes the geometry between them, and stops when
+      S11 meets the goal it read or when it runs out of solves. You can type a correction while it works, and it reads that
+      with its next solve.
     </p>
     <p>
-      I gave that sentence, plus a request for a short write-up of the final design, to Kimi K3.1 Pro on Cerebras, and then
-      to the same model through OpenRouter, on the same solver. Both met the goal: a resonance within 1&nbsp;% of the
-      5.8&nbsp;GHz target, with S11 below −10&nbsp;dB. The Cerebras run tried 28 designs and settled at 5.83&nbsp;GHz and
-      −10.6&nbsp;dB. Generating took 7.5&nbsp;s across its 14 successful model calls, 2.6&nbsp;s of it for the write-up.
-      The OpenRouter run tried 20 designs and settled at 5.82&nbsp;GHz with a deeper match, −19.1&nbsp;dB. The Cerebras server
-      was busy during the hackathon and turned away 45 requests. Waiting those out took 10&nbsp;min&nbsp;47&nbsp;s, so that run
-      took 834&nbsp;s against 137&nbsp;s for the OpenRouter one. The
+      In the recorded run, Kimi K3.1 Pro inside OpenClaw tried 28 designs and settled at 5.83&nbsp;GHz and −10.6&nbsp;dB,
+      within 1&nbsp;% of the target. The
       <a href="https://github.com/Llompi/NobuRF-Public/tree/main/launch/runs/race-2026-11-22T10-19-23">run logs</a> have
-      every model request and both final designs.
+      every model request and the final design.
     </p>
-    <p>My <a href="videos/">hackathon video</a> shows the Cerebras run, from the sentence to the tuned antenna.</p>
+    <p class="aside">
+      The agent started as my entry for the Kimi K3.1 Pro hackathon on November&nbsp;21 and&nbsp;22, 2026. The
+      <a href="videos/">video</a> shows that run, and the logs compare it with the same model through OpenRouter.
+    </p>
 
   <figure>
     <div class="plate">
@@ -452,6 +448,17 @@
   </figure>
   </section>
 
+  <section id="guides" aria-labelledby="guides-heading">
+    <h2 id="guides-heading">Guides</h2>
+    <ul class="guide-list">
+      <li><a href="2-4-ghz-pcb-antenna/">Simulate a 2.4&nbsp;GHz PCB antenna</a></li>
+      <li><a href="pcb-simulation/">Simulate PCB traces and boards</a></li>
+      <li><a href="crop-pcb-section/">Import Gerber files and simulate a PCB section</a></li>
+      <li><a href="pcb-emissions/">Near-field scans and emissions from a PCB</a></li>
+      <li><a href="noburf-vs-openems/">NobuRF and openEMS compared</a></li>
+    </ul>
+  </section>
+
   <section id="why" aria-labelledby="why-heading">
     <h2 id="why-heading">Why I built it</h2>
     <p>
@@ -467,14 +474,10 @@
   <section id="roadmap" aria-labelledby="roadmap-heading">
     <h2 id="roadmap-heading">What's missing</h2>
     <p>
-      Since the first version the solver has gained a CPML boundary, a graded mesh, conformal curved copper, radiation
-      patterns from a near-to-far-field transform, the far field of multi-port arrays with every port driven at once,
-      a modeled SMA feed, vias with antipads, port de-embedding, copper loss that grows as √f with foil roughness,
-      and Dk/Df tables for laminates. It stops once the field energy has died down. Multi-port S-parameters have a
-      first check: a two-port low-pass filter from Sheen et al. (1990) rolls off within 1.0&nbsp;% of the measured curve, while
-      their four-port branch-line coupler does not match yet. Conductor loss is checked on a cavity and a microstrip
-      resonator, not yet on a patch. Gerber, DXF and STEP import work but are not yet validated. Still to do, in the order
-      I plan to work on it, each with a validation figure:
+      Multi-port S-parameters have one check so far: a two-port low-pass filter from Sheen et al. (1990) rolls off within
+      1.0&nbsp;% of the measured curve, while their four-port branch-line coupler doesn't match yet. Conductor loss is
+      checked on a cavity and a microstrip resonator, not yet on a patch. Gerber, DXF and STEP import work but aren't
+      validated yet. Next, in order, each with a validation figure:
     </p>
     <ol class="roadmap">
       <li>Microstrip mode ports.</li>
@@ -499,13 +502,22 @@ npm run dev</code></pre>
       Then open <span class="data">http://localhost:5173</span>. On a Windows laptop with two GPUs, start Edge with
       <span class="data">--force_high_performance_gpu</span>, or Windows hands the work to the integrated one.
     </p>
+    <p>Or paste a prompt into your AI agent and let it set NobuRF up for you.</p>
+    <div class="setup-prompt-row" id="setup-prompt-row" hidden>
+      <button type="button" class="button setup-prompt" id="copy-setup-prompt">
+        Copy the setup prompt
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4">
+          <rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/>
+        </svg>
+      </button>
+      <p class="setup-prompt-toast" id="setup-prompt-toast" role="status"></p>
+    </div>
     <p>Found a wrong answer? <a href="https://github.com/Llompi/NobuRF-Public/issues">Open an issue</a> with the geometry.</p>
   </section>
 </main>
 
 <footer class="site-footer">
   <div class="page">
-    <p>Built for the Kimi K3.1 Pro hackathon on Cerebras.</p>
     <p>It is an independent project, not affiliated with or endorsed by any commercial solver vendor.</p>
     <p>NobuRF is free software under the <a href="https://github.com/Llompi/NobuRF-Public/blob/main/LICENSE">GNU AGPL-3.0</a>. The designs and results you make with it are yours. To build it into closed software, see <a href="https://github.com/Llompi/NobuRF-Public/blob/main/COMMERCIAL.md">commercial licenses</a>.</p>
     <p>Privacy: NobuRF's solver runs in your browser, on your GPU or CPU, and this site never uploads your designs. The app keeps your latest design in this browser's storage. NobuRF has no ads, sets no cookies of its own, and doesn't track you across sites. The site is hosted on Cloudflare, which uses its cookie-free Web Analytics to count visits and measure page load times. If Cloudflare's bot protection flags a visit, it may set a security cookie. Fonts load from Google Fonts. Cloudflare and Google receive standard request details, such as your IP address. The AI design features aren't part of this site. They run from your own computer with your own API key, and they send your prompts to the AI provider you choose.</p>

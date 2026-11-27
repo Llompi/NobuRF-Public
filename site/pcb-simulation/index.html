@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulate PCB traces and boards in your browser · NobuRF</title>
+<meta name="description" content="Free PCB simulation in Chrome or Edge: microstrip impedance, differential pair S-parameters and skew, and imported Gerber, DXF and STEP layouts, with a 3D FDTD solver on your GPU.">
+<meta property="og:title" content="Simulate PCB traces and boards in your browser">
+<meta property="og:description" content="Microstrip impedance, differential pairs and imported layouts, solved in 3D on your GPU, with what has been checked.">
+<meta property="og:image" content="https://noburf.com/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Current on the copper of a patch antenna for the 5.8 GHz band, and the line: Maxwell's equations, solved in a browser tab.">
+<meta property="og:url" content="https://noburf.com/pcb-simulation/">
+<link rel="canonical" href="https://noburf.com/pcb-simulation/">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "HowTo",
+ "name": "Simulate a 50 ohm microstrip line in your browser",
+ "description": "Create a 50 ohm microstrip line on 1.6 mm FR-4 in NobuRF, solve it in 3D in the browser and read its impedance and effective permittivity.",
+ "image": "https://noburf.com/assets/guides/line-result.webp",
+ "tool": [
+  {
+   "@type": "HowToTool",
+   "name": "NobuRF in Chrome or Edge 113 or later"
+  }
+ ],
+ "step": [
+  {
+   "@type": "HowToStep",
+   "position": 1,
+   "name": "Start a microstrip line",
+   "text": "Choose New, then Microstrip line, with a design frequency of 5 GHz, 1.6 mm thickness and FR-4, and choose Create.",
+   "url": "https://noburf.com/pcb-simulation/#new",
+   "image": "https://noburf.com/assets/guides/line-new.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 2,
+   "name": "Check the model",
+   "text": "Check the strip width variable and the two 50 ohm ports, one at each end of the strip.",
+   "url": "https://noburf.com/pcb-simulation/#model",
+   "image": "https://noburf.com/assets/guides/line-created.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 3,
+   "name": "Solve",
+   "text": "Press Solve. NobuRF drives one port at a time, so two ports take two runs.",
+   "url": "https://noburf.com/pcb-simulation/#solve",
+   "image": "https://noburf.com/assets/guides/line-solving.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 4,
+   "name": "Read the line",
+   "text": "Open the Line tab to read Z0 and effective permittivity, fitted from the field along the middle of the strip, and the TDR from each end.",
+   "url": "https://noburf.com/pcb-simulation/#line",
+   "image": "https://noburf.com/assets/guides/line-tab.webp"
+  }
+ ]
+}
+</script>
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="page">
+    <a class="wordmark" href="../">NobuRF</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="../#accuracy">Accuracy</a>
+      <a href="../#agent">AI design</a>
+      <a href="../#guides">Guides</a>
+      <a href="../videos/">Videos</a>
+      <a href="../#roadmap">Roadmap</a>
+      <a href="https://github.com/Llompi/NobuRF-Public">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="page">
+  <div class="intro">
+    <h1>Simulate PCB traces and boards in your browser</h1>
+    <p class="lede">
+      NobuRF is a free 3D field solver that runs in Chrome or Edge. Besides antennas, it solves the copper on a PCB:
+      a microstrip line's impedance, a differential pair's mixed-mode S-parameters and skew, and boards you import
+      from your layout tool.
+    </p>
+    <div class="actions">
+      <a class="button primary" href="../app/">Open the workbench</a>
+      <a class="button" href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/workbench.md">Read the workbench guide</a>
+    </div>
+  </div>
+
+  <figure class="guide-result">
+    <img src="../assets/guides/line-result.webp" width="824" height="762" alt="The Line tab for a microstrip on 1.6 mm FR-4: a TDR plot of impedance against time from each port, and readouts of Z0 and effective permittivity at 2.5, 5 and 7.5 GHz.">
+    <figcaption><b>Figure 1.</b> A 50&nbsp;Ω microstrip on 1.6&nbsp;mm FR-4, solved in 3D: Z0 reads 50.9, 52.3 and 54.2&nbsp;Ω at 2.5, 5 and 7.5&nbsp;GHz, with εeff from 3.46 to 3.51.</figcaption>
+  </figure>
+
+  <section id="microstrip" aria-labelledby="microstrip-heading">
+    <h2 id="microstrip-heading">A 50&nbsp;Ω microstrip line, step by step</h2>
+    <p>Open <a href="../app/">the workbench</a> in Chrome or Edge 113 or later. The line comes from a template.</p>
+    <ol class="steps" role="list">
+      <li class="step" id="new">
+        <div class="step-text">
+          <h3>Start a microstrip line</h3>
+          <p>Choose New in the toolbar. Leave the board size empty and the template sizes the board from the design.</p>
+          <ol class="callouts" role="list">
+            <li>Microstrip line: a 50&nbsp;Ω line between two ports.</li>
+            <li>Design frequency, 5&nbsp;GHz.</li>
+            <li>Substrate thickness, 1.6&nbsp;mm.</li>
+            <li>Substrate, FR-4. Then Create.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/line-new.webp"><img src="../assets/guides/line-new.webp" width="540" height="884" alt="The New project dialog with Microstrip line chosen, 5 GHz, 1.6 mm and FR-4 filled in, and the Create button." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="model">
+        <div class="step-text">
+          <h3>Check the model</h3>
+          <p>The template draws a strip over a ground plane on a 23 by 20&nbsp;mm board and puts a port at each end. Its width comes from a closed-form formula for 50&nbsp;Ω, and it is a variable, so you can change it and solve again.</p>
+          <ol class="callouts" role="list">
+            <li>line_w, the strip width: 3.059&nbsp;mm.</li>
+            <li>The two ports, p1 and p2, each 50&nbsp;Ω. They show as 1 and 2 on the board.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/line-created.webp"><img src="../assets/guides/line-created.webp" width="850" height="512" alt="The workbench with the new line: the project tree listing variables, stackup, copper and ports, and the board in 3D with a strip from port 1 to port 2." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="solve">
+        <div class="step-text">
+          <h3>Solve</h3>
+          <p>Press Solve. NobuRF drives one port at a time, so two ports take two runs. On a laptop's GTX 1660 Ti both took 24&nbsp;s.</p>
+          <ol class="callouts" role="list">
+            <li>Which run, and what it is doing.</li>
+            <li>The time so far.</li>
+            <li>The mesh size and the number of runs: 0.54 million cells here.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/line-solving.webp"><img src="../assets/guides/line-solving.webp" width="866" height="72" alt="The progress bar during the solve, run 1 of 2, and the console line Solving on WebGPU: 103 by 95 by 55 cells, 0.54 million, 2 runs." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="line">
+        <div class="step-text">
+          <h3>Read the line</h3>
+          <p>Open the Line tab. It reads the impedance and effective permittivity from the field along the strip, the way the drawing below shows.</p>
+          <ol class="callouts" role="list">
+            <li>Z0 and εeff at 2.5, 5 and 7.5&nbsp;GHz, the frequencies under "Report Z at": 50.9, 52.3 and 54.2&nbsp;Ω.</li>
+            <li>They come from the middle 8.3&nbsp;mm of the 18&nbsp;mm line, away from the ports.</li>
+            <li>The TDR, from each end. The two bumps are the port connections, at this end and at the far port, which the dotted line marks. Between them, mid-line, the trace dips to about 50&nbsp;Ω. After the far port the plot shows the 50&nbsp;Ω load.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/line-tab.webp"><img src="../assets/guides/line-tab.webp" width="848" height="824" alt="The Line tab: a TDR plot of impedance against time from p1 and p2, and readouts of Z0, effective permittivity, the fitted length, fit residual and TDR rise time." loading="lazy"></a>
+        </figure>
+      </li>
+    </ol>
+  </section>
+
+  <section id="how-line" aria-labelledby="how-line-heading">
+    <h2 id="how-line-heading">What the Line tab measures</h2>
+    <figure class="diagram">
+      <svg viewBox="0 0 500 300" role="img" aria-labelledby="line-title line-desc">
+        <title id="line-title">Where the Line tab reads a microstrip</title>
+        <desc id="line-desc">Top: the 18 mm strip seen from above, with port p1 at one end and p2 at the other. Only the middle 8.3 mm, away from both ports, is used to fit Z0 and effective permittivity. Bottom: the cross-section, a 3.06 mm strip on 1.6 mm of FR-4 over a ground plane, with field lines from the strip to the ground.</desc>
+        <rect x="20" y="46" width="460" height="64" fill="currentColor" fill-opacity="0.12" stroke="currentColor"/>
+        <rect x="30" y="66" width="440" height="24" fill="#b88a3c"/>
+        <rect x="148" y="36" width="204" height="84" fill="none" stroke="#62cde8" stroke-width="2" stroke-dasharray="6 5"/>
+        <g fill="#62cde8"><circle cx="30" cy="78" r="8"/><circle cx="470" cy="78" r="8"/></g>
+        <text x="30" y="138" text-anchor="middle">p1</text>
+        <text x="470" y="138" text-anchor="middle">p2</text>
+        <text x="250" y="26" text-anchor="middle">fit window, 8.3 mm</text>
+        <text x="250" y="138" text-anchor="middle" class="label-muted">strip, 18 mm, from above</text>
+        <g transform="translate(0 170)">
+          <path d="M164 40 C120 42 96 68 92 100 M196 40 C240 42 264 68 268 100 M170 40 C155 60 151 82 150 100 M190 40 C205 60 209 82 210 100" fill="none" stroke="#62cde8" stroke-width="1.5" opacity="0.8"/>
+          <rect x="40" y="40" width="280" height="60" fill="currentColor" fill-opacity="0.12" stroke="currentColor"/>
+          <rect x="40" y="100" width="280" height="8" fill="#b88a3c"/>
+          <rect x="150" y="32" width="60" height="8" fill="#b88a3c"/>
+          <text x="180" y="22" text-anchor="middle">w = 3.06 mm</text>
+          <text x="20" y="10" class="label-muted">cross-section</text>
+          <text x="336" y="75">FR-4, h = 1.6 mm</text>
+          <text x="336" y="110" class="label-muted">ground</text>
+        </g>
+      </svg>
+      <figcaption>Not to scale along the line. Near each port the field is still settling from the port's own discontinuity, so the fit uses only the middle, and the ports do not enter Z0 or εeff.</figcaption>
+    </figure>
+    <p>
+      The field solve reads Z0 a little above the closed-form 50&nbsp;Ω, and the reading rises with frequency more
+      than closed-form dispersion models predict. I haven't traced that rise yet, and the Line tab's method hasn't
+      been checked against another solver. The solver under it has: on the microstrip benchmark in section 7.3 of the
+      <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/validation.md">validation report</a>, εeff is
+      within 0.7&nbsp;% of the closed form and Z0 within about 2&nbsp;% of openEMS.
+    </p>
+  </section>
+
+  <section id="pair" aria-labelledby="pair-heading">
+    <h2 id="pair-heading">A differential pair, step by step</h2>
+    <p>NobuRF solves the four ports of a pair one at a time and reads the 4 by 4 result as a pair: mixed-mode S-parameters, differential impedance, delay and skew.</p>
+    <ol class="steps" role="list">
+      <li class="step" id="pair-example">
+        <div class="step-text">
+          <h3>Open the example</h3>
+          <p>The example is a pair on a 10 by 20&nbsp;mm board of 0.5&nbsp;mm FR-4, and its negative line takes a detour, so it arrives later than the positive one.</p>
+          <ol class="callouts" role="list">
+            <li>Examples, then diff-pair-detour.json.</li>
+            <li>Four ports, each 50&nbsp;Ω: p1 and n1 at one end, p2 and n2 at the other.</li>
+            <li>The detour on the negative line.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/pair-example.webp"><img src="../assets/guides/pair-example.webp" width="850" height="663" alt="The diff-pair-detour example from the top: two parallel lines with ports 1 and 2 at the bottom and 3 and 4 at the top, the right-hand line jogging sideways partway along, and the project tree listing ports p1, n1, p2 and n2." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="pair-read">
+        <div class="step-text">
+          <h3>Read the pair</h3>
+          <p>Press Solve. Four ports take four runs, on a mesh of 0.48 million cells here, 27&nbsp;s in all on the same laptop GPU. Then open the Differential tab.</p>
+          <ol class="callouts" role="list">
+            <li>The pairing: D1 is p1 and n1 at one end, D2 is p2 and n2 at the other. Swap + and − here if they are the wrong way round.</li>
+            <li>The differential reference. Empty means twice the port impedance, 100&nbsp;Ω here; type your interface's, such as 90&nbsp;Ω for USB.</li>
+            <li>Differential impedance along the middle of the line: 93.5&nbsp;Ω, from 92.2 to 96.8&nbsp;Ω.</li>
+            <li>Insertion loss, Sdd21: −0.2, −0.6 and −0.8&nbsp;dB at 2.5, 5 and 7.5&nbsp;GHz.</li>
+            <li>Intra-pair skew: 10.56&nbsp;ps, with the negative line later because of its detour.</li>
+          </ol>
+          <p>The detour also converts some of the differential signal to common mode: Scd21 reaches −10.1&nbsp;dB.</p>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/pair-differential.webp"><img src="../assets/guides/pair-differential.webp" width="848" height="804" alt="The Differential tab: the pairing bar and references, Sdd21, Scd21 and Sdd11 against frequency, a differential TDR from each end, and readouts of impedance, loss, return loss, mode conversion, delay and skew." loading="lazy"></a>
+        </figure>
+      </li>
+    </ol>
+    <p>
+      The pair analysis is post-processing of the single-ended S-parameters, so it also runs on a Touchstone file
+      from another solver or a VNA; see
+      <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/differential-pairs.md">differential pairs</a>.
+      On a real board, <a href="../crop-pcb-section/">import the Gerber files and cut a section</a> around the pair.
+    </p>
+  </section>
+
+  <section id="board" aria-labelledby="board-heading">
+    <h2 id="board-heading">Getting your own board in</h2>
+    <ol>
+      <li>New starts a microstrip line, a differential pair, a patch antenna or a blank board from the design frequency, the laminate and its thickness.</li>
+      <li>Import takes copper and board outlines from Gerber, DXF or STEP, and plated holes from an Excellon drill file. <a href="../crop-pcb-section/">Import Gerber files and simulate a PCB section</a> walks through a real four-layer board.</li>
+      <li>You can also draw rectangles (R) and polygons (P) on any layer, place ports (T), and add layers, vias and lumped parts from the project tree.</li>
+    </ol>
+  </section>
+
+  <section id="more" aria-labelledby="more-heading">
+    <h2 id="more-heading">Other results</h2>
+    <p>
+      Every project gets S-parameters, a Smith chart and impedance, exported as Touchstone. The Emissions tab maps the
+      near field over the board (see <a href="../pcb-emissions/">near-field scans and emissions</a>), Sensitivity shows
+      which variables move a one-port result most, and Mesh check solves again on a finer mesh to put an error bar on it.
+    </p>
+  </section>
+
+  <section id="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">What it doesn't do yet</h2>
+    <p>
+      The ports on these boards are lumped, and a lumped port is a discontinuity of its own. A port's "De-embed feed" setting
+      removes the port and a length of its feed line from the result; see
+      <a href="https://github.com/Llompi/NobuRF-Public/blob/main/docs/deembedding.md">de-embedding ports</a>. A whole board at a fine mesh can be more than a browser GPU holds,
+      which is what the Section tool is for. And no board designed in NobuRF has been measured on a VNA yet.
+    </p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="page">
+    <p>It is an independent project, not affiliated with or endorsed by any commercial solver vendor.</p>
+    <p>NobuRF is free software under the <a href="https://github.com/Llompi/NobuRF-Public/blob/main/LICENSE">GNU AGPL-3.0</a>. The designs and results you make with it are yours. To build it into closed software, see <a href="https://github.com/Llompi/NobuRF-Public/blob/main/COMMERCIAL.md">commercial licenses</a>.</p>
+    <p>Privacy: NobuRF's solver runs in your browser, on your GPU or CPU, and this site never uploads your designs. The app keeps your latest design in this browser's storage. NobuRF has no ads, sets no cookies of its own, and doesn't track you across sites. The site is hosted on Cloudflare, which uses its cookie-free Web Analytics to count visits and measure page load times. If Cloudflare's bot protection flags a visit, it may set a security cookie. Fonts load from Google Fonts. Cloudflare and Google receive standard request details, such as your IP address. The AI design features aren't part of this site. They run from your own computer with your own API key, and they send your prompts to the AI provider you choose.</p>
+  </div>
+</footer>
+</body>
+</html>

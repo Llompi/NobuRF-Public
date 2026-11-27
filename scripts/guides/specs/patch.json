@@ -1,0 +1,324 @@
+[
+ {
+  "src": "shots/patch-01-new.png",
+  "out": "patch-new.webp",
+  "scale": 2,
+  "crop": [
+   440,
+   58,
+   980,
+   942
+  ],
+  "callouts": [
+   {
+    "n": 1,
+    "rect": [
+     505,
+     152,
+     430,
+     88
+    ]
+   },
+   {
+    "n": 2,
+    "rect": [
+     505,
+     637,
+     174,
+     34
+    ]
+   },
+   {
+    "n": 3,
+    "rect": [
+     726,
+     637,
+     178,
+     34
+    ],
+    "badge": [
+     918,
+     620
+    ]
+   },
+   {
+    "n": 4,
+    "rect": [
+     505,
+     706,
+     430,
+     34
+    ]
+   }
+  ]
+ },
+ {
+  "src": "shots/patch-02-created.png",
+  "out": "patch-created.webp",
+  "scale": 2,
+  "crop": [
+   0,
+   0,
+   1440,
+   962
+  ],
+  "max_width": 1700,
+  "callouts": [
+   {
+    "n": 1,
+    "rect": [
+     14,
+     190,
+     240,
+     56
+    ],
+    "badge": [
+     282,
+     218
+    ]
+   },
+   {
+    "n": 2,
+    "rect": [
+     14,
+     310,
+     240,
+     26
+    ],
+    "badge": [
+     282,
+     323
+    ]
+   },
+   {
+    "n": 3,
+    "rect": [
+     400,
+     879,
+     700,
+     78
+    ],
+    "pad": 3,
+    "badge": [
+     380,
+     918
+    ]
+   }
+  ]
+ },
+ {
+  "src": "shots/patch-04-s11.png",
+  "out": "patch-s11.webp",
+  "scale": 2,
+  "crop": [
+   264,
+   44,
+   1112,
+   860
+  ],
+  "callouts": [
+   {
+    "n": 1,
+    "rect": [
+     784,
+     154,
+     306,
+     46
+    ]
+   },
+   {
+    "n": 2,
+    "rect": [
+     784,
+     209,
+     306,
+     46
+    ]
+   },
+   {
+    "n": 3,
+    "rect": [
+     784,
+     319,
+     306,
+     100
+    ]
+   },
+   {
+    "n": 4,
+    "rect": [
+     788,
+     106,
+     94,
+     30
+    ]
+   }
+  ]
+ },
+ {
+  "src": "shots/patch-05-farfield-setup.png",
+  "out": "patch-farfield-error.webp",
+  "scale": 2,
+  "crop": [
+   1112,
+   96,
+   1440,
+   300
+  ],
+  "callouts": [
+   {
+    "n": 2,
+    "rect": [
+     1129,
+     105,
+     295,
+     136
+    ],
+    "pad": 2,
+    "badge": [
+     1404,
+     126
+    ]
+   }
+  ]
+ },
+ {
+  "src": "shots/patch-06-air-below.png",
+  "out": "patch-air-below.webp",
+  "scale": 2,
+  "crop": [
+   1112,
+   49,
+   1440,
+   440
+  ],
+  "callouts": [
+   {
+    "n": 1,
+    "rect": [
+     1129,
+     264,
+     259,
+     32
+    ],
+    "badge": [
+     1422,
+     250
+    ]
+   }
+  ]
+ },
+ {
+  "src": "shots/patch-05-farfield-setup.png",
+  "out": "patch-farfield-setup.webp",
+  "scale": 2,
+  "crop": [
+   1112,
+   752,
+   1440,
+   950
+  ],
+  "callouts": [
+   {
+    "n": 1,
+    "rect": [
+     1129,
+     873,
+     260,
+     32
+    ],
+    "badge": [
+     1422,
+     858
+    ]
+   }
+  ]
+ },
+ {
+  "src": "shots/patch-07-farfield.png",
+  "out": "patch-farfield.webp",
+  "scale": 2,
+  "crop": [
+   276,
+   44,
+   1100,
+   500
+  ],
+  "callouts": [
+   {
+    "n": 1,
+    "rect": [
+     784,
+     116,
+     306,
+     100
+    ]
+   },
+   {
+    "n": 2,
+    "rect": [
+     784,
+     226,
+     306,
+     46
+    ]
+   },
+   {
+    "n": 3,
+    "rect": [
+     784,
+     281,
+     306,
+     46
+    ]
+   },
+   {
+    "n": 4,
+    "rect": [
+     784,
+     336,
+     306,
+     46
+    ]
+   }
+  ]
+ },
+ {
+  "src": "shots/patch-07-farfield.png",
+  "out": "patch-result.webp",
+  "scale": 2,
+  "crop": [
+   288,
+   106,
+   1090,
+   440
+  ],
+  "callouts": []
+ },
+ {
+  "src": "shots/patch-08-mesh-check.png",
+  "out": "patch-mesh-check.webp",
+  "scale": 2,
+  "crop": [
+   860,
+   0,
+   1440,
+   92
+  ],
+  "callouts": [
+   {
+    "n": 1,
+    "rect": [
+     970,
+     8,
+     160,
+     32
+    ],
+    "badge": [
+     1050,
+     56
+    ]
+   }
+  ]
+ }
+]

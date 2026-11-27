@@ -1,0 +1,5 @@
+[{"src": "shots/dist-01-emissions.png", "out": "emis-distance.webp", "scale": 2, "crop": [264, 44, 1112, 573],
+  "callouts": [
+   {"n": 1, "rect": [784, 340, 306, 66]},
+   {"n": 2, "rect": [784, 416, 306, 66]},
+   {"n": 3, "rect": [784, 492, 306, 46]}]}]
