@@ -38,7 +38,7 @@ what disagrees, too.
   the grid, with second-order convergence. The kernels match the exact discrete Yee solution to a few parts per
   million.
 - **Against another solver.** On the demo patch antenna, with both codes at 0.25 mm on the copper, the resonance
-  is 5.30 GHz against openEMS's 5.34 GHz (edge-fed), and 5.47 GHz for both (inset-fed). Both are FDTD codes, so
+  is 5.32 GHz against openEMS's 5.34 GHz (edge-fed), and 5.48 GHz against 5.47 GHz (inset-fed). Both are FDTD codes, so
   this checks the implementation, not the method.
 - **Against textbooks.** The [textbook exam](docs/textbook-exam.md) grades NobuRF on 14 standard problems, and
   it publishes the rows that fail.
