@@ -1,24 +1,24 @@
 {
   "project": "patch_baseline_graded_e0.25_d6",
-  "f0_ghz": 5.3,
-  "s11_min_db": -7.862184100839356,
+  "f0_ghz": 5.32,
+  "s11_min_db": -8.024232078674622,
   "zin": [
     {
       "f_ghz": 5.4,
-      "re_ohm": 18.756081717846122,
-      "im_ohm": 1.7441790412506002
+      "re_ohm": 19.82744029330129,
+      "im_ohm": -0.7111953374241399
     }
   ],
-  "steps": 10500,
-  "energy_decay_db": 50.18480333686409,
+  "steps": 10300,
+  "energy_decay_db": 50.25452811701396,
   "stopped_on_energy": true,
-  "solve_ms": 261154,
+  "solve_ms": 419869,
   "ports": [
     {
       "id": "feed",
       "z0_ohm": 50,
       "node": {
-        "i": 47,
+        "i": 61,
         "j": 30
       },
       "excited": true
@@ -34,19 +34,19 @@
         "name": "passivity",
         "passed": true,
         "marginal": false,
-        "worst": 0.968783,
-        "at_ghz": 7.01,
+        "worst": 0.968652,
+        "at_ghz": 7.029999999999999,
         "limit": 1.02,
-        "detail": "largest singular value of S 0.9688 at 7.010 GHz (warns above 1.005, fails above 1.02)"
+        "detail": "largest singular value of S 0.9687 at 7.030 GHz (warns above 1.005, fails above 1.02)"
       },
       {
         "name": "energy_decay",
         "passed": true,
         "marginal": false,
-        "worst": 50.1848,
+        "worst": 50.2545,
         "at_ghz": null,
         "limit": 50,
-        "detail": "least energy decay over 1 run(s): 50.2 dB (requested 50 dB)"
+        "detail": "least energy decay over 1 run(s): 50.3 dB (requested 50 dB)"
       }
     ],
     "validated_envelope": [
@@ -62,19 +62,19 @@
         "value": "4.4",
         "validated": "2.2 to 2.33",
         "inside": false,
-        "evidence": "measured benchmarks that agree: eps_r 2.2 (Sheen 1990 patch, -1.0 %) and 2.33 (Chang 1986 patches, -1.2 to +1.4 %). The alumina line (9.9) reads eps_eff 1.1 to 1.7 % high, so it is not included: docs/validation.md section 7"
+        "evidence": "measured benchmarks that agree: eps_r 2.2 (Sheen 1990 patch, -0.3 %) and 2.33 (Chang 1986 patches, -0.5 to +1.9 % on the three in section 7.1, -1.8 to +4.0 % on all six up to h/lambda_d 0.11). The alumina line (9.9) reads eps_eff 0.7 to 1.6 % high, so it is not included: docs/validation.md section 7"
       },
       {
         "parameter": "thickness of \"core\" in wavelengths at 8 GHz",
         "value": "0.084",
         "validated": "up to 0.1",
         "inside": true,
-        "evidence": "Chang 1986 measured patches: within 2.4 % up to h/lambda_d 0.11 (one row -3.2 %); above it NobuRF reads high, +5 % at 0.125 rising to +15 % at 0.23 with a lumped feed (docs/validation.md section 7.4)"
+        "evidence": "Chang 1986 measured patches: within 4.0 % up to h/lambda_d 0.11 (1.8 % with the coax probe); above it NobuRF reads high with a lumped feed, +7.1 % at 0.125 and +10 to +16 % from 0.134 to 0.23 (docs/validation.md section 7.4)"
       },
       {
         "parameter": "materials",
-        "value": "constant eps_r, mu_r 1",
-        "validated": "constant eps_r, mu_r 1",
+        "value": "eps_r and tan delta, mu_r 1",
+        "validated": "eps_r and tan delta, mu_r 1",
         "inside": true,
         "evidence": "frequency-dependent and magnetic materials match the closed-form slab reflection and transmission coefficients within 6e-3, most within 2e-3 (docs/validation.md section 2.4), but no measured board or ferrite part has checked them yet"
       },
@@ -112,9 +112,9 @@
     "noburf_project": 1,
     "project_sha256": "a0b52d00468debfb30ad6cebe24c9f3e771e5fd92eee4441645e30ca2834afac",
     "mesh": {
-      "nx": 95,
-      "ny": 89,
-      "nz": 53,
+      "nx": 123,
+      "ny": 107,
+      "nz": 59,
       "dx_mm": 0.1999999999999993,
       "max_cell_mm": 1.8534164896996401,
       "graded": true,
@@ -127,7 +127,7 @@
         "zLow": 8,
         "zHigh": 8
       },
-      "signature": "3f7935743bf23558"
+      "signature": "f9cc83a21a62af58"
     },
     "excitation": {
       "fMinGHz": 4,
@@ -145,11 +145,12 @@
       "energyCheckEverySteps": 100
     },
     "solver": "noburf 0.1.0 (CPU reference)",
-    "git_commit": "c18269a3891917606d0f120831a763786825bea7",
+    "git_commit": "b413166039a05d5137bea932db0dd6ab349c4722",
     "tracked_files_modified": false,
     "warnings": [
+      "mesh: 1 copper edge(s) along y keep their drawn line, so the grid acts about 0.35 edge cell wider there and lines through them read Z0 low (a first-order error that refining shrinks only slowly): y = -10.2 mm (another line (-10 mm) is within 1.5 edge cells outside it or half an edge cell inside)",
       "mesh: smallest cell 0.200 mm is below edge_cell (0.25 mm) and sets the time step; look for copper edges, the port or layer interfaces closer together than edge_cell. Copper edge lines sit about a third of edge_cell inside the drawn edge, so gaps between lines are rarely whole cells and the grading may shrink cells near them",
-      "outside the validated range: eps_r of \"core\" is 4.4 (validated: 2.2 to 2.33), so the model is unproven against measurement here. measured benchmarks that agree: eps_r 2.2 (Sheen 1990 patch, -1.0 %) and 2.33 (Chang 1986 patches, -1.2 to +1.4 %). The alumina line (9.9) reads eps_eff 1.1 to 1.7 % high, so it is not included: docs/validation.md section 7"
+      "outside the validated range: eps_r of \"core\" is 4.4 (validated: 2.2 to 2.33), so the model is unproven against measurement here. measured benchmarks that agree: eps_r 2.2 (Sheen 1990 patch, -0.3 %) and 2.33 (Chang 1986 patches, -0.5 to +1.9 % on the three in section 7.1, -1.8 to +4.0 % on all six up to h/lambda_d 0.11). The alumina line (9.9) reads eps_eff 0.7 to 1.6 % high, so it is not included: docs/validation.md section 7"
     ]
   }
 }

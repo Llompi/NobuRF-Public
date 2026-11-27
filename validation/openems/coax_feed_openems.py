@@ -24,7 +24,7 @@ from CSXCAD import ContinuousStructure
 from openEMS import openEMS
 from openEMS.ports import CoaxialPort
 
-from patch_openems import BASE, graded
+from patch_openems import BASE, copper_edge_lines, graded
 
 INSET = 4.0
 PIN_R, BORE_R, BODY_HALF, PTFE_EPS, OVERHANG = 0.635, 2.05, 3.175, 2.08, 1.5
@@ -44,7 +44,7 @@ def top_copper(W, L, fw, d, gap, y_edge):
     ]
 
 
-def run(feed, res, f_lo=4.0, f_hi=8.0, nf=401, threads=0):
+def run(feed, res, f_lo=4.0, f_hi=8.0, nf=401, threads=0, edges="on"):
     p = dict(BASE)
     h, eps = p["h"], p["eps_r"]
     half = p["gnd"] / 2
@@ -62,8 +62,8 @@ def run(feed, res, f_lo=4.0, f_hi=8.0, nf=401, threads=0):
 
     boxes = top_copper(p["W"], p["L"], p["fw"], INSET, p["gap"], y_edge)
     coarse = 299_792_458.0 / (f_hi * 1e9) * 1e3 / 20
-    xs = [-half, half, 0.0] + [v for b in boxes for v in (b[0], b[2])]
-    ys = [-half, half] + [v for b in boxes for v in (b[1], b[3])]
+    xs = [-half, half, 0.0] + copper_edge_lines(boxes, 0, res, edges)
+    ys = [-half, half] + copper_edge_lines(boxes, 1, res, edges)
     zs = list(np.linspace(0, h, max(1, int(round(h / res))) + 1))
     if feed == "coax":
         xs += [-BODY_HALF, BODY_HALF]
@@ -111,13 +111,13 @@ def run(feed, res, f_lo=4.0, f_hi=8.0, nf=401, threads=0):
     here = os.path.dirname(os.path.abspath(__file__))
     out = os.path.normpath(os.path.join(here, "..", "..", "docs", "validation", "data"))
     os.makedirs(out, exist_ok=True)
-    tag = f"openems_coaxfeed_{feed}_r{res:g}"
+    tag = f"openems_coaxfeed_{feed}_r{res:g}" + ("_thirds" if edges == "thirds" else "")
     with open(os.path.join(out, tag + ".csv"), "w") as fh:
         fh.write("f_ghz,s11_db,zin_re,zin_im\n")
         for k in range(nf):
             fh.write(f"{f[k] / 1e9:.5f},{s11_db[k]:.4f},{zin[k].real:.4f},{zin[k].imag:.4f}\n")
     k = int(np.argmin(s11_db))
-    meta = dict(feed=feed, res_mm=res, cells=ncells, wall_s=round(wall, 1), f0_ghz=round(f[k] / 1e9, 4),
+    meta = dict(feed=feed, res_mm=res, edges=edges, cells=ncells, wall_s=round(wall, 1), f0_ghz=round(f[k] / 1e9, 4),
                 s11_min_db=round(float(s11_db[k]), 2), line_impedance_ohm=z_line)
     with open(os.path.join(out, tag + ".json"), "w") as fh:
         json.dump(meta, fh, indent=1)
@@ -129,5 +129,7 @@ if __name__ == "__main__":
     ap.add_argument("--feed", choices=["lumped", "coax"], required=True)
     ap.add_argument("--res", type=float, default=0.25)
     ap.add_argument("--threads", type=int, default=0)
+    ap.add_argument("--edges", choices=["on", "thirds"], default="on",
+                    help="mesh lines on the copper edges, or a third of a cell inside and two thirds outside")
     a = ap.parse_args()
-    run(a.feed, a.res, threads=a.threads)
+    run(a.feed, a.res, threads=a.threads, edges=a.edges)

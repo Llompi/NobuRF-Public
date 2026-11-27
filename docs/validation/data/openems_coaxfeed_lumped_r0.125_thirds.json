@@ -1,0 +1,10 @@
+{
+ "feed": "lumped",
+ "res_mm": 0.125,
+ "edges": "thirds",
+ "cells": 2422820,
+ "wall_s": 2438.7,
+ "f0_ghz": 5.57,
+ "s11_min_db": -9.0,
+ "line_impedance_ohm": null
+}
