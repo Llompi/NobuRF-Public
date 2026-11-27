@@ -411,20 +411,30 @@ and the lumped port moves there too. Both NobuRF runs use the same mesh, with
 
 | Feed | NobuRF 0.25 mm, 6 cells | NobuRF 0.5 mm, 3 cells | openEMS 0.25 mm | openEMS 0.125 mm |
 | --- | --- | --- | --- | --- |
-| Lumped port at the board edge | 5.45 GHz, −8.7 dB | 5.36 GHz, −8.8 dB | 5.46 GHz, −9.4 dB | 5.52 GHz, −8.7 dB |
-| SMA, read at the flange | 5.45 GHz, −24.3 dB | 5.38 GHz, −23.0 dB | 5.46 GHz, −18.5 dB | 5.49 GHz, −22.6 dB |
-| Im Z_in, SMA minus lumped, 5.0 to 5.5 GHz | −28 to −33 Ω | −29 to −42 Ω | −19 to −23 Ω | −26 to −31 Ω |
+| Lumped port at the board edge | 5.57 GHz, −9.1 dB | 5.56 GHz, −9.2 dB | 5.46 GHz, −9.4 dB | 5.52 GHz, −8.7 dB |
+| SMA, read at the flange | 5.52 GHz, −28.2 dB | 5.51 GHz, −29.5 dB | 5.46 GHz, −18.5 dB | 5.49 GHz, −22.6 dB |
+| Im Z_in, SMA minus lumped, 5.0 to 5.5 GHz | −27 to −32 Ω | −28 to −32 Ω | −19 to −23 Ω | −26 to −31 Ω |
+
+The NobuRF columns were rerun on the current solver (Nov 27, 2026), with 2.35 M
+and 1.60 M cells. The first runs (Nov 19, before PRs #58 and #83 changed how
+graded meshes treat copper edges) read 5.45 and 5.36 GHz with the lumped port,
+5.45 and 5.38 GHz with the SMA, and −28 to −33 and −29 to −42 Ω. The two
+NobuRF meshes now agree within 0.01 GHz. The openEMS runs are the Nov 19 ones,
+with mesh lines on the drawn copper edges; section 3.1 shows that rule reads
+about 1 % low on this patch, so the resonance columns are not a like-for-like
+check until openEMS is rerun with its 1/3–2/3 rule. Figure 12 below is from
+the Nov 19 run.
 
 What this shows:
 
-- **The resonance barely moves.** NobuRF puts the dip at the same frequency
-  with either feed (0.02 GHz apart on the coarse mesh); openEMS moves it by
-  0.03 GHz (0.5 %) at 0.125 mm and not at all at 0.25 mm.
+- **The resonance moves a little.** NobuRF puts the SMA dip 0.05 GHz (0.9 %)
+  below the lumped one on both meshes; openEMS moves it by 0.03 GHz (0.5 %)
+  at 0.125 mm and not at all at 0.25 mm.
 - **The match does.** With the connector modelled, Z_in at the board edge is
   about 30 Ω more capacitive across the band, and the real part barely
-  changes. NobuRF reads −28 to −33 Ω; openEMS reads −19 to −23 Ω at 0.25 mm
+  changes. NobuRF reads −27 to −32 Ω; openEMS reads −19 to −23 Ω at 0.25 mm
   and −26 to −31 Ω at 0.125 mm, closing on NobuRF as its mesh gets finer.
-  For this patch that turns a −9 dB dip into a −22 to −24 dB one, because the
+  For this patch that turns a −9 dB dip into a −23 to −30 dB one, because the
   lumped-port result was inductive at resonance.
 - **Why, in part.** A lumped port drives current up a single column with no
   return path of its own, which adds an inductance that a real connector

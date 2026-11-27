@@ -75,7 +75,7 @@ def fig_s11(lumped, coax, oems_lumped, oems_coax, title, subtitle):
         tx.text(0.11, y, f"{f0:.2f} GHz   {s0:.1f} dB", fontsize=15, color=INK, va="top")
         tx.text(0.11, y - 0.045, label, fontsize=11.5, color=MUTED, va="top")
         y -= 0.13
-    tx.text(0, y - 0.02, "Both tools: the connector makes Z_in about\n30 Ω more capacitive across the band.\nThe resonance moves 0.03 GHz at most.",
+    tx.text(0, y - 0.02, "Both tools: the connector makes Z_in about\n30 Ω more capacitive across the band.\nThe resonance moves 0.03 to 0.05 GHz.",
             fontsize=12.5, color=INK2, va="top", linespacing=1.4)
     save(fig, "11_coax_feed_s11.png")
 
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     lumped = load_run("inset4_e0.25_d6_lumped.json")
     coax = load_run("inset4_e0.25_d6_coax.json")
     fig_s11(lumped, coax, load_openems("lumped"), load_openems("coax"),
-            "Modelling the SMA moves the match, not the resonance",
+            "Modelling the SMA mostly moves the match",
             "Inset patch, feed trace run to the board edge. Same board, same mesh; only the feed differs.")
     fig_field(with_field("inset4_e0.25_d6_lumped"), with_field("inset4_e0.25_d6_coax"),
               "The wave comes in through the connector",
