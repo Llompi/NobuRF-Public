@@ -138,25 +138,25 @@
 
   <section id="three-d" aria-labelledby="three-d-heading">
     <h2 id="three-d-heading">Beyond the flat patch</h2>
-    <p>Three parts that are not flat copper have their own openEMS runs.</p>
+    <p>Four parts that are not flat copper have their own openEMS runs.</p>
     <div class="table-scroll" role="region" aria-labelledby="three-d-caption" tabindex="0">
       <table>
-        <caption id="three-d-caption">Sources: validation report section 3.2, the vias page and the array comparison, all in the repository.</caption>
+        <caption id="three-d-caption">Sources: validation report sections 3.2 and 3.3, the vias page and the array comparison, all in the repository.</caption>
         <thead>
           <tr><th scope="col">Part</th><th scope="col">Compared</th><th scope="col">Result</th></tr>
         </thead>
         <tbody>
-          <tr><th scope="row">Edge-launch SMA connector, a round coax into the board</th><td>How much it changes the input reactance against a lumped port</td><td>−27 to −32&nbsp;Ω in NobuRF (0.25&nbsp;mm cells at the copper, rerun November 27), −26 to −31&nbsp;Ω in openEMS (0.125&nbsp;mm)</td></tr>
+          <tr><th scope="row">Edge-launch SMA connector, a round coax into the board</th><td>Resonance, and how much the connector changes the input reactance against a lumped port</td><td>Resonance on the same 0.01&nbsp;GHz step; reactance shift −30.7&nbsp;Ω in NobuRF (0.25&nbsp;mm cells), −32.0&nbsp;Ω in openEMS (0.125&nbsp;mm)</td></tr>
           <tr><th scope="row">Plated vias, 0.2 to 0.8&nbsp;mm drill</th><td>Inductance at 2&nbsp;GHz</td><td>NobuRF 0.02 to 0.04&nbsp;nH higher, cause not settled yet</td></tr>
           <tr><th scope="row">Two patches, both ports driven</th><td>Far field and active reflection, 12 checks fixed before the run</td><td>All 12 pass; peak directivity within 0.03&nbsp;dB. A pair of short dipoles passes 9 of 12: the efficiency checks miss, and openEMS itself reads above 100&nbsp;%</td></tr>
+          <tr><th scope="row">Open helix, two dipoles wrapped on a cylinder</th><td>Resonance, bandwidth, gain and axial ratio at 915&nbsp;MHz</td><td>Resonance within 0.3&nbsp;% with NobuRF's curved sheet arms, gain within 0.03&nbsp;dB, axial ratio within 0.3&nbsp;dB; the match differs by 6&nbsp;dB, and openEMS hasn't settled on it yet</td></tr>
         </tbody>
       </table>
     </div>
     <p>
-      The connector's resonance is left out of the table: those openEMS runs put mesh lines on the copper edges, which
-      reads about 1&nbsp;% low, so they need a rerun before the frequencies can be compared. Curved solids, such as a
-      sphere or a cylinder turned against the grid, are checked against exact cavity modes (within 0.07 to 0.6&nbsp;%),
-      not against openEMS yet.
+      The connector, array and helix runs fixed what to compare, and how close counts as agreeing, before either code ran. Other curved
+      solids, such as a sphere or a cylinder turned against the grid, are checked against exact cavity modes (within
+      0.07 to 0.6&nbsp;%), not against openEMS.
     </p>
   </section>
 
