@@ -124,8 +124,8 @@ def figure_openems_comparison(layout):
         panel_origins = [(76, 110), (76, 110 + 250 + 130)]
         frequency_ticks = (4.5, 5.5, 6.5, 7.5)
     parts = [svg_open(layout, viewbox_width, height, f"figure-2-title-{layout}",
-                      'S11 against frequency for NobuRF and openEMS. Edge-fed: NobuRF dips at 5.30 GHz to −7.9 dB, openEMS at '
-                      '5.34 GHz to −8.2 dB. Inset-fed: both dip at 5.47 GHz, NobuRF to −21.5 dB, openEMS to −20.4 dB.'),
+                      'S11 against frequency for NobuRF and openEMS. Edge-fed: NobuRF dips at 5.32 GHz to −8.0 dB, openEMS at '
+                      '5.34 GHz to −8.2 dB. Inset-fed: NobuRF dips at 5.48 GHz to −22.1 dB, openEMS at 5.47 GHz to −20.4 dB.'),
              f'<g class="legend" transform="translate({panel_origins[0][0]} 36)">',
              '<line class="curve-noburf" x1="0" x2="34" y1="0" y2="0"/><text x="44" y="6">NobuRF</text>',
              '<line class="curve-openems" x1="140" x2="174" y1="0" y2="0"/><text x="184" y="6">openEMS</text>',
