@@ -1,0 +1,319 @@
+{
+ "runs": {
+  "NobuRF sheet_c0.7": {
+   "f0_ghz": 0.943,
+   "s11_min_db": -17.81,
+   "band_ghz": [
+    0.916,
+    0.971
+   ],
+   "bandwidth_mhz": 55.0,
+   "z915": [
+    35.74,
+    24.76
+   ],
+   "rhcp_gain_dbi": 1.571,
+   "lhcp_gain_dbi": -12.784,
+   "sense": "RHCP",
+   "axial_ratio_db": 3.372,
+   "cells": 2792745,
+   "steps": 32000,
+   "solve_s": 14470.9,
+   "energy_decay_db": 50.39,
+   "efficiency": 0.998
+  },
+  "NobuRF sheet_c1": {
+   "f0_ghz": 0.938,
+   "s11_min_db": -19.58,
+   "band_ghz": [
+    0.912,
+    0.965
+   ],
+   "bandwidth_mhz": 53.0,
+   "z915": [
+    38.59,
+    22.58
+   ],
+   "rhcp_gain_dbi": 1.574,
+   "lhcp_gain_dbi": -12.927,
+   "sense": "RHCP",
+   "axial_ratio_db": 3.315,
+   "cells": 1544565,
+   "steps": 21800,
+   "solve_s": 6831.7,
+   "energy_decay_db": 50.67,
+   "efficiency": 0.9973
+  },
+  "NobuRF staircase_c0.7": {
+   "f0_ghz": 0.928,
+   "s11_min_db": -16.49,
+   "band_ghz": [
+    0.902,
+    0.954
+   ],
+   "bandwidth_mhz": 52.0,
+   "z915": [
+    53.04,
+    21.33
+   ],
+   "rhcp_gain_dbi": 1.585,
+   "lhcp_gain_dbi": -13.441,
+   "sense": "RHCP",
+   "axial_ratio_db": 3.114,
+   "cells": 2671039,
+   "steps": 19000,
+   "solve_s": 9401.4,
+   "energy_decay_db": 51.06,
+   "efficiency": 0.9957
+  },
+  "NobuRF staircase_c1": {
+   "f0_ghz": 0.92,
+   "s11_min_db": -19.16,
+   "band_ghz": [
+    0.895,
+    0.947
+   ],
+   "bandwidth_mhz": 52.0,
+   "z915": [
+    57.1,
+    11.69
+   ],
+   "rhcp_gain_dbi": 1.592,
+   "lhcp_gain_dbi": -13.64,
+   "sense": "RHCP",
+   "axial_ratio_db": 3.038,
+   "cells": 1490841,
+   "steps": 10000,
+   "solve_s": 2987.2,
+   "energy_decay_db": 51.04,
+   "efficiency": 0.9956
+  },
+  "openEMS curves_r0.5": {
+   "f0_ghz": 0.941,
+   "s11_min_db": -13.45,
+   "band_ghz": [
+    0.917,
+    0.966
+   ],
+   "bandwidth_mhz": 49.0,
+   "z915": [
+    42.22,
+    31.18
+   ],
+   "rhcp_gain_dbi": 1.563,
+   "lhcp_gain_dbi": -12.982,
+   "sense": "RHCP",
+   "axial_ratio_db": 3.297,
+   "cells": 4126584,
+   "solve_s": 2125.9,
+   "efficiency": 0.9965
+  },
+  "openEMS curves_r1": {
+   "f0_ghz": 0.921,
+   "s11_min_db": -12.59,
+   "band_ghz": [
+    0.9,
+    0.943
+   ],
+   "bandwidth_mhz": 43.0,
+   "z915": [
+    68.59,
+    22.62
+   ],
+   "rhcp_gain_dbi": 1.588,
+   "lhcp_gain_dbi": -13.804,
+   "sense": "RHCP",
+   "axial_ratio_db": 2.981,
+   "cells": 1120000,
+   "solve_s": 824.1,
+   "efficiency": 0.9959
+  }
+ },
+ "verdicts": {
+  "NobuRF sheet_c0.7": [
+   {
+    "quantity": "S11-minimum frequency",
+    "delta": "+0.21 %",
+    "limit": "1 %",
+    "passed": true
+   },
+   {
+    "quantity": "-10 dB bandwidth",
+    "delta": "+12.2 %",
+    "limit": "10 %",
+    "passed": false
+   },
+   {
+    "quantity": "S11 minimum",
+    "delta": "-4.36 dB",
+    "limit": "3 dB",
+    "passed": false
+   },
+   {
+    "quantity": "Z_in at 915 MHz",
+    "delta": "9.1 ohm = 17.4 % of |Z|",
+    "limit": "10 % of |Z|",
+    "passed": false
+   },
+   {
+    "quantity": "Azimuth RHCP gain, 915 MHz",
+    "delta": "+0.01 dB",
+    "limit": "0.5 dB",
+    "passed": true
+   },
+   {
+    "quantity": "Azimuth mean axial ratio, 915 MHz",
+    "delta": "+0.07 dB",
+    "limit": "1 dB",
+    "passed": true
+   },
+   {
+    "quantity": "Dominant sense",
+    "delta": "RHCP vs RHCP",
+    "limit": "same",
+    "passed": true
+   }
+  ],
+  "NobuRF sheet_c1": [
+   {
+    "quantity": "S11-minimum frequency",
+    "delta": "-0.32 %",
+    "limit": "1 %",
+    "passed": true
+   },
+   {
+    "quantity": "-10 dB bandwidth",
+    "delta": "+8.2 %",
+    "limit": "10 %",
+    "passed": true
+   },
+   {
+    "quantity": "S11 minimum",
+    "delta": "-6.13 dB",
+    "limit": "3 dB",
+    "passed": false
+   },
+   {
+    "quantity": "Z_in at 915 MHz",
+    "delta": "9.3 ohm = 17.8 % of |Z|",
+    "limit": "10 % of |Z|",
+    "passed": false
+   },
+   {
+    "quantity": "Azimuth RHCP gain, 915 MHz",
+    "delta": "+0.01 dB",
+    "limit": "0.5 dB",
+    "passed": true
+   },
+   {
+    "quantity": "Azimuth mean axial ratio, 915 MHz",
+    "delta": "+0.02 dB",
+    "limit": "1 dB",
+    "passed": true
+   },
+   {
+    "quantity": "Dominant sense",
+    "delta": "RHCP vs RHCP",
+    "limit": "same",
+    "passed": true
+   }
+  ],
+  "NobuRF staircase_c0.7": [
+   {
+    "quantity": "S11-minimum frequency",
+    "delta": "-1.38 %",
+    "limit": "1 %",
+    "passed": false
+   },
+   {
+    "quantity": "-10 dB bandwidth",
+    "delta": "+6.1 %",
+    "limit": "10 %",
+    "passed": true
+   },
+   {
+    "quantity": "S11 minimum",
+    "delta": "-3.04 dB",
+    "limit": "3 dB",
+    "passed": false
+   },
+   {
+    "quantity": "Z_in at 915 MHz",
+    "delta": "14.6 ohm = 27.9 % of |Z|",
+    "limit": "10 % of |Z|",
+    "passed": false
+   },
+   {
+    "quantity": "Azimuth RHCP gain, 915 MHz",
+    "delta": "+0.02 dB",
+    "limit": "0.5 dB",
+    "passed": true
+   },
+   {
+    "quantity": "Azimuth mean axial ratio, 915 MHz",
+    "delta": "-0.18 dB",
+    "limit": "1 dB",
+    "passed": true
+   },
+   {
+    "quantity": "Dominant sense",
+    "delta": "RHCP vs RHCP",
+    "limit": "same",
+    "passed": true
+   }
+  ],
+  "NobuRF staircase_c1": [
+   {
+    "quantity": "S11-minimum frequency",
+    "delta": "-2.23 %",
+    "limit": "1 %",
+    "passed": false
+   },
+   {
+    "quantity": "-10 dB bandwidth",
+    "delta": "+6.1 %",
+    "limit": "10 %",
+    "passed": true
+   },
+   {
+    "quantity": "S11 minimum",
+    "delta": "-5.71 dB",
+    "limit": "3 dB",
+    "passed": false
+   },
+   {
+    "quantity": "Z_in at 915 MHz",
+    "delta": "24.5 ohm = 46.7 % of |Z|",
+    "limit": "10 % of |Z|",
+    "passed": false
+   },
+   {
+    "quantity": "Azimuth RHCP gain, 915 MHz",
+    "delta": "+0.03 dB",
+    "limit": "0.5 dB",
+    "passed": true
+   },
+   {
+    "quantity": "Azimuth mean axial ratio, 915 MHz",
+    "delta": "-0.26 dB",
+    "limit": "1 dB",
+    "passed": true
+   },
+   {
+    "quantity": "Dominant sense",
+    "delta": "RHCP vs RHCP",
+    "limit": "same",
+    "passed": true
+   }
+  ],
+  "openems_f0_change_pct": 2.172
+ },
+ "limits": {
+  "f0_pct": 1.0,
+  "bandwidth_pct": 10.0,
+  "s11_min_db": 3.0,
+  "z915_pct_of_abs": 10.0,
+  "rhcp_gain_db": 0.5,
+  "axial_ratio_db": 1.0
+ }
+}

@@ -1,0 +1,109 @@
+{
+ "NobuRF e0.25_d6": {
+  "lumped": {
+   "f0_ghz": 5.57,
+   "s11_min_db": -9.14
+  },
+  "coax": {
+   "f0_ghz": 5.52,
+   "s11_min_db": -28.17
+  },
+  "dIm_ohm": {
+   "min": -32.07,
+   "max": -27.47,
+   "mean": -30.66
+  }
+ },
+ "NobuRF e0.5_d3": {
+  "lumped": {
+   "f0_ghz": 5.56,
+   "s11_min_db": -9.24
+  },
+  "coax": {
+   "f0_ghz": 5.51,
+   "s11_min_db": -29.5
+  },
+  "dIm_ohm": {
+   "min": -32.34,
+   "max": -27.54,
+   "mean": -30.71
+  }
+ },
+ "openEMS 0.25 mm on edges": {
+  "lumped": {
+   "f0_ghz": 5.46,
+   "s11_min_db": -9.42
+  },
+  "coax": {
+   "f0_ghz": 5.46,
+   "s11_min_db": -18.52
+  },
+  "dIm_ohm": {
+   "min": -22.97,
+   "max": -18.69,
+   "mean": -21.67
+  }
+ },
+ "openEMS 0.25 mm thirds": {
+  "lumped": {
+   "f0_ghz": 5.53,
+   "s11_min_db": -10.6
+  },
+  "coax": {
+   "f0_ghz": 5.52,
+   "s11_min_db": -28.63
+  },
+  "dIm_ohm": {
+   "min": -26.29,
+   "max": -21.32,
+   "mean": -24.73
+  }
+ },
+ "openEMS 0.125 mm on edges": {
+  "lumped": {
+   "f0_ghz": 5.52,
+   "s11_min_db": -8.67
+  },
+  "coax": {
+   "f0_ghz": 5.49,
+   "s11_min_db": -22.59
+  },
+  "dIm_ohm": {
+   "min": -30.79,
+   "max": -26.33,
+   "mean": -29.49
+  }
+ },
+ "openEMS 0.125 mm thirds": {
+  "lumped": {
+   "f0_ghz": 5.57,
+   "s11_min_db": -9.0
+  },
+  "coax": {
+   "f0_ghz": 5.52,
+   "s11_min_db": -29.99
+  },
+  "dIm_ohm": {
+   "min": -33.49,
+   "max": -28.64,
+   "mean": -31.98
+  }
+ },
+ "checks": {
+  "f0 lumped": {
+   "delta_pct": 0.0,
+   "limit_pct": 1.0,
+   "passed": true
+  },
+  "f0 coax": {
+   "delta_pct": 0.0,
+   "limit_pct": 1.0,
+   "passed": true
+  },
+  "Im Z shift mean": {
+   "delta_ohm": 1.32,
+   "limit_ohm": 5.0,
+   "passed": true
+  }
+ }
+}

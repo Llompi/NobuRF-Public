@@ -1,0 +1,10 @@
+{
+ "feed": "coax",
+ "res_mm": 0.125,
+ "edges": "thirds",
+ "cells": 7163232,
+ "wall_s": 8708.6,
+ "f0_ghz": 5.52,
+ "s11_min_db": -29.99,
+ "line_impedance_ohm": 50.06195409801874
+}

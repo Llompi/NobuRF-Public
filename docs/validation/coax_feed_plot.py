@@ -25,7 +25,7 @@ def load_run(name):
 
 
 def load_openems(feed, res=0.125):
-    path = os.path.join(DATA, f"openems_coaxfeed_{feed}_r{res:g}.csv")
+    path = os.path.join(DATA, f"openems_coaxfeed_{feed}_r{res:g}_thirds.csv")
     if not os.path.exists(path):
         return None
     with open(path) as fh:
@@ -45,9 +45,9 @@ def fig_s11(lumped, coax, oems_lumped, oems_coax, title, subtitle):
         (coax["fGHz"], coax["s11Db"], coax["zIm"], S_NOBU, "-", "NobuRF, SMA modelled, read at the flange"),
     ]
     if oems_lumped is not None:
-        curves.append((oems_lumped["f"], oems_lumped["s11"], oems_lumped["zi"], S_REF, "--", "openEMS 0.125 mm, lumped port"))
+        curves.append((oems_lumped["f"], oems_lumped["s11"], oems_lumped["zi"], S_REF, "--", "openEMS 0.125 mm, lumped port, 1/3–2/3 edges"))
     if oems_coax is not None:
-        curves.append((oems_coax["f"], oems_coax["s11"], oems_coax["zi"], S_REF, "-", "openEMS 0.125 mm, SMA with its coax port"))
+        curves.append((oems_coax["f"], oems_coax["s11"], oems_coax["zi"], S_REF, "-", "openEMS 0.125 mm, SMA, 1/3–2/3 edges"))
     ax = fig.add_axes([0.07, 0.44, 0.6, 0.36])
     ax_x = fig.add_axes([0.07, 0.13, 0.6, 0.25], sharex=ax)
     for f, s, x, color, style, label in curves:
@@ -75,7 +75,7 @@ def fig_s11(lumped, coax, oems_lumped, oems_coax, title, subtitle):
         tx.text(0.11, y, f"{f0:.2f} GHz   {s0:.1f} dB", fontsize=15, color=INK, va="top")
         tx.text(0.11, y - 0.045, label, fontsize=11.5, color=MUTED, va="top")
         y -= 0.13
-    tx.text(0, y - 0.02, "Both tools: the connector makes Z_in about\n30 Ω more capacitive across the band.\nThe resonance moves 0.03 to 0.05 GHz.",
+    tx.text(0, y - 0.02, "Both tools: the connector makes Z_in about\n30 Ω more capacitive across the band.\nThe SMA moves the dip 0.05 GHz in both.",
             fontsize=12.5, color=INK2, va="top", linespacing=1.4)
     save(fig, "11_coax_feed_s11.png")
 

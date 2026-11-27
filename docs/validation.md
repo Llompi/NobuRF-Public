@@ -411,38 +411,43 @@ and the lumped port moves there too. Both NobuRF runs use the same mesh, with
 
 | Feed | NobuRF 0.25 mm, 6 cells | NobuRF 0.5 mm, 3 cells | openEMS 0.25 mm | openEMS 0.125 mm |
 | --- | --- | --- | --- | --- |
-| Lumped port at the board edge | 5.57 GHz, −9.1 dB | 5.56 GHz, −9.2 dB | 5.46 GHz, −9.4 dB | 5.52 GHz, −8.7 dB |
-| SMA, read at the flange | 5.52 GHz, −28.2 dB | 5.51 GHz, −29.5 dB | 5.46 GHz, −18.5 dB | 5.49 GHz, −22.6 dB |
-| Im Z_in, SMA minus lumped, 5.0 to 5.5 GHz | −27 to −32 Ω | −28 to −32 Ω | −19 to −23 Ω | −26 to −31 Ω |
+| Lumped port at the board edge | 5.57 GHz, −9.1 dB | 5.56 GHz, −9.2 dB | 5.53 GHz, −10.6 dB | 5.57 GHz, −9.0 dB |
+| SMA, read at the flange | 5.52 GHz, −28.2 dB | 5.51 GHz, −29.5 dB | 5.52 GHz, −28.6 dB | 5.52 GHz, −30.0 dB |
+| Im Z_in, SMA minus lumped, 5.0 to 5.5 GHz (mean) | −27 to −32 Ω (−30.7) | −28 to −32 Ω (−30.7) | −21 to −26 Ω (−24.7) | −29 to −33 Ω (−32.0) |
 
-The NobuRF columns were rerun on the current solver (Nov 27, 2026), with 2.35 M
-and 1.60 M cells. The first runs (Nov 19, before PRs #58 and #83 changed how
-graded meshes treat copper edges) read 5.45 and 5.36 GHz with the lumped port,
-5.45 and 5.38 GHz with the SMA, and −28 to −33 and −29 to −42 Ω. The two
-NobuRF meshes now agree within 0.01 GHz. The openEMS runs are the Nov 19 ones,
-with mesh lines on the drawn copper edges; section 3.1 shows that rule reads
-about 1 % low on this patch, so the resonance columns are not a like-for-like
-check until openEMS is rerun with its 1/3–2/3 rule. Figure 12 below is from
-the Nov 19 run.
+Both codes were run on Nov 27, 2026: NobuRF on the current solver, openEMS v0.37
+meshed by its own 1/3–2/3 rule for thin copper (`coax_feed_openems.py
+--edges thirds`). The quantities and pass limits were committed before
+either run ([`validation/openems/coax_thirds/`](../validation/openems/coax_thirds/README.md)):
+f0 within 1 % for each feed and the mean reactance shift within 5 Ω, NobuRF
+at 0.25 mm against openEMS at 0.125 mm. All three pass: 0.0 % (the same
+0.01 GHz grid point) for both feeds and 1.3 Ω for the shift. openEMS moves
+by 0.7 % (lumped) and 0.0 % (SMA) between its two meshes.
+
+The first version of this table (Nov 19) had NobuRF before PRs #58 and #83
+(5.45 / 5.36 GHz lumped, 5.45 / 5.38 GHz SMA) and openEMS with lines on the
+drawn copper edges (5.46 / 5.52 GHz lumped, 5.46 / 5.49 GHz SMA). Both moved
+up by about 1 %, as the patch did in section 3.1. Figure 11 shows the Nov 27
+runs; Figure 12 is the Nov 19 field.
 
 What this shows:
 
-- **The resonance moves a little.** NobuRF puts the SMA dip 0.05 GHz (0.9 %)
-  below the lumped one on both meshes; openEMS moves it by 0.03 GHz (0.5 %)
-  at 0.125 mm and not at all at 0.25 mm.
-- **The match does.** With the connector modelled, Z_in at the board edge is
-  about 30 Ω more capacitive across the band, and the real part barely
-  changes. NobuRF reads −27 to −32 Ω; openEMS reads −19 to −23 Ω at 0.25 mm
-  and −26 to −31 Ω at 0.125 mm, closing on NobuRF as its mesh gets finer.
-  For this patch that turns a −9 dB dip into a −23 to −30 dB one, because the
-  lumped-port result was inductive at resonance.
+- **The resonance moves a little.** The connector moves the dip down by
+  0.05 GHz (0.9 %) in both codes at their finest meshes.
+- **The match moves more.** With the connector modelled, Z_in at the board
+  edge is about 30 Ω more capacitive across the band, and the real part
+  barely changes. NobuRF reads −30.7 Ω on average on both meshes; openEMS
+  reads −24.7 Ω at 0.25 mm and −32.0 Ω at 0.125 mm, so this is its least
+  converged quantity. For this patch that turns a −9 dB dip into a −28 to
+  −30 dB one in both codes, because the lumped-port result was inductive at
+  resonance.
 - **Why, in part.** A lumped port drives current up a single column with no
   return path of its own, which adds an inductance that a real connector
   does not have; the connector instead brings its own shunt capacitance from
   the pin over the trace and the bore mouth. We have not separated the two
   yet. A thru-line case (connector into a matched microstrip, no patch) would.
 - **Depth is not a stable number.** Near a perfect match the dip depth swings
-  with a few ohms of Z (openEMS goes from −18.5 to −22.6 dB between its two
+  with a few ohms of Z (openEMS's lumped dip moves 1.6 dB between its two
   meshes). Compare Z, not dip depth.
 
 Limits of this model, stated plainly:
@@ -457,6 +462,43 @@ Limits of this model, stated plainly:
   `noburf` CLI also runs it on the GPU kernels.
 
 ![Field through the feed](validation/img/12_coax_feed_field.png)
+
+### 3.3 A curved 3D antenna: the open helix
+
+The [Gonzaga open helix](benchmarks/gonzaga.md) has two dipoles wrapped on a
+cylinder. It is the first curved 3D structure compared with openEMS. The
+quantities and limits were committed before either code ran
+([`validation/openems/helix/`](../validation/openems/helix/README.md)). Both
+codes use PEC copper and a lossless disk. openEMS can't draw a curved sheet on
+its Cartesian grid: cylindrical polygons give no metal, and a 0.1 mm shell
+covers 3 % of the arms. So its arms are a grid of curves snapped onto the
+mesh, a staircase that covers 100 % of the arm area. NobuRF ran both its
+staircase arms and its conformal sheet arms.
+
+| Quantity | openEMS 1 mm | openEMS 0.5 mm (reference) | NobuRF staircase 1 mm | NobuRF sheet 1 mm | Limit |
+| --- | --- | --- | --- | --- | --- |
+| S11-minimum frequency | 921 MHz | 941 MHz | 920 MHz (−2.2 %, fail) | 938 MHz (−0.3 %, pass) | 1 % |
+| −10 dB bandwidth | 43 MHz | 49 MHz | 52 MHz (pass) | 53 MHz (pass) | 10 % |
+| S11 minimum | −12.6 dB | −13.4 dB | −19.2 dB (fail) | −19.6 dB (fail) | 3 dB |
+| Z_in at 915 MHz | 68.6 + j22.6 Ω | 42.2 + j31.2 Ω | 57.1 + j11.7 Ω (fail) | 38.6 + j22.6 Ω (fail) | 10 % of \|Z\| |
+| Azimuth RHCP gain | 1.59 dBi | 1.56 dBi | 1.59 dBi (pass) | 1.57 dBi (pass) | 0.5 dB |
+| Mean axial ratio | 2.98 dB | 3.30 dB | 3.04 dB (pass) | 3.32 dB (pass) | 1 dB |
+
+- **The reference is not converged.** openEMS's resonance moves +2.2 % from
+  1 to 0.5 mm, more than the 1 % its runs were meant to settle within, and
+  its Z at 915 MHz moves by 27 Ω. A finer openEMS mesh (about 11 M cells) was
+  not added after seeing this, because it was not part of the plan written
+  before the runs.
+- **Both staircases climb toward NobuRF's sheet arms as the cells shrink.**
+  At 1 mm the two staircases agree (920 against 921 MHz). NobuRF's sheet arms
+  move only 938 → 943 MHz from 1 to 0.7 mm.
+- **The far field agrees everywhere.** Gain within 0.03 dB, axial ratio within
+  0.3 dB. openEMS confirms that 10.5° pitch gives about 3 dB axial ratio at
+  this radius, so that number in gonzaga.md is not a NobuRF error.
+- **The match does not agree yet.** openEMS's dip is 6 dB shallower and its Z
+  at 915 MHz differs by 18 % for the sheet arms, which is less than openEMS
+  moves between its own two meshes. Read the S11 depth of this antenna as
+  unsettled. Full results: [`results.md`](../validation/openems/helix/results.md).
 
 ### Step budget (live demo vs converged)
 
