@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>NobuRF Workbench</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <meta name="description" content="Build or import a board, set ports and materials, and solve it with a 3D field solver that runs on your own GPU in the browser." />
+    <link rel="stylesheet" href="/src/ui/fonts.css" />
     <link rel="stylesheet" href="/src/ui/style.css" />
     <link rel="stylesheet" href="/src/workbench/workbench.css" />
   </head>
   <body class="workbench">
+    <a class="skip-link" href="#stage">Skip to the model</a>
     <header class="bar">
       <h1 class="wordmark">NobuRF</h1>
       <a class="source-link" href="https://github.com/Llompi/NobuRF-Public" target="_blank" rel="noopener" title="NobuRF's source code, under the GNU AGPL-3.0">Source</a>
@@ -32,7 +32,7 @@
       </div>
       <p id="validity" class="validity" role="status"></p>
       <div class="bar-group bar-end">
-        <label class="select-label" title="Off: one solve on the project's mesh. One finer mesh: also solves a mesh with cells 1/√2 the size, shows that mesh's result with a mesh error bar, about 3 times one solve in all. Two finer meshes: solves both and reports whether S and the resonance settled, about 10 times one solve. Graded meshes without coax feeds only. The error bar covers the mesh only, not the port or material model.">
+        <label class="select-label">
           Mesh check
           <select id="mesh-check-choice">
             <option value="off">Off</option>
@@ -40,6 +40,13 @@
             <option value="refine">Two finer meshes</option>
           </select>
         </label>
+        <button type="button" class="help" popovertarget="help-mesh-check" aria-label="About Mesh check">?</button>
+        <div id="help-mesh-check" class="help-pop" popover>
+          <p><strong>Off:</strong> one solve on the project's mesh.</p>
+          <p><strong>One finer mesh:</strong> also solves a mesh with cells 1/√2 the size and shows that result with a mesh error bar. About 3 times one solve in all.</p>
+          <p><strong>Two finer meshes:</strong> solves both and reports whether S and the resonance settled. About 10 times one solve.</p>
+          <p>Graded meshes without coax feeds only. The error bar covers the mesh only, not the port or material model.</p>
+        </div>
         <label class="select-label">
           Solver
           <select id="solver-choice">
@@ -53,7 +60,7 @@
 
     <nav id="tree" class="tree" aria-label="Project"></nav>
 
-    <main id="stage" class="stage">
+    <main id="stage" class="stage" tabindex="-1">
       <div class="tabs" role="tablist" aria-label="Views">
         <button type="button" role="tab" id="tab-model" aria-controls="view-model" aria-selected="true">Model</button>
         <button type="button" role="tab" id="tab-sparams" aria-controls="view-sparams" aria-selected="false">S-parameters</button>
@@ -61,10 +68,11 @@
         <button type="button" role="tab" id="tab-impedance" aria-controls="view-impedance" aria-selected="false">Impedance</button>
         <button type="button" role="tab" id="tab-farfield" aria-controls="view-farfield" aria-selected="false">Far field</button>
         <button type="button" role="tab" id="tab-emissions" aria-controls="view-emissions" aria-selected="false">Emissions</button>
-        <button type="button" role="tab" id="tab-line" aria-controls="view-line" aria-selected="false" title="For two ports at the ends of a straight strip">Line</button>
+        <button type="button" role="tab" id="tab-line" aria-controls="view-line" aria-selected="false">Line</button>
         <button type="button" role="tab" id="tab-pair" aria-controls="view-pair" aria-selected="false">Differential</button>
-        <button type="button" role="tab" id="tab-sensitivity" aria-controls="view-sensitivity" aria-selected="false" title="Which variables move the results most">Sensitivity</button>
+        <button type="button" role="tab" id="tab-sensitivity" aria-controls="view-sensitivity" aria-selected="false">Sensitivity</button>
       </div>
+      <p id="tab-off-reason" class="tab-off-reason" role="status"></p>
       <p id="stage-empty" class="stage-empty" hidden></p>
 
       <section id="view-model" class="view model-view" role="tabpanel" aria-labelledby="tab-model">
@@ -219,7 +227,9 @@
                   <option value="project">Project mesh</option>
                 </select>
               </label>
-              <label class="toggle" title="Solve every variable again at twice the step and downgrade slopes that change with it. Twice the solves."><input type="checkbox" id="sens-check-step" /> Check the step</label>
+              <label class="toggle"><input type="checkbox" id="sens-check-step" /> Check the step</label>
+              <button type="button" class="help" popovertarget="help-check-step" aria-label="About Check the step">?</button>
+              <div id="help-check-step" class="help-pop" popover>Solves every variable again at twice the step and downgrades slopes that change with it. It takes twice the solves.</div>
               <button type="button" id="sens-run" class="primary">Rank variables</button>
             </div>
           </div>
@@ -271,7 +281,7 @@
       </form>
     </dialog>
 
-    <dialog id="material-dialog" class="app-dialog material-dialog" aria-labelledby="material-title">
+    <dialog id="material-dialog" closedby="any" class="app-dialog material-dialog" aria-labelledby="material-title">
       <h2 id="material-title">Add a material</h2>
       <input type="search" id="material-search" placeholder="Search, e.g. Rogers, alumina, gold" aria-label="Search the material library" spellcheck="false" autocomplete="off" />
       <div id="material-list" class="material-list"></div>
