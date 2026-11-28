@@ -1,0 +1,4 @@
+[
+ {"src": "shots/line-04-line-tab.png", "out": "line-result.webp", "scale": 2, "crop": [276, 98, 1100, 860], "callouts": []},
+ {"src": "shots/emis-02-near-field.png", "out": "emis-result.webp", "scale": 2, "crop": [276, 186, 1100, 540], "callouts": []}
+]

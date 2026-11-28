@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Import Gerber files and simulate a PCB section · NobuRF</title>
+<meta name="description" content="A step-by-step tutorial with annotated screenshots: import a four-layer board from Gerber and drill files into NobuRF, crop it to the USB pair, add ports and read the differential S-parameters, all in the browser.">
+<meta property="og:title" content="Import Gerber files and simulate a PCB section">
+<meta property="og:description" content="A real four-layer board, from Gerber files to the USB pair's differential S-parameters, in ten steps with annotated screenshots.">
+<meta property="og:image" content="https://noburf.com/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Current on the copper of a patch antenna for the 5.8 GHz band, and the line: Maxwell's equations, solved in a browser tab.">
+<meta property="og:url" content="https://noburf.com/crop-pcb-section/">
+<link rel="canonical" href="https://noburf.com/crop-pcb-section/">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "HowTo",
+ "name": "Import a PCB from Gerber files and simulate a section of it",
+ "description": "Import a four-layer board from Gerber and drill files into NobuRF, crop it to the USB pair, add ports, solve in the browser and read the differential S-parameters.",
+ "image": "https://noburf.com/assets/guides/folio-result-current.webp",
+ "tool": [
+  {
+   "@type": "HowToTool",
+   "name": "NobuRF in Chrome or Edge 113 or later"
+  }
+ ],
+ "supply": [
+  {
+   "@type": "HowToSupply",
+   "name": "Gerber files for each copper layer and the board outline"
+  },
+  {
+   "@type": "HowToSupply",
+   "name": "Excellon drill file"
+  }
+ ],
+ "step": [
+  {
+   "@type": "HowToStep",
+   "position": 1,
+   "name": "Set up the stackup",
+   "text": "Set the board's layers from your fab's stackup drawing. Start from New, Blank board, and add copper with Add layer pair on top.",
+   "url": "https://noburf.com/crop-pcb-section/#stackup",
+   "image": "https://noburf.com/assets/guides/folio-stackup.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 2,
+   "name": "Import each Gerber layer",
+   "text": "Choose Import once per Gerber file, pick the layer it replaces and keep the file's coordinates.",
+   "url": "https://noburf.com/crop-pcb-section/#import",
+   "image": "https://noburf.com/assets/guides/folio-import-gerber.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 3,
+   "name": "Import the drill file",
+   "text": "Import the Excellon drill file as plated holes, which become vias.",
+   "url": "https://noburf.com/crop-pcb-section/#drill",
+   "image": "https://noburf.com/assets/guides/folio-import-drill.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 4,
+   "name": "Check the whole board",
+   "text": "Turn the 3D view and check that every layer landed in place.",
+   "url": "https://noburf.com/crop-pcb-section/#board",
+   "image": "https://noburf.com/assets/guides/folio-board.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 5,
+   "name": "Draw the section",
+   "text": "Pick the Section tool and drag a rectangle around the part of the board to keep.",
+   "url": "https://noburf.com/crop-pcb-section/#section",
+   "image": "https://noburf.com/assets/guides/folio-section-drag.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 6,
+   "name": "Check what was kept",
+   "text": "Read the console line that reports what the cut kept, clipped and dropped.",
+   "url": "https://noburf.com/crop-pcb-section/#kept",
+   "image": "https://noburf.com/assets/guides/folio-sectioned.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 7,
+   "name": "Add a port at each end of each line",
+   "text": "Choose Port, click each line end at the cut, and set its name, position and layers.",
+   "url": "https://noburf.com/crop-pcb-section/#ports",
+   "image": "https://noburf.com/assets/guides/folio-ports.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 8,
+   "name": "Solve",
+   "text": "Press Solve. NobuRF drives one port at a time.",
+   "url": "https://noburf.com/crop-pcb-section/#solve",
+   "image": "https://noburf.com/assets/guides/folio-solving.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 9,
+   "name": "Read the pair",
+   "text": "Open the Differential tab, use the proposed pairing and set the differential reference.",
+   "url": "https://noburf.com/crop-pcb-section/#differential",
+   "image": "https://noburf.com/assets/guides/folio-differential.webp"
+  },
+  {
+   "@type": "HowToStep",
+   "position": 10,
+   "name": "Look at the current",
+   "text": "On the Model tab, choose Current to draw the solved current on the copper.",
+   "url": "https://noburf.com/crop-pcb-section/#fields",
+   "image": "https://noburf.com/assets/guides/folio-fields.webp"
+  }
+ ]
+}
+</script>
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="page">
+    <a class="wordmark" href="../">NobuRF</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="../#accuracy">Accuracy</a>
+      <a href="../#agent">AI design</a>
+      <a href="../#guides">Guides</a>
+      <a href="../videos/">Videos</a>
+      <a href="../#roadmap">Roadmap</a>
+      <a href="https://github.com/Llompi/NobuRF-Public">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="page">
+  <div class="intro">
+    <h1>Import a PCB from Gerber files and simulate a section of it</h1>
+    <p class="lede">
+      A whole board is usually far more than you need to solve. This guide takes a real four-layer board, the Folio
+      power board, from its Gerber and drill files to the differential S-parameters of its USB pair, solving only an 18.5 by 9.4&nbsp;mm
+      section around the pair.
+    </p>
+    <div class="actions">
+      <a class="button primary" href="../app/">Open the workbench</a>
+      <a class="button" href="../pcb-simulation/">PCB simulation overview</a>
+    </div>
+  </div>
+
+  <figure class="guide-result">
+    <img src="../assets/guides/folio-result-current.webp" width="810" height="460" alt="The cropped section of the board in 3D, with surface current drawn on the top copper: one line of the USB pair glows red from the connector, at ports 1 and 2, to the ESD part at port 3, and the rest of the copper stays dark.">
+    <figcaption><b>Figure 1.</b> Current on the top copper at 0.48&nbsp;GHz, driven at the USB-C connector. The pair loses 0.1&nbsp;dB to 1&nbsp;GHz and 0.5&nbsp;dB at 2.4&nbsp;GHz, and its two lines arrive 4.5&nbsp;ps apart.</figcaption>
+  </figure>
+
+  <section id="steps" aria-labelledby="steps-heading">
+    <h2 id="steps-heading">Step by step</h2>
+    <p>Open <a href="../app/">the workbench</a> in Chrome or Edge 113 or later. You need the board's Gerber files, one per copper layer, its board outline and its Excellon drill file.</p>
+    <ol class="steps" role="list">
+      <li class="step" id="stackup">
+        <div class="step-text">
+          <h3>Set up the stackup</h3>
+          <p>Gerber files hold copper shapes but not the stackup, so set the layers first, from your fab's stackup drawing. Choose New, then Blank board, and add copper with Add layer pair on top. Here I opened a project that holds only the Folio stackup.</p>
+          <ol class="callouts" role="list">
+            <li>Seven layers, 0.85&nbsp;mm in all: four copper layers with 0.2&nbsp;mm of FR-4 prepreg, a 0.45&nbsp;mm core, then 0.2&nbsp;mm of prepreg.</li>
+            <li>Add layer pair on top adds a dielectric and a copper layer above the top one.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/folio-stackup.webp"><img src="../assets/guides/folio-stackup.webp" width="620" height="490" alt="The project tree's Stackup group: top, prepreg-top, in1, core, in2, prepreg-bottom and bottom, with the board outline below them." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="import">
+        <div class="step-text">
+          <h3>Import each Gerber layer</h3>
+          <p>Choose Import once per file. Import each copper layer in turn. The console counts what each file brought in: 2,286 shapes on top, 171 on each inner layer and 255 on the bottom.</p>
+          <ol class="callouts" role="list">
+            <li>Import, in the toolbar.</li>
+            <li>The Gerber file, here the front copper, power-F_Cu.gtl.</li>
+            <li>The layer it replaces.</li>
+            <li>Keep the file's coordinates, so the layers line up with each other.</li>
+            <li>Import. Undo puts the old layer back if you picked the wrong one.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/folio-import-gerber.webp"><img src="../assets/guides/folio-import-gerber.webp" width="600" height="775" alt="The Import into this project dialog with power-F_Cu.gtl chosen, Replace set to Copper layer top and Position set to Keep the file's coordinates." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="drill">
+        <div class="step-text">
+          <h3>Import the drill file</h3>
+          <p>Plated holes become vias between the outer layers. This board's drill file has 170 plated holes, and the 4 slots come in as a via at each end.</p>
+          <ol class="callouts" role="list">
+            <li>The Excellon drill file, power-PTH.drl.</li>
+            <li>Replace: Plated holes (Excellon drill file).</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/folio-import-drill.webp"><img src="../assets/guides/folio-import-drill.webp" width="500" height="420" alt="The Import dialog with power-PTH.drl chosen and Replace set to Plated holes (Excellon drill file)." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="board">
+        <div class="step-text">
+          <h3>Check the whole board</h3>
+          <p>Turn the view with the mouse and look for a layer that landed in the wrong place. A board this size, with its 2,883 copper shapes, would mesh to many times the 8.63 million cells of the section in step 8, which is why the next step cuts it down.</p>
+          <ol class="callouts" role="list">
+            <li>The console, newest first: one line per imported file.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/folio-board.webp"><img src="../assets/guides/folio-board.webp" width="848" height="770" alt="The imported board in 3D, with the console below listing the imported drill, bottom, inner and top copper files." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="section">
+        <div class="step-text">
+          <h3>Draw the section</h3>
+          <p>Pick the Section tool and drag a rectangle around the part to keep. This one runs from the USB-C connector to the ESD part.</p>
+          <ol class="callouts" role="list">
+            <li>Section, in the drawing tools. The key is X.</li>
+            <li>The rectangle being dragged.</li>
+            <li>The hint: copper and the board outline are cut on every layer, and ports, parts and vias outside are removed.</li>
+            <li>The pointer's position in mm, so you can start and end on round numbers.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/folio-section-drag.webp"><img src="../assets/guides/folio-section-drag.webp" width="848" height="715" alt="The whole board from the top with a dashed rectangle being dragged around the USB area near its bottom edge, and the Section tool's hint above the drawing tools." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="kept">
+        <div class="step-text">
+          <h3>Check what was kept</h3>
+          <p>The board is now the section alone, with the connector's pads on the left and the pair running right to the ESD part. Undo brings the whole board back.</p>
+          <ol class="callouts" role="list">
+            <li>The console: 290 shapes kept whole, 14 cut at the edge and 2,579 dropped, with 160 vias removed.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/folio-sectioned.webp"><img src="../assets/guides/folio-sectioned.webp" width="848" height="770" alt="The 18.5 by 9.4 mm section from the top, and the console line that reports the cut." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="ports">
+        <div class="step-text">
+          <h3>Add a port at each end of each line</h3>
+          <p>Choose Port and click on a line's end, then type the exact position and a name. The tool goes back to Select after each port, so press T before the next one. Each port is a source column from the plane below to the trace, as in the drawing under these steps.</p>
+          <ol class="callouts" role="list">
+            <li>Port, in the drawing tools. The key is T.</li>
+            <li>dp_j1 and dm_j1, at the connector.</li>
+            <li>dp_esd and dm_esd, at the ESD part.</li>
+            <li>The name and the position in mm.</li>
+            <li>From layer in1, the inner plane under the pair, to the top copper.</li>
+            <li>50&nbsp;Ω per port. The pair is read at 90&nbsp;Ω differential later.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/folio-ports.webp"><img src="../assets/guides/folio-ports.webp" width="1176" height="910" alt="The section with four numbered ports, two at the connector and two at the ESD part, and the inspector for port 4 with its name, position, layers and reference impedance." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="solve">
+        <div class="step-text">
+          <h3>Solve</h3>
+          <p>Press Solve. NobuRF drives one port at a time, so four ports take four runs. This section meshed to 8.63 million cells and took 35 minutes on a laptop's GTX 1660 Ti.</p>
+          <ol class="callouts" role="list">
+            <li>Which run, and its time step.</li>
+            <li>How far the field energy has fallen, against the 30&nbsp;dB that ends a run, and the time so far.</li>
+            <li>The mesh size and the number of runs.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/folio-solving.webp"><img src="../assets/guides/folio-solving.webp" width="848" height="150" alt="The progress bar during the solve: run 3 of 4 at step 400, and the console line Solving on WebGPU: 426 by 244 by 83 cells, 8.63 million, up to 20,000 steps, 4 runs." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="differential">
+        <div class="step-text">
+          <h3>Read the pair</h3>
+          <p>Open the Differential tab. It proposes a pairing from which ports transmit to which. Choose Use this pairing, then set the differential reference to your interface's, 90&nbsp;Ω for USB.</p>
+          <ol class="callouts" role="list">
+            <li>The Differential tab.</li>
+            <li>The pairs: D1 at the connector, D2 at the ESD part.</li>
+            <li>Differential reference, 90&nbsp;Ω.</li>
+            <li>Insertion loss, Sdd21: −0.0, −0.1 and −0.5&nbsp;dB at 0.48, 1 and 2.4&nbsp;GHz.</li>
+            <li>Intra-pair skew: 4.50&nbsp;ps, with the negative line later.</li>
+            <li>The differential TDR from each end.</li>
+            <li>The tab says why it gives no impedance here: its 164&nbsp;ps rise time is longer than the line's 121&nbsp;ps one-way delay, so the port connections blur into it.</li>
+          </ol>
+          <p>The worst differential return loss, Sdd11, is −5.5&nbsp;dB. On a line this short, much of that is likely the lumped port connections at each end, which a port's "De-embed feed" setting separates out.</p>
+          <p>These runs stopped at 30&nbsp;dB of energy decay. Skew and the TDR lean on the lowest frequencies, so before you sign off on them, set "Stop when energy falls" to 60&nbsp;dB and solve again.</p>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/folio-differential.webp"><img src="../assets/guides/folio-differential.webp" width="848" height="920" alt="The Differential tab: the pairing bar, mixed-mode S-parameter curves, a differential TDR plot and the readouts beside them." loading="lazy"></a>
+        </figure>
+      </li>
+
+      <li class="step" id="fields">
+        <div class="step-text">
+          <h3>Look at the current</h3>
+          <p>Back on the Model tab, the field buttons draw the solved field on the board. Current shows where the drive from the connector flows.</p>
+          <ol class="callouts" role="list">
+            <li>No field, Ez, Current or a Cut through the board.</li>
+            <li>The color scale: 0&nbsp;dB is the 98th percentile of the current, and the scale reaches 30&nbsp;dB below it.</li>
+            <li>The frequency to show.</li>
+          </ol>
+        </div>
+        <figure class="shot">
+          <a href="../assets/guides/folio-fields.webp"><img src="../assets/guides/folio-fields.webp" width="848" height="875" alt="The section in 3D with surface current drawn on the top copper, the field buttons above it and the color scale panel below." loading="lazy"></a>
+        </figure>
+      </li>
+    </ol>
+  </section>
+
+  <section id="port-model" aria-labelledby="port-model-heading">
+    <h2 id="port-model-heading">What a port is in this stackup</h2>
+    <p>A lumped port is a short column of source between two copper layers. For a trace on top, its return path is the nearest plane below, here in1, through 0.2&nbsp;mm of prepreg.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 490 316" role="img" aria-labelledby="stack-title stack-desc">
+        <title id="stack-title">Cross-section of the Folio stackup with a lumped port</title>
+        <desc id="stack-desc">Seven layers from top to bottom: top copper, 0.2 mm prepreg, in1 copper, 0.45 mm core, in2 copper, 0.2 mm prepreg and bottom copper. A trace on the top layer ends at a vertical port column that runs down to the in1 plane.</desc>
+        <g fill="none" stroke="currentColor" stroke-width="1">
+          <rect x="20" y="70" width="320" height="50" fill="currentColor" fill-opacity="0.12"/>
+          <rect x="20" y="128" width="320" height="112" fill="currentColor" fill-opacity="0.12"/>
+          <rect x="20" y="248" width="320" height="50" fill="currentColor" fill-opacity="0.12"/>
+        </g>
+        <g fill="#b88a3c">
+          <rect x="130" y="62" width="120" height="8"/>
+          <rect x="20" y="120" width="320" height="8"/>
+          <rect x="20" y="240" width="320" height="8"/>
+          <rect x="20" y="298" width="320" height="8"/>
+        </g>
+        <line x1="250" y1="70" x2="250" y2="120" stroke="#62cde8" stroke-width="4"/>
+        <circle cx="250" cy="95" r="10" fill="#62cde8"/>
+        <text x="250" y="100" text-anchor="middle" style="fill:#0a0e14;font-weight:600">1</text>
+        <text x="130" y="52">trace on top</text>
+        <text x="250" y="24" text-anchor="middle">port 1: from in1 to top</text>
+        <text x="360" y="70" class="label-muted">top</text>
+        <text x="360" y="100" class="label-muted">prepreg, 0.2 mm</text>
+        <text x="360" y="129">in1, the plane</text>
+        <text x="360" y="189" class="label-muted">core, 0.45 mm</text>
+        <text x="360" y="249" class="label-muted">in2</text>
+        <text x="360" y="278" class="label-muted">prepreg, 0.2 mm</text>
+        <text x="360" y="307" class="label-muted">bottom</text>
+      </svg>
+      <figcaption>The Folio stackup, to scale in thickness. The port sits where the trace ends at the cut, and its column spans the prepreg between the trace and in1.</figcaption>
+    </figure>
+  </section>
+
+  <section id="where" aria-labelledby="where-heading">
+    <h2 id="where-heading">Where to cut</h2>
+    <figure class="diagram">
+      <svg viewBox="0 0 500 220" role="img" aria-labelledby="cut-title cut-desc">
+        <title id="cut-title">Where to draw a section across a pair</title>
+        <desc id="cut-desc">A differential pair runs from a connector on the left to a part on the right. The section rectangle crosses both lines where they run straight, a few line widths from the parts, and a port sits on each line at each cut edge.</desc>
+        <rect x="10" y="70" width="50" height="80" rx="4" fill="currentColor" fill-opacity="0.15" stroke="currentColor"/>
+        <text x="35" y="170" text-anchor="middle" class="label-muted">connector</text>
+        <rect x="440" y="80" width="50" height="60" rx="4" fill="currentColor" fill-opacity="0.15" stroke="currentColor"/>
+        <text x="465" y="160" text-anchor="middle" class="label-muted">part</text>
+        <path d="M60 100 H200 L225 80 H440" fill="none" stroke="#b88a3c" stroke-width="6"/>
+        <path d="M60 120 H210 L235 100 H440" fill="none" stroke="#b88a3c" stroke-width="6"/>
+        <rect x="100" y="40" width="300" height="120" fill="none" stroke="#62cde8" stroke-width="2" stroke-dasharray="6 5"/>
+        <g fill="#62cde8"><circle cx="100" cy="100" r="6"/><circle cx="100" cy="120" r="6"/><circle cx="400" cy="80" r="6"/><circle cx="400" cy="100" r="6"/></g>
+        <text x="250" y="28" text-anchor="middle">section: cut across straight line</text>
+        <text x="100" y="200" text-anchor="middle">ports at the cut</text>
+        <text x="400" y="200" text-anchor="middle">ports at the cut</text>
+      </svg>
+    </figure>
+    <ol>
+      <li>Cut across the lines where they run straight, a few line widths away from the feature you care about. The new ports sit at the cut, and each port connection shows as a step at the ends of the TDR.</li>
+      <li>The cut goes through every layer, so the plane under the section is kept with it.</li>
+      <li>Anything that crosses the edge, such as a pour or a long trace, is clipped to it. Parts and vias outside are removed.</li>
+      <li>Ask what the section is for. Skew and mode conversion from a local feature survive a tight crop. Impedance and loss need more line: the TDR reads a line only where its delay is longer than the rise time.</li>
+    </ol>
+  </section>
+
+  <section id="compare" aria-labelledby="compare-heading">
+    <h2 id="compare-heading">Does cropping change the answer?</h2>
+    <p>To check, I solved the diff-pair-detour example in the workbench twice: whole, and cropped to a 10&nbsp;mm section that keeps its length-matching detour. Each had its own four ports.</p>
+    <div class="table-scroll" role="region" aria-labelledby="compare-caption" tabindex="0">
+      <table>
+        <caption id="compare-caption">Both solved in the workbench on a laptop's NVIDIA GTX 1660 Ti, with the example's own mesh and 0.05 to 10&nbsp;GHz band.</caption>
+        <thead><tr><th scope="col">Differential tab</th><th scope="col">Whole board, 18&nbsp;mm of line</th><th scope="col">Section, 10&nbsp;mm of line</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Intra-pair skew</th><td>10.56&nbsp;ps</td><td>11.03&nbsp;ps</td></tr>
+          <tr><th scope="row">Delay, D1 to D2</th><td>122.2&nbsp;ps</td><td>70.6&nbsp;ps</td></tr>
+          <tr><th scope="row">Worst mode conversion, Scd21</th><td>−10.1&nbsp;dB</td><td>−9.9&nbsp;dB</td></tr>
+          <tr><th scope="row">Worst return loss, Sdd11</th><td>−15.1&nbsp;dB</td><td>−16.9&nbsp;dB</td></tr>
+          <tr><th scope="row">Differential impedance</th><td>93.5&nbsp;Ω (92.2 to 96.8)</td><td>not read, line too short</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      The skew comes from the detour, and the section keeps the detour whole, so it reads the skew within 0.5&nbsp;ps
+      of the whole board. The delay drops with the shorter line, as it should, and the mode conversion, which the
+      detour also causes, stays about the same.
+    </p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="page">
+    <p>It is an independent project, not affiliated with or endorsed by any commercial solver vendor.</p>
+    <p>NobuRF is free software under the <a href="https://github.com/Llompi/NobuRF-Public/blob/main/LICENSE">GNU AGPL-3.0</a>. The designs and results you make with it are yours. To build it into closed software, see <a href="https://github.com/Llompi/NobuRF-Public/blob/main/COMMERCIAL.md">commercial licenses</a>.</p>
+    <p>Privacy: NobuRF's solver runs in your browser, on your GPU or CPU, and this site never uploads your designs. The app keeps your latest design in this browser's storage. NobuRF has no ads, sets no cookies of its own, and doesn't track you across sites. The site is hosted on Cloudflare, which uses its cookie-free Web Analytics to count visits and measure page load times. If Cloudflare's bot protection flags a visit, it may set a security cookie. Fonts load from Google Fonts. Cloudflare and Google receive standard request details, such as your IP address. The AI design features aren't part of this site. They run from your own computer with your own API key, and they send your prompts to the AI provider you choose.</p>
+  </div>
+</footer>
+</body>
+</html>

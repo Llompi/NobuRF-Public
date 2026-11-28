@@ -46,6 +46,18 @@ Keep `noburf.llom.party` attached and its rule on: the launch posts on X, Reddit
 Redirect Rules are free (10 per zone on the Free plan) and run before Pages, so they don't add a Function.
 They only fire on proxied traffic, so keep the DNS records for `www.noburf.com` and `noburf.llom.party` (and the apex) proxied (orange cloud).
 
+## Search engines and short links
+
+- `site/robots.txt` allows every crawler and points to `site/sitemap.xml`. Add a page to the sitemap
+  when you add one to the site.
+- `site/llms.txt` is a plain-text map of the site for AI tools ([llmstxt.org](https://llmstxt.org)).
+  Keep its accuracy line in step with the validation report.
+- `site/_redirects` serves the landing page at `/hn`, `/r-rf`, `/r-ham` and `/eevblog`, one short link
+  per launch post. Cloudflare Web Analytics drops query strings, so a UTM tag would not show which post
+  a visit came from; a path does. The page's canonical link stays `https://noburf.com/`.
+- `/examples/...` redirects to the repository. AI tools have asked this site for example files,
+  resolving the repository's relative `examples/` links against noburf.com.
+
 ## Why traffic does not bill
 
 Checked against Cloudflare's docs on 2026-11-21:
