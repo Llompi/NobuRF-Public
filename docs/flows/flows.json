@@ -27,7 +27,7 @@
           "state_type": "happy",
           "status": "captured",
           "screen": "screens/wb-first-load.webp",
-          "summary": "The default example, an inset-fed patch for the 5.8 GHz band, opens ready to solve. The status line says \"Ready to solve\"; result tabs stay disabled until a solve lands.",
+          "summary": "The default example, an inset-fed patch for the 5.8 GHz band, opens ready to solve. The status line says \"Ready to solve\"; result tabs stay off until a solve lands (a click on one says why).",
           "code_ref": "src/workbench/main.ts · boot()"
         },
         {

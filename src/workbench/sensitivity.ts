@@ -142,8 +142,8 @@ export class SensitivityView {
       const share = largest > 0 ? Math.min(1, Math.abs(s.acrossRange) / largest) : 0;
       const side = s.acrossRange < 0 ? 'down' : 'up';
       const detail = `${sig(s.perUnit)} ${metric.unit === 'ohm' ? 'Ω' : metric.unit}/${v.unit} ± ${sig(s.spread)}${s.stepError !== undefined ? `, step error ${sig(s.stepError)}` : ''} · step ${r.h.toFixed(2)} ${v.unit}${r.scheme === 'central' ? '' : `, ${r.scheme}`}`;
-      const flag = s.grade === 'clean' ? '' : `<span class="sens-flag" title="${GRADE_TEXT[s.grade]}">${s.grade}</span>`;
-      const curved = s.curved ? '<span class="sens-flag" title="The curvature between the two steps would bend the result across the range by more than a quarter of this straight-line figure. Trust the slope, not the across-range number.">curved</span>' : '';
+      const flag = s.grade === 'clean' ? '' : `<span class="sens-flag">${s.grade}</span>`;
+      const curved = s.curved ? '<span class="sens-flag">curved</span>' : '';
       return `<li class="sens-row${s.grade === 'clean' ? '' : ' unresolved'}">${head}` +
         `<div class="sens-bar-track" aria-hidden="true"><div class="sens-bar ${side}" style="width:${(50 * share).toFixed(1)}%"></div></div>` +
         `<div class="sens-value"><span class="number">${changeText(s.acrossRange, metric.unit)}</span> <span class="sens-caption">across its range</span>${flag}${curved}<span class="sens-detail">${escapeHtml(detail)}</span></div></li>`;
@@ -159,6 +159,8 @@ export class SensitivityView {
     const notes = [
       ...report.rows.flatMap((r) => r.notes.map((n) => `${r.variable.name}: ${n}`)),
       ...report.skipped.map((s) => `${s.name} skipped: ${s.reason}`),
+      // What each flag on a row means, written out once below the rows rather than in a hover tooltip.
+      ...flagNotes(rows.map((r) => r.slopes[metric.key]).filter((s): s is Slope => !!s)),
       'One variable at a time at this design: it does not see how variables interact. ± is half the gap between the slopes below and above the value: an indicator that grows with curvature, jumps and mesh noise, not an error bound.',
     ];
     els.notes.innerHTML = notes.map((n) => `<p class="note">${escapeHtml(n)}</p>`).join('');
@@ -172,6 +174,15 @@ interface StudyMeta {
   /** The project was edited while the study ran. */
   changed: boolean;
 }
+
+const CURVED_TEXT = 'The curvature between the two steps would bend the result across the range by more than a quarter of the across-range figure. Trust the slope, not the across-range number.';
+
+function flagNotes(slopes: Slope[]): string[] {
+  const grades = (Object.keys(GRADE_TEXT) as Array<keyof typeof GRADE_TEXT>).filter((g) => slopes.some((s) => s.grade === g));
+  return [...grades.map((g) => `${capitalise(g)}: ${GRADE_TEXT[g]}`), ...(slopes.some((s) => s.curved) ? [`Curved: ${CURVED_TEXT}`] : [])];
+}
+
+const capitalise = (text: string) => text[0].toUpperCase() + text.slice(1);
 
 const GRADE_TEXT: Record<Exclude<SlopeGrade, 'clean'>, string> = {
   'sign only': 'The slopes below and above the value differ by more than 25 %: the direction is known, the size is not.',

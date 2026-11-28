@@ -100,7 +100,35 @@ function message(kind: MessageKind, text: string): void {
 const TABS = ['model', 'sparams', 'smith', 'impedance', 'farfield', 'emissions', 'line', 'pair', 'sensitivity'] as const;
 type Tab = (typeof TABS)[number];
 
+/**
+ * A tab this result can't fill stays clickable and reachable with the arrow keys (aria-disabled, not
+ * disabled), so a click, a tap or a keyboard user can find out why it is off: the reason shows over the view.
+ */
+function setTabOff(tab: Tab, reason: string | null): void {
+  const el = byId(`tab-${tab}`);
+  el.setAttribute('aria-disabled', String(reason !== null));
+  if (reason === null) delete el.dataset.offReason;
+  else el.dataset.offReason = reason;
+  if (reasonShownFor === tab) showTabOffReason(reason === null ? null : tab); // Never leave an old reason up.
+}
+
+const tabIsOff = (tab: Tab) => byId(`tab-${tab}`).getAttribute('aria-disabled') === 'true';
+
+/** The tab whose reason is showing. The note stays in the page, empty when unused, so screen readers announce it. */
+let reasonShownFor: Tab | null = null;
+let reasonTimer = 0;
+
+/** Shows why a tab is off for a few seconds, over the view (it covers part of it, so it doesn't linger). */
+function showTabOffReason(tab: Tab | null): void {
+  const reason = tab ? byId(`tab-${tab}`).dataset.offReason : undefined;
+  reasonShownFor = reason ? tab : null;
+  byId('tab-off-reason').textContent = reason ?? '';
+  clearTimeout(reasonTimer);
+  if (reason) reasonTimer = window.setTimeout(() => showTabOffReason(null), 8000);
+}
+
 function showTab(tab: Tab): void {
+  showTabOffReason(null);
   for (const t of TABS) {
     const selected = t === tab;
     byId(`tab-${t}`).setAttribute('aria-selected', String(selected));
@@ -113,36 +141,38 @@ function wireTabs(): void {
   const tablist = document.querySelector<HTMLElement>('.tabs')!;
   tablist.addEventListener('click', (e) => {
     const tab = (e.target as HTMLElement).closest<HTMLButtonElement>('[role="tab"]');
-    if (tab && !tab.disabled) showTab(tab.id.replace('tab-', '') as Tab);
+    if (!tab) return;
+    const name = tab.id.replace('tab-', '') as Tab;
+    if (tabIsOff(name)) showTabOffReason(name);
+    else showTab(name);
   });
+  // Arrows move through every tab: one that is on opens, one that is off only shows why.
   tablist.addEventListener('keydown', (e) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-    const enabled = TABS.filter((t) => !byId<HTMLButtonElement>(`tab-${t}`).disabled);
-    const at = enabled.findIndex((t) => byId(`tab-${t}`).getAttribute('aria-selected') === 'true');
-    const next = enabled[(at + (e.key === 'ArrowRight' ? 1 : enabled.length - 1)) % enabled.length];
-    showTab(next);
+    const at = TABS.findIndex((t) => byId(`tab-${t}`) === document.activeElement);
+    const next = TABS[(Math.max(0, at) + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length];
+    if (tabIsOff(next)) showTabOffReason(next);
+    else showTab(next);
     byId(`tab-${next}`).focus();
   });
 }
 
 function updateResultTabs(): void {
   const has = result !== null;
-  for (const t of ['sparams', 'smith', 'impedance'] as const) byId<HTMLButtonElement>(`tab-${t}`).disabled = !has;
-  byId<HTMLButtonElement>('tab-farfield').disabled = !result?.farField;
-  byId('tab-farfield').title = result?.farField ? 'Gain, directivity and the radiation pattern'
-    : 'Enter a frequency in "Far field at" under Setup, Analysis and outputs, then solve';
-  byId<HTMLButtonElement>('tab-emissions').disabled = !result?.farField && !result?.nearField;
-  byId('tab-emissions').title = result?.farField || result?.nearField ? 'Radiated emissions and near-field scans'
-    : 'Enter "Far field at" or "Near-field scan at" under Setup, Analysis and outputs, then solve';
-  if (result && !byId<HTMLButtonElement>('tab-emissions').disabled) emissionsView.show(result);
+  const notSolved = 'Solve the project to see this.';
+  for (const t of ['sparams', 'smith', 'impedance'] as const) setTabOff(t, has ? null : notSolved);
+  setTabOff('farfield', result?.farField ? null : has
+    ? 'Far field needs a frequency in "Far field at" under Setup, Analysis and outputs. Enter one, then solve again.' : notSolved);
+  setTabOff('emissions', result?.farField || result?.nearField ? null : has
+    ? 'Emissions need "Far field at" or "Near-field scan at" under Setup, Analysis and outputs. Enter one, then solve again.' : notSolved);
+  if (result && !tabIsOff('emissions')) emissionsView.show(result);
   const line = result ? analyseLine(result) : null;
-  byId<HTMLButtonElement>('tab-line').disabled = !line?.ok;
-  byId('tab-line').title = line && !line.ok ? line.reason : 'For two ports at the ends of a straight strip';
+  setTabOff('line', line?.ok ? null : line ? line.reason : 'Line is for two ports at the ends of a straight strip. Solve the project to see it.');
   if (result && line?.ok) lineView.show(result, line);
   updatePairTab();
   // A tab that this result cannot fill must not keep showing the last one.
   const open = TABS.find((t) => byId(`tab-${t}`).getAttribute('aria-selected') === 'true');
-  if (open && byId<HTMLButtonElement>(`tab-${open}`).disabled) showTab(result ? 'sparams' : 'model');
+  if (open && tabIsOff(open)) showTab(result ? 'sparams' : 'model');
   const fields = result?.fields ?? null;
   document.querySelector<HTMLButtonElement>('[data-field="ez"]')!.disabled = !fields;
   document.querySelector<HTMLButtonElement>('[data-field="current"]')!.disabled = !fields;
@@ -155,9 +185,7 @@ function updateResultTabs(): void {
 /** The Differential tab follows the document's pairing, which can change without a new solve. */
 function updatePairTab(): void {
   const state = result ? pairState(result, store.document) : null;
-  const tab = byId<HTMLButtonElement>('tab-pair');
-  tab.disabled = !state || state.kind === 'unavailable';
-  tab.title = state?.kind === 'unavailable' ? state.reason : 'Mixed-mode S-parameters, differential impedance and skew of paired ports';
+  setTabOff('pair', !state ? 'Differential is for paired ports. Solve the project to see it.' : state.kind === 'unavailable' ? state.reason : null);
   if (result && state && state.kind !== 'unavailable') pairView.show(result, state);
 }
 

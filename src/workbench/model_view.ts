@@ -141,8 +141,6 @@ export class ModelView {
     this.renderer.setClearColor(0x000000, 0);
     host.appendChild(this.renderer.domElement);
 
-    const pmrem = new THREE.PMREMGenerator(this.renderer);
-    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     this.scene.environmentIntensity = 0.3;
 
     this.camera.up.set(0, 0, 1);
@@ -179,13 +177,44 @@ export class ModelView {
     const loop = (nowMs: number) => {
       this.advance(nowMs);
       if (this.controls.update()) this.dirty = true;
-      if (this.dirty) {
+      if (this.dirty && this.warm) {
         this.renderer.render(this.scene, this.camera);
         this.dirty = false;
       }
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
+    void this.warmUp();
+  }
+
+  /** False until the room light is baked and the shaders are compiled: the loop draws nothing before. */
+  private warm = false;
+  /** Resolves on the first setProject, so the warm-up compiles the board's materials too. */
+  private firstProject!: () => void;
+  private readonly firstProjectShown = new Promise<void>((shown) => (this.firstProject = shown));
+
+  /**
+   * Baking the room light and compiling the first shaders held the main thread for over a second
+   * on a slow GPU, before the page had painted. They now wait for the first paint and the first
+   * project, and `compileAsync` compiles in parallel where the browser can (KHR_parallel_shader_compile).
+   * Whatever happens, the view starts drawing: a failure here only costs the speed-up.
+   */
+  private async warmUp(): Promise<void> {
+    const wait = (ms: number) => new Promise<void>((done) => setTimeout(done, ms));
+    try {
+      await new Promise((painted) => requestAnimationFrame(() => setTimeout(painted, 0)));
+      const pmrem = new THREE.PMREMGenerator(this.renderer);
+      this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+      pmrem.dispose();
+      await Promise.race([this.firstProjectShown, wait(5000)]);
+      // three polls for the compile forever if the context is lost meanwhile, so the wait is capped.
+      await Promise.race([this.renderer.compileAsync(this.scene, this.camera), wait(3000)]);
+    } catch (error) {
+      console.warn('3D view warm-up failed; drawing without it.', error);
+    } finally {
+      this.warm = true;
+      this.dirty = true;
+    }
   }
 
   private lights: { key: THREE.DirectionalLight; rim: THREE.DirectionalLight };
@@ -205,6 +234,7 @@ export class ModelView {
   /* ---------------------------------------------------------------- model */
 
   setProject(r: ResolvedProject): void {
+    queueMicrotask(this.firstProject);
     this.viewVersion++;
     this.resolved = r;
     this.snapCorners = alignedEdgeEnds([r.boardOutline, ...Object.values(r.copper).flatMap((shapes) => shapes.filter((s) => s.op === 'add').map((s) => s.polygon))]);

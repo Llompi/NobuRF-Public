@@ -100,8 +100,10 @@ stateDiagram-v2
 ```
 
 `result.projectText` is the exact text that was solved; the page compares it with the document after
-every change. With no result, the result tabs, the field buttons and the lobe toggle are disabled, and
-the field view returns to "No field".
+every change. With no result, the field buttons and the lobe toggle are disabled, and the field view
+returns to "No field". A result tab that the result can't fill is marked off with `aria-disabled`
+rather than `disabled`, so it can still be clicked, tapped or reached with the arrow keys: that shows
+why it is off for a few seconds, over the view, without leaving the open tab.
 
 ## Import dialog
 
